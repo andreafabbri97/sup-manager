@@ -80,7 +80,7 @@ export default function Dashboard({ page = 'dashboard' }: { page?: string }) {
       } catch (e) { setRevByEquip([]) }
 
       try {
-        const { data: top } = await supabase.rpc('report_top_products', { start_date: start, end_date: end, limit: 6 })
+        const { data: top } = await supabase.rpc('report_top_products', { start_date: start, end_date: end, p_limit: 6 })
         setTopProducts(top ?? [])
       } catch(e) { setTopProducts([]) }
 

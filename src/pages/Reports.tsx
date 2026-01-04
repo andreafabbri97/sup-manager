@@ -69,7 +69,7 @@ export default function Reports() {
 
     // top products
     try {
-      const { data: top } = await supabase.rpc('report_top_products', { start_date: start, end_date: end, limit: 10 })
+      const { data: top } = await supabase.rpc('report_top_products', { start_date: start, end_date: end, p_limit: 10 })
       setTopProducts(top ?? [])
     } catch (e) { setTopProducts([]) }
 
