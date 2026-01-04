@@ -35,13 +35,13 @@ BEGIN
 
     -- Lock sup rows for this equipment to prevent race conditions
     total_sups := 0;
-    FOR rec IN SELECT id FROM sup WHERE equipment_id = eq_id AND (status IS NULL OR status = 'available') FOR UPDATE LOOP
+    FOR rec IN SELECT sup.id FROM sup WHERE sup.equipment_id = eq_id AND (sup.status IS NULL OR sup.status = 'available') FOR UPDATE LOOP
       total_sups := total_sups + 1;
     END LOOP;
 
     -- If no individual `sup` rows exist for this equipment, fall back to equipment.quantity
     IF total_sups = 0 THEN
-      SELECT COALESCE(quantity, 0) INTO total_sups FROM equipment WHERE id = eq_id;
+      SELECT COALESCE(equipment.quantity, 0) INTO total_sups FROM equipment WHERE equipment.id = eq_id;
     END IF;
 
     -- Sum quantities already booked in overlapping bookings
@@ -60,8 +60,8 @@ BEGIN
   -- If all checks pass, insert booking
   INSERT INTO booking(customer_name, start_time, end_time, price, package_id, equipment_items)
   VALUES (p_customer_name, p_start, p_end, p_price, p_package, p_equipment_items)
-  RETURNING id INTO v_booking_id;
+  RETURNING booking.id INTO v_booking_id;
 
-  RETURN QUERY SELECT v_booking_id;
+  RETURN QUERY SELECT v_booking_id AS id;
 END;
 $$;
