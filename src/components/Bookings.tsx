@@ -392,26 +392,26 @@ export default function Bookings() {
           <div className="p-4">
             <div className="space-y-2">
               {getBookingsForDate(currentDate).map(b => (
-                <button key={b.id} onClick={() => { setSelectedBooking(b); setShowBookingDetails(true) }} className="w-full text-left p-3 rounded border border-neutral-200 dark:border-neutral-700 bg-amber-50 dark:bg-amber-900/20">
+                <button key={b.id} onClick={() => { setSelectedBooking(b); setShowBookingDetails(true) }} className="w-full text-left p-3 rounded border border-neutral-200 dark:border-neutral-700 bg-amber-50 dark:bg-neutral-800 interactive">
                   <div className="flex items-start justify-between">
                     <div>
-                      <div className="font-medium">{b.customer_name || 'Cliente'}</div>
-                      <div className="text-sm text-neutral-600 dark:text-neutral-400">
+                      <div className="font-medium text-neutral-900 dark:text-neutral-100">{b.customer_name || 'Cliente'}</div>
+                      <div className="text-sm text-neutral-600 dark:text-neutral-300">
                         {new Date(b.start_time).toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'})} - {new Date(b.end_time).toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'})}
                       </div>
-                      {b.price && <div className="text-sm text-amber-600 dark:text-amber-400">€ {b.price}</div>}
-                      {b.paid ? <div className="text-xs text-green-600 font-semibold">Pagato{b.paid_at ? ` il ${new Date(b.paid_at).toLocaleString('it-IT')}` : ''}</div> : null}
+                      {b.price && <div className="text-sm text-amber-600 dark:text-amber-300">€ {b.price}</div>}
+                      {b.paid ? <div className="text-xs text-green-500 dark:text-green-300 font-semibold">Pagato{b.paid_at ? ` il ${new Date(b.paid_at).toLocaleString('it-IT')}` : ''}</div> : null}
                     </div>
                     <div className="flex items-center gap-2">
                       {!b.paid && (
-                        <button onClick={(e)=>{ e.stopPropagation(); markPaid(b.id) }} className="text-green-600 hover:text-green-700 p-1" title="Registra incasso">
+                        <button onClick={(e)=>{ e.stopPropagation(); markPaid(b.id) }} className="text-green-600 hover:text-green-700 p-1 focus-ring" title="Registra incasso">
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3" />
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
                         </button>
                       )}
-                      <button onClick={(e)=>{ e.stopPropagation(); removeBooking(b.id) }} className="text-red-500 hover:text-red-600 p-1">
+                      <button onClick={(e)=>{ e.stopPropagation(); removeBooking(b.id) }} className="text-red-500 hover:text-red-600 p-1 focus-ring">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                         </svg>
@@ -445,13 +445,13 @@ export default function Bookings() {
                       <div className={`text-sm font-medium mb-2 ${isToday ? 'text-amber-600 dark:text-amber-400' : ''}`}>{day.getDate()}</div>
                       <div className="space-y-1">
                         {dayBookings.map(b => (
-                          <button key={b.id} onClick={() => { setSelectedBooking(b); setShowBookingDetails(true) }} className="w-full text-left text-xs p-1 rounded bg-amber-100 dark:bg-amber-900/30 truncate">
+                          <button key={b.id} onClick={() => { setSelectedBooking(b); setShowBookingDetails(true) }} className="w-full text-left text-xs p-1 rounded bg-amber-100 dark:bg-neutral-800/60 text-neutral-900 dark:text-neutral-100 truncate interactive">
                             <div className="flex items-center justify-between">
                               <div className="font-medium truncate">{new Date(b.start_time).toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'})} — {b.customer_name || 'Cliente'}</div>
                               <div className="flex items-center gap-2">
-                                {!b.paid && <button onClick={(e)=>{ e.stopPropagation(); markPaid(b.id) }} className="text-green-600 text-xs">Registra</button>}
-                                {b.paid && <span className="text-xs text-green-600">Pagato</span>}
-                                <button onClick={(e)=>{ e.stopPropagation(); removeBooking(b.id) }} className="text-red-500 text-xs">Elimina</button>
+                                {!b.paid && <button onClick={(e)=>{ e.stopPropagation(); markPaid(b.id) }} className="text-green-600 text-xs focus-ring">Registra</button>}
+                                {b.paid && <span className="text-xs text-green-500 dark:text-green-300">Pagato</span>}
+                                <button onClick={(e)=>{ e.stopPropagation(); removeBooking(b.id) }} className="text-red-500 text-xs focus-ring">Elimina</button>
                               </div>
                             </div>
                           </button>
@@ -477,15 +477,15 @@ export default function Bookings() {
                     <div className="space-y-2">
                       {dayBookings.length === 0 && <div className="text-neutral-500 text-sm">Nessuna prenotazione</div>}
                       {dayBookings.map(b => (
-                        <button key={b.id} onClick={() => { setSelectedBooking(b); setShowBookingDetails(true) }} className="w-full text-left p-3 rounded bg-amber-100 dark:bg-amber-900/30 flex items-center justify-between">
+                        <button key={b.id} onClick={() => { setSelectedBooking(b); setShowBookingDetails(true) }} className="w-full text-left p-3 rounded bg-amber-100 dark:bg-neutral-800/60 flex items-center justify-between interactive">
                           <div>
-                            <div className="font-medium text-sm">{b.customer_name || 'Cliente'}</div>
-                            <div className="text-xs text-neutral-600">{new Date(b.start_time).toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'})} – {new Date(b.end_time).toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'})}</div>
-                            {b.paid && <div className="text-xs text-green-600 font-semibold">Pagato</div>}
+                            <div className="font-medium text-sm text-neutral-900 dark:text-neutral-100">{b.customer_name || 'Cliente'}</div>
+                            <div className="text-xs text-neutral-600 dark:text-neutral-300">{new Date(b.start_time).toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'})} – {new Date(b.end_time).toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'})}</div>
+                            {b.paid && <div className="text-xs text-green-500 dark:text-green-300 font-semibold">Pagato</div>}
                           </div>
                           <div className="flex items-center gap-2">
-                            {!b.paid && <button onClick={(e)=>{ e.stopPropagation(); markPaid(b.id) }} className="text-green-600 ml-3">Registra incasso</button>}
-                            <button onClick={(e)=>{ e.stopPropagation(); removeBooking(b.id) }} className="text-red-500 ml-3">Elimina</button>
+                            {!b.paid && <button onClick={(e)=>{ e.stopPropagation(); markPaid(b.id) }} className="text-green-600 ml-3 focus-ring">Registra incasso</button>}
+                            <button onClick={(e)=>{ e.stopPropagation(); removeBooking(b.id) }} className="text-red-500 ml-3 focus-ring">Elimina</button>
                           </div>
                         </button>
                       ))}
