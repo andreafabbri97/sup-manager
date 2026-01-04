@@ -45,6 +45,14 @@ export default function Reports() {
   const [summary, setSummary] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
 
+  // advanced metrics
+  const [prevRevenueSum, setPrevRevenueSum] = useState<number>(0)
+  const [prevOrdersCount, setPrevOrdersCount] = useState<number>(0)
+  const [revenueChangePct, setRevenueChangePct] = useState<number>(0)
+  const [ordersChangePct, setOrdersChangePct] = useState<number>(0)
+  const [avgBookingsPerDay, setAvgBookingsPerDay] = useState<number>(0)
+  const [avgRevenuePerDay, setAvgRevenuePerDay] = useState<number>(0)
+
   // Metrics
   const [ivaPercent, setIvaPercent] = useState<number>(22)
   const [bookingsCount, setBookingsCount] = useState<number>(0)
@@ -102,6 +110,41 @@ export default function Reports() {
     } catch (e) {
       setDailyOrders([])
     }
+    // compute current sums and averages
+    const currentRevenue = (d ?? []).reduce((s:any,x:any)=>s + Number(x.revenue ?? 0), 0)
+    // fetch daily orders once more safely to compute currentOrders
+    let currentOrders = 0
+    try {
+      const { data: od2 } = await supabase.rpc('report_daily_orders', { start_date: start, end_date: end })
+      currentOrders = (od2 ?? []).reduce((s:any,x:any)=>s + Number(x.orders ?? x.count ?? 0), 0)
+    } catch (e) {
+      currentOrders = 0
+    }
+
+    // compute previous period (same length immediately before start)
+    const sDate = new Date(start)
+    const eDate = new Date(end)
+    const msPerDay = 1000*60*60*24
+    const days = Math.round((eDate.getTime() - sDate.getTime()) / msPerDay) + 1
+    const prevEnd = new Date(sDate.getTime() - msPerDay)
+    const prevStart = new Date(prevEnd.getTime() - (days-1)*msPerDay)
+    const fmt = (d: Date) => d.toISOString().slice(0,10)
+
+    const { data: prevDailyRev } = await supabase.rpc('report_daily_revenue', { start_date: fmt(prevStart), end_date: fmt(prevEnd) })
+    const { data: prevDailyOrders } = await supabase.rpc('report_daily_orders', { start_date: fmt(prevStart), end_date: fmt(prevEnd) })
+    const prevRevSum = (prevDailyRev ?? []).reduce((s:any,x:any)=>s + Number(x.revenue ?? 0), 0)
+    const prevOrdSum = (prevDailyOrders ?? []).reduce((s:any,x:any)=>s + Number(x.orders ?? x.count ?? 0), 0)
+    setPrevRevenueSum(prevRevSum)
+    setPrevOrdersCount(prevOrdSum)
+
+    // percentage change (handle zero previous)
+    const revPct = prevRevSum === 0 ? (currentRevenue === 0 ? 0 : 100) : ((currentRevenue - prevRevSum) / Math.abs(prevRevSum) * 100)
+    const ordPct = prevOrdSum === 0 ? (currentOrders === 0 ? 0 : 100) : ((currentOrders - prevOrdSum) / Math.abs(prevOrdSum) * 100)
+    setRevenueChangePct(Number.isFinite(revPct) ? revPct : 0)
+    setOrdersChangePct(Number.isFinite(ordPct) ? ordPct : 0)
+
+    setAvgBookingsPerDay(days > 0 ? currentOrders / days : 0)
+    setAvgRevenuePerDay(days > 0 ? currentRevenue / days : 0)
     const { data: s } = await supabase.rpc('report_margin', { start_date: start, end_date: end })
     setSummary(s ?? [])
 
@@ -286,7 +329,9 @@ export default function Reports() {
       <div className="mb-4">
           <div className="flex flex-wrap gap-4 pb-2">
           <StatCard title="Entrate" value={revenueSum.toFixed(2) + ' €'} color="accent" />
+          <StatCard title="Incasso/giorno" value={avgRevenuePerDay.toFixed(2) + ' €'} color="accent" />
           <StatCard title="Ordini" value={bookingsCount} color="neutral" />
+          <StatCard title="Prenotazioni/giorno" value={avgBookingsPerDay.toFixed(2)} color="neutral" />
           <StatCard title="Spese" value={expensesSum.toFixed(2) + ' €'} color="warning" />
           {!excludeIva && <StatCard title="IVA" value={(ivaAmount).toFixed(2) + ' €'} color="neutral" />}
           <StatCard title="Profitto" value={profitValue} color="success" />
