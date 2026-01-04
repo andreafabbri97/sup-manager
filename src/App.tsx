@@ -7,8 +7,14 @@ import Bookings from './components/Bookings'
 import Packages from './components/Packages'
 
 export default function App() {
-  const [page, setPage] = useState('reports')
-  const handleNav = useCallback((p: string) => setPage(p), [])
+  const [page, setPage] = useState<string>(() => {
+    if (typeof window === 'undefined') return 'reports'
+    try { return window.localStorage.getItem('app_page') || 'reports' } catch (e) { return 'reports' }
+  })
+  const handleNav = useCallback((p: string) => {
+    setPage(p)
+    try { window.localStorage.setItem('app_page', p) } catch (e) {}
+  }, [])
 
   return (
     <div className="min-h-screen bg-sky-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 flex">
