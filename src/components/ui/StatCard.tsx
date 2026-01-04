@@ -10,7 +10,7 @@ export default function StatCard({ title, value, className = '', color = 'neutra
   return (
     <div className={`w-full sm:w-52 md:w-56 p-4 rounded-xl shadow-md min-h-[72px] flex flex-col justify-center transition-transform transform hover:-translate-y-1 ${colorClasses[color]} ${className}`}>
       <div className="text-sm uppercase tracking-wide text-white/90">{title}</div>
-      <div className="mt-2 text-2xl font-semibold leading-none">{value}</div>
+      <div className="mt-2 text-2xl font-semibold leading-none transition-colors duration-150">{value}</div>
     </div>
   )
 }

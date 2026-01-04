@@ -698,6 +698,6 @@ export default function Bookings() {
           </div>
         )}
       </Modal>
-    </div>
+    </section>
   )
 }
