@@ -533,14 +533,18 @@ export default function Bookings() {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleEquipmentChange(eq.id, (selected?.quantity || 0) - 1)}
-                        className="w-6 h-6 rounded bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600"
+                        disabled={(selected?.quantity || 0) <= 0}
+                        aria-disabled={(selected?.quantity || 0) <= 0}
+                        className={`w-6 h-6 rounded ${ (selected?.quantity || 0) <= 0 ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed' : 'bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600'}`}
                       >
                         -
                       </button>
                       <span className="w-8 text-center text-sm font-medium">{selected?.quantity || 0}</span>
                       <button
                         onClick={() => handleEquipmentChange(eq.id, (selected?.quantity || 0) + 1)}
-                        className="w-6 h-6 rounded bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600"
+                        disabled={(availabilityMap[eq.id] ?? (eq.quantity ?? 1)) <= (selected?.quantity || 0)}
+                        aria-disabled={(availabilityMap[eq.id] ?? (eq.quantity ?? 1)) <= (selected?.quantity || 0)}
+                        className={`w-6 h-6 rounded ${ (availabilityMap[eq.id] ?? (eq.quantity ?? 1)) <= (selected?.quantity || 0) ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed' : 'bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600'}`}
                       >
                         +
                       </button>
