@@ -20,9 +20,20 @@ export default function Modal({ isOpen, onClose, title, children }: ModalProps) 
       const el = dialogRef.current?.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])') as HTMLElement | null
       el?.focus()
     }, 10)
+    // ensure focused inputs are scrolled into view on mobile when keyboard appears
+    const onFocusIn = (ev: any) => {
+      const target = ev.target as HTMLElement | null
+      if (!target) return
+      // small timeout to allow virtual keyboard to open
+      setTimeout(() => {
+        target.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }, 200)
+    }
+    dialogRef.current?.addEventListener('focusin', onFocusIn)
     return () => {
       document.removeEventListener('keydown', onKey)
       clearTimeout(t)
+      dialogRef.current?.removeEventListener('focusin', onFocusIn)
     }
   }, [isOpen, onClose])
 
@@ -35,7 +46,8 @@ export default function Modal({ isOpen, onClose, title, children }: ModalProps) 
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className="bg-white dark:bg-slate-800 rounded-t-3xl sm:rounded-lg shadow-2xl w-full sm:max-w-2xl max-h-[100vh] sm:max-h-[90vh] overflow-y-auto transform transition-transform duration-200 ease-out scale-100"
+        className="bg-white dark:bg-slate-800 rounded-t-3xl sm:rounded-lg shadow-2xl w-full sm:max-w-2xl overflow-y-auto transform transition-transform duration-200 ease-out scale-100"
+        style={{ maxHeight: 'calc(100svh - 20px)', paddingBottom: 'env(safe-area-inset-bottom)' }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Mobile handle */}

@@ -11,6 +11,15 @@ export default function Bookings() {
   const [bookings, setBookings] = useState<any[]>([])
   const [selectedBooking, setSelectedBooking] = useState<any | null>(null)
   const [showBookingDetails, setShowBookingDetails] = useState(false)
+  // detail modal local state (to avoid mutating selectedBooking directly)
+  const [detailSelectedEquipment, setDetailSelectedEquipment] = useState<{id: string, quantity: number}[]>([])
+  const [detailSelectedPackage, setDetailSelectedPackage] = useState<string | null>(null)
+  const [detailDurationMinutes, setDetailDurationMinutes] = useState<number>(60)
+  const [detailPrice, setDetailPrice] = useState<number | null>(null)
+  const [detailStartTime, setDetailStartTime] = useState<string | null>(null)
+  const [detailEndTime, setDetailEndTime] = useState<string | null>(null)
+  const [detailCustomerName, setDetailCustomerName] = useState<string>('')
+  const [detailInvoiceNumber, setDetailInvoiceNumber] = useState<string | null>(null)
   const [viewMode, setViewMode] = useState<ViewMode>('week')
   const [currentDate, setCurrentDate] = useState(new Date())
   
@@ -46,6 +55,87 @@ export default function Bookings() {
     computePricePreview()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedEquipment, selectedPackage, durationMinutes])
+
+  // sync selected booking into detail modal local state when opened
+  useEffect(() => {
+    if (!selectedBooking) return
+    // compute duration minutes from start/end
+    let dMin = 60
+    try {
+      const s = new Date(selectedBooking.start_time)
+      const e = new Date(selectedBooking.end_time)
+      const diff = (e.getTime() - s.getTime()) / 60000
+      dMin = Number.isFinite(diff) ? Math.max(1, Math.round(diff)) : 60
+    } catch {
+      dMin = 60
+    }
+
+    setDetailSelectedEquipment(Array.isArray(selectedBooking.equipment_items) ? selectedBooking.equipment_items.map((it: any) => ({ id: it.id, quantity: Number(it.quantity || 1) })) : [])
+    setDetailSelectedPackage(selectedBooking.package_id || null)
+    setDetailDurationMinutes(dMin)
+    setDetailStartTime(selectedBooking.start_time ? new Date(selectedBooking.start_time).toISOString().slice(0,16) : null)
+    setDetailEndTime(selectedBooking.end_time ? new Date(selectedBooking.end_time).toISOString().slice(0,16) : null)
+    setDetailPrice(selectedBooking.price ?? null)
+    setDetailCustomerName(selectedBooking.customer_name || '')
+    setDetailInvoiceNumber(selectedBooking.invoice_number || null)
+  }, [selectedBooking])
+
+  // recompute detail price when detail inputs change
+  useEffect(() => {
+    if (detailSelectedPackage) {
+      const pkg = packages.find(p => p.id === detailSelectedPackage)
+      setDetailPrice(pkg ? (pkg.price || 0) : 0)
+      return
+    }
+    if (detailSelectedEquipment.length === 0) { setDetailPrice(null); return }
+    const hours = Math.max(0.01, detailDurationMinutes / 60)
+    let total = 0
+    for (const item of detailSelectedEquipment) {
+      const eq = equipment.find(e => e.id === item.id)
+      const rate = eq?.price_per_hour ? Number(eq.price_per_hour) : 0
+      total += rate * (item.quantity || 1) * hours
+    }
+    setDetailPrice(Math.round((total + Number.EPSILON) * 100) / 100)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [detailSelectedEquipment, detailSelectedPackage, detailDurationMinutes])
+
+  // when package changed, merge package equipment into current selection (non-destructive)
+  useEffect(() => {
+    if (!detailSelectedPackage) return
+    const pkg = packages.find(p => p.id === detailSelectedPackage)
+    if (!pkg || !Array.isArray(pkg.equipment_items)) return
+    const merged = [...detailSelectedEquipment]
+    for (const pei of pkg.equipment_items) {
+      const existing = merged.find(m => m.id === pei.id)
+      const q = Number(pei.quantity || 1)
+      if (existing) existing.quantity = (existing.quantity || 0) + q
+      else merged.push({ id: pei.id, quantity: q })
+    }
+    setDetailSelectedEquipment(merged)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [detailSelectedPackage])
+
+  // compute availability for detail modal (exclude current booking when counting)
+  function computeAvailabilityForDetails(equipId: string) {
+    const eq = equipment.find(e => e.id === equipId)
+    const total = Number(eq?.quantity ?? 1)
+    let booked = 0
+    const s = detailStartTime ? new Date(detailStartTime) : null
+    const e = detailEndTime ? new Date(detailEndTime) : null
+    if (!s || !e) return total
+    for (const b of bookings) {
+      if (!b.start_time || !b.end_time) continue
+      if (b.id === selectedBooking?.id) continue
+      const bStart = new Date(b.start_time)
+      const bEnd = new Date(b.end_time)
+      if (!(s < bEnd && bStart < e)) continue
+      const items = b.equipment_items || []
+      for (const bi of items) {
+        if (bi?.id === equipId) booked += Number(bi.quantity || 1)
+      }
+    }
+    return Math.max(0, total - booked)
+  }
 
   // compute availability preview for each equipment based on overlapping bookings
   useEffect(() => {
@@ -517,7 +607,11 @@ export default function Bookings() {
                       <div className="space-y-1">
                         {dayBookings.slice(0, 2).map(b => (
                           <button key={b.id} onClick={() => { setSelectedBooking(b); setShowBookingDetails(true) }} className="w-full text-left text-xs p-1 rounded bg-amber-100 dark:bg-amber-900/30 truncate">
-                            {b.customer_name || 'Cliente'}
+                            <div className="flex items-center justify-between">
+                              <div className="truncate">{new Date(b.start_time).toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'})} — {b.customer_name || 'Cliente'}</div>
+                              <div className="text-amber-600 text-xs">{b.price ? `€ ${b.price}` : ''}</div>
+                            </div>
+                            {b.paid && <div className="text-xs text-green-500 font-semibold">Pagato</div>}
                           </button>
                         ))}
                         {dayBookings.length > 2 && (
@@ -549,8 +643,13 @@ export default function Bookings() {
                           <div>
                             <div className="font-medium text-sm">{b.customer_name || 'Cliente'}</div>
                             <div className="text-xs text-neutral-600">{new Date(b.start_time).toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'})} – {new Date(b.end_time).toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'})}</div>
+                            {b.price && <div className="text-sm text-amber-600">€ {b.price}</div>}
+                            {b.paid && <div className="text-xs text-green-500 font-semibold">Pagato</div>}
                           </div>
-                          <button onClick={(e)=>{ e.stopPropagation(); removeBooking(b.id) }} className="text-red-500 ml-3">Elimina</button>
+                          <div className="flex items-center gap-2">
+                            {!b.paid && <button onClick={(e)=>{ e.stopPropagation(); markPaid(b.id) }} className="text-green-600 ml-3 focus-ring">Registra</button>}
+                            <button onClick={(e)=>{ e.stopPropagation(); removeBooking(b.id) }} className="text-red-500 ml-3">Elimina</button>
+                          </div>
                         </button>
                       ))}
                     </div>
@@ -664,34 +763,114 @@ export default function Bookings() {
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium mb-1">Cliente</label>
-              <input value={selectedBooking.customer_name} onChange={(e)=>setSelectedBooking({...selectedBooking, customer_name: e.target.value})} className="w-full border px-3 py-2 rounded" />
+              <input value={detailCustomerName} onChange={(e)=>setDetailCustomerName(e.target.value)} className="w-full border px-3 py-2 rounded" />
             </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">Pacchetto (opzionale)</label>
+              <select value={detailSelectedPackage || ''} onChange={(e)=>{ setDetailSelectedPackage(e.target.value || null) }} className="w-full border px-3 py-2 rounded">
+                <option value="">Nessun pacchetto</option>
+                {packages.map(p => (
+                  <option key={p.id} value={p.id}>{p.name} - €{p.price}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">Attrezzatura</label>
+              <div className="space-y-2 max-h-48 overflow-y-auto border border-neutral-200 dark:border-neutral-700 rounded p-3">
+                {equipment.map((eq) => {
+                  const selected = detailSelectedEquipment.find(e => e.id === eq.id)
+                  const avail = computeAvailabilityForDetails(eq.id)
+                  return (
+                    <div key={eq.id} className="flex items-center justify-between">
+                      <div>
+                        <div className="text-sm font-medium">{eq.name}</div>
+                        <div className="text-xs text-neutral-400">€ {eq.price_per_hour ?? 0} / ora — <span className="text-neutral-500">Disponibili: {avail}</span></div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button onClick={() => {
+                          const q = (selected?.quantity || 0) - 1
+                          if (q <= 0) setDetailSelectedEquipment(detailSelectedEquipment.filter(d => d.id !== eq.id))
+                          else setDetailSelectedEquipment(detailSelectedEquipment.map(d => d.id === eq.id ? {...d, quantity: q} : d))
+                        }} disabled={(selected?.quantity || 0) <= 0} className={`w-6 h-6 rounded ${ (selected?.quantity || 0) <= 0 ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed' : 'bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600'}`}>-</button>
+                        <span className="w-8 text-center text-sm font-medium">{selected?.quantity || 0}</span>
+                        <button onClick={() => {
+                          const current = selected?.quantity || 0
+                          if ((avail ?? 0) <= current) return
+                          if (selected) setDetailSelectedEquipment(detailSelectedEquipment.map(d => d.id === eq.id ? {...d, quantity: d.quantity + 1} : d))
+                          else setDetailSelectedEquipment([...detailSelectedEquipment, { id: eq.id, quantity: 1 }])
+                        }} disabled={(avail ?? 0) <= (selected?.quantity || 0)} className={`w-6 h-6 rounded ${ (avail ?? 0) <= (selected?.quantity || 0) ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed' : 'bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600'}`}>+</button>
+                      </div>
+                    </div>
+                  )
+                })}
+                {equipment.length === 0 && <div className="text-sm text-neutral-500 text-center py-4">Nessuna attrezzatura disponibile</div>}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">Durata (minuti)</label>
+              <input type="number" value={detailDurationMinutes} onChange={(e)=>{ setDetailDurationMinutes(Number(e.target.value)); const s = detailStartTime ? new Date(detailStartTime) : null; if (s) { const end = new Date(s); end.setMinutes(end.getMinutes() + Number(e.target.value)); setDetailEndTime(end.toISOString().slice(0,16)) } }} className="w-full border px-2 py-2 rounded" />
+            </div>
+
             <div>
               <label className="block text-sm font-medium mb-1">Data e Ora Inizio</label>
-              <input type="datetime-local" value={new Date(selectedBooking.start_time).toISOString().slice(0,16)} onChange={(e)=>{
-                const v = e.target.value; setSelectedBooking({...selectedBooking, start_time: new Date(v).toISOString()})
-              }} className="w-full border px-3 py-2 rounded" />
+              <input type="datetime-local" value={detailStartTime ?? ''} onChange={(e)=>{ const v = e.target.value; setDetailStartTime(v); if (v) { const s = new Date(v); const end = new Date(s); end.setMinutes(end.getMinutes() + detailDurationMinutes); setDetailEndTime(end.toISOString().slice(0,16)) } }} className="w-full border px-3 py-2 rounded" />
             </div>
+
             <div>
               <label className="block text-sm font-medium mb-1">Data e Ora Fine</label>
-              <input type="datetime-local" value={new Date(selectedBooking.end_time).toISOString().slice(0,16)} onChange={(e)=>{
-                const v = e.target.value; setSelectedBooking({...selectedBooking, end_time: new Date(v).toISOString()})
-              }} className="w-full border px-3 py-2 rounded" />
+              <input type="datetime-local" value={detailEndTime ?? ''} onChange={(e)=>{ const v = e.target.value; setDetailEndTime(v); if (detailStartTime) { const s = new Date(detailStartTime); const eD = new Date(v); const diff = Math.round((eD.getTime() - s.getTime())/60000); setDetailDurationMinutes(diff>0?diff:detailDurationMinutes) } }} className="w-full border px-3 py-2 rounded" />
             </div>
+
+            <div>
+              <label className="block text-sm text-neutral-500">Prezzo</label>
+              <div className="flex items-center gap-2">
+                <input type="number" step="0.01" value={detailPrice ?? ''} onChange={(e)=>setDetailPrice(e.target.value === '' ? null : Number(e.target.value))} className="w-full border px-3 py-2 rounded" />
+                <div className="text-sm text-neutral-500">€</div>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">Numero Fattura (opzionale)</label>
+              <input value={detailInvoiceNumber || ''} onChange={(e)=>setDetailInvoiceNumber(e.target.value || null)} className="w-full border px-3 py-2 rounded" />
+            </div>
+
             <div>
               <label className="inline-flex items-center gap-2">
-                <input type="checkbox" checked={!!selectedBooking.paid} onChange={(e)=>{ setSelectedBooking({...selectedBooking, paid: e.target.checked}); }} />
+                <input type="checkbox" checked={!!selectedBooking.paid || !!selectedBooking.paid === false ? !!selectedBooking.paid : false} onChange={(e)=>{ setSelectedBooking({...selectedBooking, paid: e.target.checked}); }} />
                 Pagata
               </label>
             </div>
+
             <div>
               <label className="inline-flex items-center gap-2">
-                <input type="checkbox" checked={!!selectedBooking.invoiced} onChange={(e)=>{ setSelectedBooking({...selectedBooking, invoiced: e.target.checked}); }} />
+                <input type="checkbox" checked={!!selectedBooking.invoiced || !!selectedBooking.invoiced === false ? !!selectedBooking.invoiced : false} onChange={(e)=>{ setSelectedBooking({...selectedBooking, invoiced: e.target.checked}); }} />
                 Fatturata
               </label>
             </div>
+
             <div className="flex gap-2 justify-end">
-              <button onClick={() => { saveBookingChanges(selectedBooking) }} className="bg-amber-500 text-white px-4 py-2 rounded">Salva</button>
+              <button onClick={() => {
+                // build updated object and save
+                const id = selectedBooking.id
+                const start_iso = detailStartTime ? new Date(detailStartTime).toISOString() : selectedBooking.start_time
+                const end_iso = detailEndTime ? new Date(detailEndTime).toISOString() : selectedBooking.end_time
+                const updated = {
+                  id,
+                  customer_name: detailCustomerName,
+                  start_time: start_iso,
+                  end_time: end_iso,
+                  price: detailPrice,
+                  package_id: detailSelectedPackage,
+                  equipment_items: detailSelectedEquipment,
+                  paid: selectedBooking.paid,
+                  invoiced: selectedBooking.invoiced,
+                  invoice_number: detailInvoiceNumber
+                }
+                saveBookingChanges(updated)
+              }} className="bg-amber-500 text-white px-4 py-2 rounded">Salva</button>
               <button onClick={() => { if (confirm('Eliminare questa prenotazione?')) { removeBooking(selectedBooking.id); setShowBookingDetails(false); setSelectedBooking(null) } }} className="px-4 py-2 rounded border">Elimina</button>
               <button onClick={() => { setShowBookingDetails(false); setSelectedBooking(null) }} className="px-4 py-2 rounded border">Chiudi</button>
             </div>

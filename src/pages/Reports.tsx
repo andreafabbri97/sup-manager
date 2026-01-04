@@ -58,6 +58,7 @@ export default function Reports() {
   const [notes, setNotes] = useState('')
   const [receiptFile, setReceiptFile] = useState<File | null>(null)
   const [showExpenseModal, setShowExpenseModal] = useState(false)
+  const [editExpense, setEditExpense] = useState<any | null>(null)
   const [expenseDate, setExpenseDate] = useState(() => {
     if (typeof window === 'undefined') return new Date().toISOString().slice(0,10)
     return new Date().toISOString().slice(0,10)
@@ -70,6 +71,7 @@ export default function Reports() {
     setNotes('')
     setReceiptFile(null)
     setExpenseDate(new Date().toISOString().slice(0,10))
+    setEditExpense(null)
   }, [])
 
   useEffect(() => { loadReports()
@@ -153,10 +155,36 @@ export default function Reports() {
 
     const parsedAmount = Number(String(amount).replace(',', '.'))
     if (!Number.isFinite(parsedAmount)) return alert('Importo non valido')
+    if (editExpense) {
+      // update
+      const payload: any = { amount: parsedAmount, category, notes, date: expenseDate }
+      if (receipt_url) payload.receipt_url = receipt_url
+      const { error } = await supabase.from('expense').update(payload).eq('id', editExpense.id)
+      if (error) return alert(error.message)
+      setEditExpense(null)
+    } else {
+      const { error } = await supabase.from('expense').insert([{ amount: parsedAmount, category, notes, date: expenseDate, receipt_url }])
+      if (error) return alert(error.message)
+    }
 
-    const { error } = await supabase.from('expense').insert([{ amount: parsedAmount, category, notes, date: expenseDate, receipt_url }])
-    if (error) return alert(error.message)
     setAmount(''); setCategory(''); setNotes(''); setReceiptFile(null); setExpenseDate(new Date().toISOString().slice(0,10))
+    loadExpenses()
+  }
+
+  async function openEditExpense(ex: any) {
+    setEditExpense(ex)
+    setAmount(String(ex.amount ?? ''))
+    setCategory(ex.category ?? '')
+    setNotes(ex.notes ?? '')
+    setExpenseDate(ex.date ? ex.date.slice(0,10) : new Date().toISOString().slice(0,10))
+    setReceiptFile(null)
+    setShowExpenseModal(true)
+  }
+
+  async function deleteExpense(id: string) {
+    if (!confirm('Eliminare questa spesa?')) return
+    const { error } = await supabase.from('expense').delete().eq('id', id)
+    if (error) return alert(error.message)
     loadExpenses()
   }
 
@@ -258,7 +286,7 @@ export default function Reports() {
           <StatCard title="Entrate" value={revenueSum.toFixed(2) + ' €'} color="accent" />
           <StatCard title="Ordini" value={bookingsCount} color="neutral" />
           <StatCard title="Spese" value={expensesSum.toFixed(2) + ' €'} color="warning" />
-          <StatCard title="IVA" value={(ivaAmount).toFixed(2) + ' €'} color="neutral" />
+          {!excludeIva && <StatCard title="IVA" value={(ivaAmount).toFixed(2) + ' €'} color="neutral" />}
           <StatCard title="Profitto" value={profitValue} color="success" />
         </div>
       </div>
@@ -378,7 +406,7 @@ export default function Reports() {
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-lg font-medium">Gestione Spese</h3>
             <div className="flex gap-2">
-                <Button onClick={() => { setExpenseDate(new Date().toISOString().slice(0,10)); setShowExpenseModal(true) }}>Aggiungi spesa</Button>
+                <Button onClick={() => { setEditExpense(null); setExpenseDate(new Date().toISOString().slice(0,10)); setShowExpenseModal(true) }}>Aggiungi spesa</Button>
                 <Button onClick={loadExpenses} className="bg-gray-600">Ricarica</Button>
               </div>
           </div>
@@ -386,11 +414,22 @@ export default function Reports() {
           <div className="mt-2">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-left text-neutral-500"><th>Data</th><th>Categoria</th><th>Importo</th><th>Ricevuta</th></tr>
+                <tr className="text-left text-neutral-500"><th>Data</th><th>Categoria</th><th>Importo</th><th>Ricevuta</th><th></th></tr>
               </thead>
               <tbody>
                 {expenses.map((ex:any)=> (
-                  <tr key={ex.id} className="border-t border-neutral-100 dark:border-neutral-800"><td className="py-2">{ex.date}</td><td>{ex.category}</td><td>{Number(ex.amount).toFixed(2)} €</td><td>{ex.receipt_url ? <a href={ex.receipt_url} target="_blank" rel="noreferrer">Ricevuta</a> : '—'}</td></tr>
+                  <tr key={ex.id} className="border-t border-neutral-100 dark:border-neutral-800">
+                    <td className="py-2">{ex.date}</td>
+                    <td>{ex.category}</td>
+                    <td>{Number(ex.amount).toFixed(2)} €</td>
+                    <td>{ex.receipt_url ? <a href={ex.receipt_url} target="_blank" rel="noreferrer">Ricevuta</a> : '—'}</td>
+                    <td className="py-2">
+                      <div className="flex gap-2">
+                        <button onClick={()=>openEditExpense(ex)} className="text-sm px-2 py-1 rounded border">Modifica</button>
+                        <button onClick={()=>deleteExpense(ex.id)} className="text-sm px-2 py-1 rounded border text-red-600">Elimina</button>
+                      </div>
+                    </td>
+                  </tr>
                 ))}
               </tbody>
             </table>
