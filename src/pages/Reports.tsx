@@ -204,9 +204,13 @@ export default function Reports() {
   const lineData = {
     labels: daily.map((d) => d.day),
     datasets: [
-      { label: 'Entrate', data: daily.map((d) => Number(d.revenue)), borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.2)', yAxisID: 'y' },
-      { label: 'Ordini', data: dailyOrders.map((d) => Number(d.orders ?? d.count ?? 0)), borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.2)', yAxisID: 'y1' }
+      { label: 'Entrate', data: daily.map((d) => Number(d.revenue)), borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.2)', yAxisID: 'y' }
     ]
+  }
+
+  const ordersData = {
+    labels: dailyOrders.map((d) => d.day),
+    datasets: [ { label: 'Ordini', data: dailyOrders.map((d) => Number(d.orders ?? d.count ?? 0)), borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.2)' } ]
   }
 
   const pieData = {
@@ -307,6 +311,10 @@ export default function Reports() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="col-span-2">
+                <div className="mb-4">
+                  <div className="text-sm text-neutral-500">Ordini giornalieri</div>
+                  <div className="h-40 sm:h-48"><div className="h-full"><Line data={ordersData} options={lineOptions} /></div></div>
+                </div>
                 <div className="mb-4">
                   <div className="text-sm text-neutral-500">Entrate giornaliere</div>
                   <div className="h-40 sm:h-48"><div className="h-full"><Line data={lineData} options={lineOptions} /></div></div>
