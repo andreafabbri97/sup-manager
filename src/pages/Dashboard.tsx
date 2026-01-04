@@ -129,7 +129,7 @@ export default function Dashboard({ page = 'dashboard' }: { page?: string }) {
         <>
           {/* Top metrics: mobile scrollable */}
           <div className="mb-4">
-            <div className="flex gap-4 overflow-x-auto pb-2 -mx-2 px-2">
+            <div className="flex gap-4 flex-wrap pb-2 -mx-2 px-2">
               <StatCard title="Entrate" value={(Number(todaysIncome ?? 0)).toFixed(2) + ' €'} color="accent" />
               <StatCard title="Ordini" value={todaysBookings ?? 0} color="neutral" />
               <StatCard title="Spese" value={(Number(todaysExpenses ?? 0)).toFixed(2) + ' €'} color="warning" />

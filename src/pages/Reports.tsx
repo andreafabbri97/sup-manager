@@ -187,8 +187,10 @@ export default function Reports() {
                 </div>
                 <div>
                   <div className="text-sm text-neutral-500">Entrate per attrezzatura</div>
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm min-w-[420px]">
+
+                  {/* Table for sm+ */}
+                  <div className="hidden sm:block mt-2">
+                    <table className="w-full text-sm">
                       <thead>
                         <tr className="text-left text-neutral-500"><th>Attrezzatura</th><th>Prenotazioni</th><th>Incasso</th></tr>
                       </thead>
@@ -198,6 +200,20 @@ export default function Reports() {
                         ))}
                       </tbody>
                     </table>
+                  </div>
+
+                  {/* Stacked cards for mobile */}
+                  <div className="sm:hidden mt-2 space-y-2">
+                    {revByEquip.map((r:any)=> (
+                      <div key={r.equipment} className="p-3 rounded border bg-white/5 dark:bg-slate-800">
+                        <div className="flex items-center justify-between">
+                          <div className="font-medium">{r.equipment}</div>
+                          <div className="text-sm text-neutral-500">{Number(r.revenue).toFixed(2)} €</div>
+                        </div>
+                        <div className="text-xs text-neutral-400 mt-1">Prenotazioni: {r.bookings_count}</div>
+                      </div>
+                    ))}
+                    {revByEquip.length === 0 && <div className="text-neutral-500">Nessuna entrata</div>}
                   </div>
                 </div>
               </div>
@@ -226,8 +242,8 @@ export default function Reports() {
                 <Button onClick={()=>downloadCSV(topProducts,'top-products.csv')}>Esporta CSV</Button>
               </div>
             </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm min-w-[420px]">
+            <div className="hidden sm:block">
+              <table className="w-full text-sm">
                 <thead>
                   <tr className="text-left text-neutral-500"><th>Prodotto</th><th>Prenotazioni</th><th>Incasso</th></tr>
                 </thead>
@@ -237,6 +253,19 @@ export default function Reports() {
                   ))}
                 </tbody>
               </table>
+            </div>
+
+            <div className="sm:hidden space-y-2">
+              {topProducts.map((p:any, idx:number)=> (
+                <div key={p.name||idx} className="p-3 rounded border bg-white/5 dark:bg-slate-800">
+                  <div className="flex items-center justify-between">
+                    <div className="font-medium">{p.name ?? '—'}</div>
+                    <div className="text-sm text-neutral-500">€ {Number(p.revenue).toFixed(2)}</div>
+                  </div>
+                  <div className="text-xs text-neutral-400 mt-1">Prenotazioni: {p.bookings_count}</div>
+                </div>
+              ))}
+              {topProducts.length === 0 && <div className="text-neutral-500">Nessun prodotto</div>}
             </div>
           </Card>
         </>
