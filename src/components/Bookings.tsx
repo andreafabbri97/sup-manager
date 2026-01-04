@@ -272,7 +272,8 @@ export default function Bookings() {
 
   async function markPaid(id: string) {
     const paidAt = new Date().toISOString()
-    const { error } = await supabase.from('booking').update({ paid: true, paid_at: paidAt }).eq('id', id)
+    const invoiced = confirm('Hai emesso fattura per questa prenotazione? Premi OK se sì, Annulla se no')
+    const { error } = await supabase.from('booking').update({ paid: true, paid_at: paidAt, invoiced }).eq('id', id)
     if (error) return alert(error.message)
     load()
   }
@@ -441,16 +442,16 @@ export default function Bookings() {
                       <div className={`text-sm font-medium mb-2 ${isToday ? 'text-amber-600 dark:text-amber-400' : ''}`}>{day.getDate()}</div>
                       <div className="space-y-1">
                         {dayBookings.map(b => (
-                          <div key={b.id} className="text-xs p-1 rounded bg-amber-100 dark:bg-amber-900/30 truncate">
+                          <button key={b.id} onClick={() => { setSelectedBooking(b); setShowBookingDetails(true) }} className="w-full text-left text-xs p-1 rounded bg-amber-100 dark:bg-amber-900/30 truncate">
                             <div className="flex items-center justify-between">
                               <div className="font-medium truncate">{new Date(b.start_time).toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'})} — {b.customer_name || 'Cliente'}</div>
                               <div className="flex items-center gap-2">
-                                {!b.paid && <button onClick={() => markPaid(b.id)} className="text-green-600 text-xs">Registra</button>}
+                                {!b.paid && <button onClick={(e)=>{ e.stopPropagation(); markPaid(b.id) }} className="text-green-600 text-xs">Registra</button>}
                                 {b.paid && <span className="text-xs text-green-600">Pagato</span>}
-                                <button onClick={() => removeBooking(b.id)} className="text-red-500 text-xs">Elimina</button>
+                                <button onClick={(e)=>{ e.stopPropagation(); removeBooking(b.id) }} className="text-red-500 text-xs">Elimina</button>
                               </div>
                             </div>
-                          </div>
+                          </button>
                         ))}
                       </div>
                     </div>
@@ -473,17 +474,17 @@ export default function Bookings() {
                     <div className="space-y-2">
                       {dayBookings.length === 0 && <div className="text-neutral-500 text-sm">Nessuna prenotazione</div>}
                       {dayBookings.map(b => (
-                        <div key={b.id} className="p-3 rounded bg-amber-100 dark:bg-amber-900/30 flex items-center justify-between">
+                        <button key={b.id} onClick={() => { setSelectedBooking(b); setShowBookingDetails(true) }} className="w-full text-left p-3 rounded bg-amber-100 dark:bg-amber-900/30 flex items-center justify-between">
                           <div>
                             <div className="font-medium text-sm">{b.customer_name || 'Cliente'}</div>
                             <div className="text-xs text-neutral-600">{new Date(b.start_time).toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'})} – {new Date(b.end_time).toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'})}</div>
                             {b.paid && <div className="text-xs text-green-600 font-semibold">Pagato</div>}
                           </div>
                           <div className="flex items-center gap-2">
-                            {!b.paid && <button onClick={() => markPaid(b.id)} className="text-green-600 ml-3">Registra incasso</button>}
-                            <button onClick={() => removeBooking(b.id)} className="text-red-500 ml-3">Elimina</button>
+                            {!b.paid && <button onClick={(e)=>{ e.stopPropagation(); markPaid(b.id) }} className="text-green-600 ml-3">Registra incasso</button>}
+                            <button onClick={(e)=>{ e.stopPropagation(); removeBooking(b.id) }} className="text-red-500 ml-3">Elimina</button>
                           </div>
-                        </div>
+                        </button>
                       ))}
                     </div>
                   </div>
@@ -512,9 +513,9 @@ export default function Bookings() {
                       <div className={`text-sm font-medium mb-1 ${isToday ? 'text-amber-600 dark:text-amber-400' : ''}`}>{day.getDate()}</div>
                       <div className="space-y-1">
                         {dayBookings.slice(0, 2).map(b => (
-                          <div key={b.id} className="text-xs p-1 rounded bg-amber-100 dark:bg-amber-900/30 truncate">
+                          <button key={b.id} onClick={() => { setSelectedBooking(b); setShowBookingDetails(true) }} className="w-full text-left text-xs p-1 rounded bg-amber-100 dark:bg-amber-900/30 truncate">
                             {b.customer_name || 'Cliente'}
-                          </div>
+                          </button>
                         ))}
                         {dayBookings.length > 2 && (
                           <div className="text-xs text-neutral-500">+{dayBookings.length - 2}</div>
@@ -541,13 +542,13 @@ export default function Bookings() {
                     <div className="space-y-2">
                       {dayBookings.length === 0 && <div className="text-neutral-500 text-sm">Nessuna prenotazione</div>}
                       {dayBookings.map(b => (
-                        <div key={b.id} className="p-3 rounded bg-amber-100 dark:bg-amber-900/30 flex items-center justify-between">
+                        <button key={b.id} onClick={() => { setSelectedBooking(b); setShowBookingDetails(true) }} className="w-full text-left p-3 rounded bg-amber-100 dark:bg-amber-900/30 flex items-center justify-between">
                           <div>
                             <div className="font-medium text-sm">{b.customer_name || 'Cliente'}</div>
                             <div className="text-xs text-neutral-600">{new Date(b.start_time).toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'})} – {new Date(b.end_time).toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'})}</div>
                           </div>
-                          <button onClick={() => removeBooking(b.id)} className="text-red-500 ml-3">Elimina</button>
-                        </div>
+                          <button onClick={(e)=>{ e.stopPropagation(); removeBooking(b.id) }} className="text-red-500 ml-3">Elimina</button>
+                        </button>
                       ))}
                     </div>
                   </div>
