@@ -9,7 +9,16 @@ export default function Auth() {
   const [loading, setLoading] = useState(false)
 
   function syntheticEmailFor(username: string) {
-    return `${username}@sup-manager.local`
+    // Use a safe placeholder domain to avoid invalid-email rejections by Supabase
+    // Using example.com is a common placeholder domain
+    return `${username}@example.com`
+  }
+
+  function showError(err: any) {
+    console.error(err)
+    if (err?.message) return err.message
+    if (typeof err === 'string') return err
+    return 'Errore nella richiesta (vedi console per dettagli)'
   }
 
   async function handleRegister(e: React.FormEvent<HTMLFormElement>) {
@@ -32,20 +41,31 @@ export default function Auth() {
     }
 
     const email = syntheticEmailFor(username)
-    const { data, error } = await supabase.auth.signUp({ email, password })
-    if (error) {
-      setMessage(error.message)
+    try {
+      const { data, error } = await supabase.auth.signUp({ email, password })
+      if (error) {
+        if (error.message && error.message.includes('User already registered')) {
+          setMessage('Username già in uso.')
+          setLoading(false)
+          return
+        }
+        setMessage(showError(error))
+        setLoading(false)
+        return
+      }
+
+      // If signUp succeeded, upsert profile row (role left as default 'staff')
+      const user = data.user
+      if (user) {
+        await supabase.from('user').upsert({ id: user.id, email: user.email, username })
+        setMessage('Registrazione completata. Effettua il login.')
+      } else {
+        setMessage('Registrazione: utente creato, controlla Supabase.')
+      }
+    } catch (err) {
+      setMessage(showError(err))
       setLoading(false)
       return
-    }
-
-    // If signUp succeeded, upsert profile row (role left as default 'staff')
-    const user = data.user
-    if (user) {
-      await supabase.from('user').upsert({ id: user.id, email: user.email, username })
-      setMessage('Registrazione completata. Effettua il login.')
-    } else {
-      setMessage('Registrazione: utente creato, controlla Supabase.')
     }
 
     setLoading(false)
@@ -57,10 +77,15 @@ export default function Auth() {
     setMessage(null)
 
     const email = syntheticEmailFor(username)
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
-    setLoading(false)
-    if (error) setMessage(error.message)
-    else setMessage('Login effettuato.')
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email, password })
+      setLoading(false)
+      if (error) setMessage(showError(error))
+      else setMessage('Login effettuato.')
+    } catch (err) {
+      setLoading(false)
+      setMessage(showError(err))
+    }
   }
 
   return (
