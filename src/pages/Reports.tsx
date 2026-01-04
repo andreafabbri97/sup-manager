@@ -270,7 +270,11 @@ export default function Reports() {
                       </thead>
                       <tbody>
                         {revByEquip.map((r:any)=> (
-                          <tr key={r.equipment} className="border-t border-neutral-100 dark:border-neutral-800"><td className="py-2">{r.equipment}</td><td className="py-2">{r.bookings_count}</td><td className="py-2">{Number(r.revenue).toFixed(2)} €</td></tr>
+                          <tr key={r.equipment} className="border-t border-neutral-100 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors">
+                            <td className="py-2">{r.equipment}</td>
+                            <td className="py-2">{r.bookings_count}</td>
+                            <td className="py-2">{Number(r.revenue).toFixed(2)} €</td>
+                          </tr>
                         ))}
                       </tbody>
                     </table>
@@ -279,7 +283,7 @@ export default function Reports() {
                   {/* Stacked cards for mobile */}
                   <div className="sm:hidden mt-2 space-y-2">
                     {revByEquip.map((r:any)=> (
-                      <div key={r.equipment} className="p-3 rounded border bg-white/5 dark:bg-slate-800">
+                      <div key={r.equipment} className="p-3 rounded border bg-white/5 dark:bg-slate-800 hover:shadow-sm transition-shadow">
                         <div className="flex items-center justify-between">
                           <div className="font-medium">{r.equipment}</div>
                           <div className="text-sm text-neutral-500">{Number(r.revenue).toFixed(2)} €</div>
