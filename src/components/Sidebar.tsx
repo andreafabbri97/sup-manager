@@ -49,6 +49,7 @@ export default function Sidebar({ onNav, currentPage }: { onNav?: (page: string)
     { id: 'packages', label: 'Pacchetti' },
     { id: 'customers', label: 'Clienti' },
     { id: 'reports', label: 'Amministrazione e Report' },
+    { id: 'archive', label: 'Archivio prenotazioni' },
     { id: 'settings', label: 'Impostazioni' }
   ]
 
@@ -76,6 +77,12 @@ export default function Sidebar({ onNav, currentPage }: { onNav?: (page: string)
         return (
           <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" d="M12 3l9 4.5v9L12 21 3 16.5v-9L12 3zM12 12v8" />
+          </svg>
+        )
+      case 'archive':
+        return (
+          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" d="M3 7h18M5 7v12a2 2 0 002 2h10a2 2 0 002-2V7M10 11h4M10 15h4" />
           </svg>
         )
       case 'customers':

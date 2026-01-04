@@ -1,0 +1,134 @@
+import React, { useEffect, useState } from 'react'
+import { supabase } from '../lib/supabaseClient'
+import Card from '../components/ui/Card'
+import Modal from '../components/ui/Modal'
+import Button from '../components/ui/Button'
+
+export default function Archive() {
+  const [bookings, setBookings] = useState<any[]>([])
+  const [loading, setLoading] = useState(false)
+  const [start, setStart] = useState<string>(() => { const d = new Date(); d.setMonth(d.getMonth()-3); return d.toISOString().slice(0,10) })
+  const [end, setEnd] = useState<string>(() => new Date().toISOString().slice(0,10))
+  const [invoicedFilter, setInvoicedFilter] = useState<'all'|'yes'|'no'>('all')
+  const [paidFilter, setPaidFilter] = useState<'all'|'yes'|'no'>('all')
+  const [qCustomer, setQCustomer] = useState('')
+  const [qInvoice, setQInvoice] = useState('')
+
+  const [detail, setDetail] = useState<any|null>(null)
+  const [showDetail, setShowDetail] = useState(false)
+
+  useEffect(() => { load(); }, [])
+
+  async function load() {
+    setLoading(true)
+    let q: any = supabase.from('booking').select('*').order('start_time', { ascending: false }).limit(1000)
+    if (start) q = q.gte('start_time', start + 'T00:00:00')
+    if (end) q = q.lte('start_time', end + 'T23:59:59')
+    if (invoicedFilter === 'yes') q = q.not('invoice_number', 'is', null)
+    if (invoicedFilter === 'no') q = q.is('invoice_number', null)
+    if (paidFilter === 'yes') q = q.eq('paid', true)
+    if (paidFilter === 'no') q = q.eq('paid', false)
+    if (qCustomer) q = q.ilike('customer_name', `%${qCustomer}%`)
+    if (qInvoice) q = q.ilike('invoice_number', `%${qInvoice}%`)
+
+    const { data, error } = await q
+    if (error) { alert(error.message); setBookings([]); setLoading(false); return }
+    setBookings(data ?? [])
+    setLoading(false)
+  }
+
+  function exportCSV() {
+    const rows = bookings.map(b => ({ date: b.start_time, customer: b.customer_name, invoice: b.invoice_number || '', paid: b.paid ? 'yes' : 'no', price: b.price, notes: b.notes }))
+    const csv = [Object.keys(rows[0]||{}).join(','), ...rows.map(r => Object.values(r).map(v=>`"${String(v).replace(/"/g,'""')}"`).join(','))].join('\n')
+    const blob = new Blob([csv], { type: 'text/csv' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url; a.download = `bookings-archive-${start}-${end}.csv`; a.click(); URL.revokeObjectURL(url)
+  }
+
+  async function markPaid(id: string) {
+    const { error } = await supabase.from('booking').update({ paid: true, paid_at: new Date().toISOString() }).eq('id', id)
+    if (error) return alert(error.message)
+    load()
+  }
+
+  return (
+    <section>
+      <div className="mb-4 flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-medium">Archivio Prenotazioni</h3>
+          <p className="text-sm text-neutral-500">Cerca fatture e verifica a quali prenotazioni si riferiscono</p>
+        </div>
+        <div className="flex gap-2">
+          <Button onClick={exportCSV}>Esporta CSV</Button>
+          <Button onClick={load} className="bg-gray-600">Applica</Button>
+        </div>
+      </div>
+
+      <Card>
+        <div className="flex gap-2 items-center mb-3 flex-wrap">
+          <div className="flex items-center gap-2"><label className="text-sm">Da</label><input type="date" value={start} onChange={(e)=>setStart(e.target.value)} className="border px-2 py-1 rounded"/></div>
+          <div className="flex items-center gap-2"><label className="text-sm">A</label><input type="date" value={end} onChange={(e)=>setEnd(e.target.value)} className="border px-2 py-1 rounded"/></div>
+          <div>
+            <select value={invoicedFilter} onChange={(e)=>setInvoicedFilter(e.target.value as any)} className="border px-2 py-1 rounded">
+              <option value="all">Tutte</option>
+              <option value="yes">Fatturate</option>
+              <option value="no">Non fatturate</option>
+            </select>
+          </div>
+          <div>
+            <select value={paidFilter} onChange={(e)=>setPaidFilter(e.target.value as any)} className="border px-2 py-1 rounded">
+              <option value="all">Tutti</option>
+              <option value="yes">Pagati</option>
+              <option value="no">Non pagati</option>
+            </select>
+          </div>
+          <input placeholder="Cliente..." value={qCustomer} onChange={(e)=>setQCustomer(e.target.value)} className="border px-2 py-1 rounded" />
+          <input placeholder="Nr fattura" value={qInvoice} onChange={(e)=>setQInvoice(e.target.value)} className="border px-2 py-1 rounded" />
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left text-neutral-500"><th>Data</th><th>Cliente</th><th>Fattura</th><th>Prezzo</th><th>Pagato</th><th>Azioni</th></tr>
+            </thead>
+            <tbody>
+              {bookings.map(b => (
+                <tr key={b.id} className="border-t border-neutral-100 dark:border-neutral-800">
+                  <td className="py-2">{new Date(b.start_time).toLocaleString('it-IT', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
+                  <td>{b.customer_name}</td>
+                  <td>{b.invoice_number ?? '—'}</td>
+                  <td>{b.price ? `€ ${Number(b.price).toFixed(2)}` : '—'}</td>
+                  <td>{b.paid ? 'Sì' : 'No'}</td>
+                  <td>
+                    <div className="flex items-center gap-2">
+                      <button onClick={()=>{ setDetail(b); setShowDetail(true) }} className="text-sm px-2 py-1 rounded border">Dettagli</button>
+                      {!b.paid && <button onClick={()=>markPaid(b.id)} className="text-sm px-2 py-1 rounded bg-green-600 text-white">Segna pagato</button>}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+
+      <Modal isOpen={showDetail} onClose={() => { setShowDetail(false); setDetail(null) }} title={detail ? `Prenotazione ${detail.id}` : 'Dettaglio'}>
+        {detail && (
+          <div className="space-y-3">
+            <div><strong>Cliente:</strong> {detail.customer_name}</div>
+            <div><strong>Periodo:</strong> {new Date(detail.start_time).toLocaleString('it-IT')} — {new Date(detail.end_time).toLocaleString('it-IT')}</div>
+            <div><strong>Prezzo:</strong> {detail.price ? `€ ${Number(detail.price).toFixed(2)}` : '—'}</div>
+            <div><strong>Fattura:</strong> {detail.invoice_number ?? '—'}</div>
+            <div><strong>Pagato:</strong> {detail.paid ? 'Sì' : 'No'}</div>
+            <div><strong>Note:</strong> {detail.notes ?? '—'}</div>
+            <div className="mt-2 flex gap-2">
+              <Button onClick={()=>{ navigator.clipboard.writeText(JSON.stringify(detail)); alert('Copia incollata') }}>Copia JSON</Button>
+              <button onClick={()=>{ setShowDetail(false); setDetail(null); }} className="px-3 py-1 rounded border">Chiudi</button>
+            </div>
+          </div>
+        )}
+      </Modal>
+    </section>
+  )
+}

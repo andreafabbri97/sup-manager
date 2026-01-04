@@ -22,14 +22,18 @@ export default function App() {
   return (
     <div className="min-h-screen bg-sky-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 flex">
       <Sidebar onNav={handleNav} currentPage={page} />
-      <main className="flex-1 px-2 sm:px-4 lg:px-6 py-3 sm:py-4 w-full max-w-screen-xl mx-auto">
-        {page === 'equipment' && <Equipment />}
-        {page === 'bookings' && <Bookings />}
-        {page === 'packages' && <Packages />}
-        {page === 'customers' && <Customers />}
-        {page === 'reports' && <Reports />}
-        {page === 'settings' && <Settings />}
-        {!['equipment','bookings','packages','customers','reports','settings'].includes(page) && <Reports />}
+      <main className="flex-1 flex flex-col w-full max-w-screen-xl mx-auto">
+        <TopBar />
+        <div className="px-2 sm:px-4 lg:px-6 py-3 sm:py-4 flex-1">
+          {page === 'equipment' && <Equipment />}
+          {page === 'bookings' && <Bookings />}
+          {page === 'packages' && <Packages />}
+          {page === 'customers' && <Customers />}
+          {page === 'reports' && <Reports />}
+          {page === 'archive' && <Archive />}
+          {page === 'settings' && <Settings />}
+          {!['equipment','bookings','packages','customers','reports','settings','archive'].includes(page) && <Reports />}
+        </div>
       </main>
       <PWAInstallPrompt />
       <InstallButton />
