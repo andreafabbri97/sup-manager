@@ -61,6 +61,18 @@ La sezione **Prenotazioni** è stata completamente rinnovata con:
 
 **Migrazione DB necessaria**: Esegui il file `supabase-migrations/add-booking-equipment-items.sql` per aggiungere il campo `equipment_items` alla tabella `booking`.
 
+### Aggiungere prezzo orario all'attrezzatura
+**File**: `supabase-migrations/add-equipment-price.sql`
+
+Aggiunge il campo `price_per_hour` (numeric) alla tabella `equipment` per memorizzare il prezzo di noleggio standard orario. Serve per calcolare automaticamente i ricavi delle prenotazioni quando si seleziona l'attrezzatura invece di un pacchetto.
+
+```sql
+-- Add hourly price to equipment table
+ALTER TABLE equipment ADD COLUMN IF NOT EXISTS price_per_hour numeric DEFAULT 0;
+
+COMMENT ON COLUMN equipment.price_per_hour IS 'Standard hourly rental price';
+```
+
 ### Progressive Web App (PWA)
 L'app è ora installabile come Progressive Web App:
 - Manifest.json configurato
