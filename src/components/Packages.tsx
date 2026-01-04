@@ -12,6 +12,7 @@ export default function Packages() {
   const [price, setPrice] = useState('')
   const [duration, setDuration] = useState('60') // minuti
   const [selectedEquipment, setSelectedEquipment] = useState<{id: string, quantity: number}[]>([])
+  const [editPackage, setEditPackage] = useState<any | null>(null)
 
   async function load() {
     const { data } = await supabase.from('package').select('*').order('created_at', { ascending: false })
@@ -41,9 +42,15 @@ export default function Packages() {
       equipment_items: selectedEquipment
     }
 
-    const { error } = await supabase.from('package').insert(packageData)
-    if (error) return alert(error.message)
-    
+    if (editPackage) {
+      const { error } = await supabase.from('package').update(packageData).eq('id', editPackage.id)
+      if (error) return alert(error.message)
+      setEditPackage(null)
+    } else {
+      const { error } = await supabase.from('package').insert(packageData)
+      if (error) return alert(error.message)
+    }
+
     resetForm()
     setShowModal(false)
     load()
@@ -66,6 +73,7 @@ export default function Packages() {
   const handleClosePackageModal = useCallback(() => {
     setShowModal(false)
     resetForm()
+    setEditPackage(null)
   }, [])
 
   function handleEquipmentChange(equipId: string, quantity: number) {
@@ -96,11 +104,14 @@ export default function Packages() {
           <div key={p.id} className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-neutral-200 dark:border-neutral-700 p-4 hover:shadow-lg transition-shadow">
             <div className="flex items-start justify-between mb-2">
               <div className="font-semibold text-lg">{p.name}</div>
-              <button onClick={() => remove(p.id)} className="text-red-500 hover:text-red-600 text-sm">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-              </button>
+              <div className="flex items-center gap-2">
+                <button onClick={() => { setEditPackage(p); setName(p.name || ''); setPrice(String(p.price ?? '')); setDuration(String(p.duration ?? '60')); setSelectedEquipment((p.equipment_items || []).map((it:any)=>({id: it.id, quantity: it.quantity || 1}))); setShowModal(true) }} className="text-sm px-2 py-1 rounded border">Modifica</button>
+                <button onClick={() => remove(p.id)} className="text-red-500 hover:text-red-600 text-sm">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+              </div>
             </div>
             <div className="text-2xl font-bold text-amber-500 mb-2">€ {Number(p.price).toFixed(2)}</div>
             {p.duration && <div className="text-sm text-neutral-500 dark:text-neutral-400">Durata: {p.duration} min</div>}
@@ -125,7 +136,7 @@ export default function Packages() {
         )}
       </div>
 
-      <Modal isOpen={showModal} onClose={handleClosePackageModal} title="Nuovo Pacchetto">
+      <Modal isOpen={showModal} onClose={handleClosePackageModal} title={editPackage ? 'Modifica Pacchetto' : 'Nuovo Pacchetto'}>
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-1">Nome Pacchetto</label>
@@ -197,7 +208,7 @@ export default function Packages() {
           </div>
 
           <div className="flex gap-3 pt-4">
-            <Button onClick={create} className="flex-1">Crea Pacchetto</Button>
+            <Button onClick={create} className="flex-1">{editPackage ? 'Salva Modifiche' : 'Crea Pacchetto'}</Button>
             <button
               onClick={handleClosePackageModal}
               className="px-4 py-2 rounded border border-neutral-300 dark:border-neutral-600 hover:bg-neutral-100 dark:hover:bg-neutral-700"
