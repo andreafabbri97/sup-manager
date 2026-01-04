@@ -201,16 +201,14 @@ export default function Reports() {
     URL.revokeObjectURL(url)
   }
 
-  const lineData = {
+  const revenueData = {
     labels: daily.map((d) => d.day),
-    datasets: [
-      { label: 'Entrate', data: daily.map((d) => Number(d.revenue)), borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.2)', yAxisID: 'y' }
-    ]
+    datasets: [ { label: 'Entrate', data: daily.map((d) => Number(d.revenue)), borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.2)', fill: true } ]
   }
 
   const ordersData = {
     labels: dailyOrders.map((d) => d.day),
-    datasets: [ { label: 'Ordini', data: dailyOrders.map((d) => Number(d.orders ?? d.count ?? 0)), borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.2)' } ]
+    datasets: [ { label: 'Ordini', data: dailyOrders.map((d) => Number(d.orders ?? d.count ?? 0)), borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.2)', fill: false } ]
   }
 
   const pieData = {
@@ -224,7 +222,8 @@ export default function Reports() {
   const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'
   const isSmall = typeof window !== 'undefined' && window.innerWidth < 640
 
-  const lineOptions = {
+  // Options for revenue chart (euros)
+  const revenueOptions = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
@@ -234,7 +233,29 @@ export default function Reports() {
           label: (ctx: any) => {
             const label = ctx.dataset.label || ''
             const val = ctx.parsed?.y ?? ctx.parsed ?? 0
-            if (ctx.dataset.yAxisID === 'y') return `${label}: ${Number(val).toFixed(2)} €`
+            return `${label}: ${Number(val).toFixed(2)} €`
+          }
+        }
+      }
+    },
+    elements: { point: { radius: 3 } },
+    scales: {
+      x: { ticks: { color: axisColor }, grid: { color: gridColor } },
+      y: { ticks: { color: axisColor, callback: (v: any) => `${Number(v).toFixed(0)} €` }, grid: { color: gridColor }, position: 'left' }
+    }
+  }
+
+  // Options for orders chart (integer counts)
+  const ordersOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { labels: { color: axisColor }, position: isSmall ? 'bottom' : 'top' },
+      tooltip: {
+        callbacks: {
+          label: (ctx: any) => {
+            const label = ctx.dataset.label || ''
+            const val = ctx.parsed?.y ?? ctx.parsed ?? 0
             return `${label}: ${Number(val).toFixed(0)}`
           }
         }
@@ -243,8 +264,7 @@ export default function Reports() {
     elements: { point: { radius: 3 } },
     scales: {
       x: { ticks: { color: axisColor }, grid: { color: gridColor } },
-      y: { ticks: { color: axisColor, callback: (v: any) => `${Number(v).toFixed(0)} €` }, grid: { color: gridColor }, position: 'left' },
-      y1: { ticks: { color: axisColor, callback: (v: any) => `${Number(v).toFixed(0)}` }, grid: { display: false }, position: 'right' }
+      y: { ticks: { color: axisColor, callback: (v: any) => `${Number(v).toFixed(0)}` , stepSize: 1}, grid: { color: gridColor }, position: 'left' }
     }
   }
 
@@ -313,11 +333,11 @@ export default function Reports() {
               <div className="col-span-2">
                 <div className="mb-4">
                   <div className="text-sm text-neutral-500">Ordini giornalieri</div>
-                  <div className="h-40 sm:h-48"><div className="h-full"><Line data={ordersData} options={lineOptions} /></div></div>
+                  <div className="h-40 sm:h-48"><div className="h-full"><Line data={ordersData} options={ordersOptions} /></div></div>
                 </div>
                 <div className="mb-4">
                   <div className="text-sm text-neutral-500">Entrate giornaliere</div>
-                  <div className="h-40 sm:h-48"><div className="h-full"><Line data={lineData} options={lineOptions} /></div></div>
+                  <div className="h-40 sm:h-48"><div className="h-full"><Line data={revenueData} options={revenueOptions} /></div></div>
                 </div>
                 <div>
                   <div className="text-sm text-neutral-500">Entrate per attrezzatura</div>
