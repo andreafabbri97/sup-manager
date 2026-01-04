@@ -43,3 +43,8 @@ html, body, #root {
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 }
+
+/* Prevent accidental horizontal overflow on small screens (mobile) */
+@media (max-width: 640px) {
+  body { overflow-x: hidden; }
+}
