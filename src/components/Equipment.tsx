@@ -11,11 +11,13 @@ export default function Equipment() {
   const [name, setName] = useState('')
   const [type, setType] = useState('SUP')
   const [quantity, setQuantity] = useState(1)
+  const [pricePerHour, setPricePerHour] = useState('')
 
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editName, setEditName] = useState('')
   const [editType, setEditType] = useState('')
   const [editQuantity, setEditQuantity] = useState(1)
+  const [editPricePerHour, setEditPricePerHour] = useState('')
   const [editStatus, setEditStatus] = useState('available')
   const [editNotes, setEditNotes] = useState('')
 
@@ -30,7 +32,8 @@ export default function Equipment() {
   async function createItem(e: React.FormEvent){
     e.preventDefault()
     if (!name.trim()) return
-    const { data, error } = await supabase.from('equipment').insert([{ name: name.trim(), type, quantity }])
+    const p = parseFloat(pricePerHour) || 0
+    const { data, error } = await supabase.from('equipment').insert([{ name: name.trim(), type, quantity, price_per_hour: p }])
     if (error) { console.error(error); return }
     const inserted = (data || [])[0] as any
     // if equipment is SUP type, create matching SUP records so they are bookable
@@ -65,13 +68,15 @@ export default function Equipment() {
     setEditName(it.name)
     setEditType(it.type)
     setEditQuantity(it.quantity)
+    setEditPricePerHour((it as any).price_per_hour ? String((it as any).price_per_hour) : '')
     setEditStatus(it.status || 'available')
     setEditNotes(it.notes || '')
   }
 
   async function saveEdit(){
     if (!editingId) return
-    const { error } = await supabase.from('equipment').update({ name: editName.trim(), type: editType, quantity: editQuantity, status: editStatus, notes: editNotes }).eq('id', editingId)
+    const p = parseFloat(editPricePerHour) || 0
+    const { error } = await supabase.from('equipment').update({ name: editName.trim(), type: editType, quantity: editQuantity, price_per_hour: p, status: editStatus, notes: editNotes }).eq('id', editingId)
     if (error) console.error(error)
 
     // sync SUP records if equipment is SUP
@@ -113,10 +118,11 @@ export default function Equipment() {
       <Card>
         <h3 className="text-lg font-medium mb-3">Attrezzatura</h3>
 
-        <form onSubmit={createItem} className="flex gap-2 mb-4">
+        <form onSubmit={createItem} className="flex flex-col sm:flex-row gap-2 mb-4">
           <input className="border px-2 py-1 rounded flex-1 dark:bg-neutral-800" placeholder="Nome" value={name} onChange={(e)=>setName(e.target.value)} required />
           <Listbox options={[{value:'SUP',label:'SUP'},{value:'Barca',label:'Barca'},{value:'Remo',label:'Remo'},{value:'Salvagente',label:'Salvagente'},{value:'Altro',label:'Altro'}]} value={type} onChange={(v)=>setType(v ?? 'SUP')} />
           <input type="number" min={1} className="w-20 border px-2 py-1 rounded" value={quantity} onChange={(e)=>setQuantity(Number(e.target.value))} />
+          <input type="number" step="0.01" className="w-36 border px-2 py-1 rounded" placeholder="Prezzo / ora (€)" value={pricePerHour} onChange={(e)=>setPricePerHour(e.target.value)} />
           <Button> Aggiungi </Button>
         </form>
 
@@ -131,6 +137,7 @@ export default function Equipment() {
                     <input className="w-full border px-2 py-1 rounded mb-2 dark:bg-neutral-800" value={editName} onChange={(e)=>setEditName(e.target.value)} />
                     <Listbox options={[{value:'SUP',label:'SUP'},{value:'Barca',label:'Barca'},{value:'Remo',label:'Remo'},{value:'Salvagente',label:'Salvagente'},{value:'Altro',label:'Altro'}]} value={editType} onChange={(v)=>setEditType(v ?? 'SUP')} />
                     <input type="number" min={1} className="w-24 border px-2 py-1 rounded mb-2" value={editQuantity} onChange={(e)=>setEditQuantity(Number(e.target.value))} />
+                    <input type="number" step="0.01" className="w-36 border px-2 py-1 rounded mb-2" placeholder="Prezzo / ora (€)" value={editPricePerHour} onChange={(e)=>setEditPricePerHour(e.target.value)} />
                     <Listbox options={[{value:'available',label:'available'},{value:'maintenance',label:'maintenance'},{value:'retired',label:'retired'}]} value={editStatus} onChange={(v)=>setEditStatus(v ?? 'available')} />
                     <textarea className="w-full border px-2 py-1 rounded" rows={3} value={editNotes} onChange={(e)=>setEditNotes(e.target.value)} />
                   </div>
@@ -145,6 +152,7 @@ export default function Equipment() {
                   <div>
                     <div className="font-medium text-lg">{it.name}</div>
                     <div className="text-sm text-neutral-500">{it.type} • Quantità: {it.quantity}</div>
+                    <div className="text-sm text-amber-500 font-semibold">Prezzo: € {(it as any).price_per_hour ? Number((it as any).price_per_hour).toFixed(2) : '0.00'} / ora</div>
                     {it.notes && <div className="mt-2 text-sm text-neutral-600 dark:text-neutral-300">{it.notes}</div>}
                     <div className={`mt-3 inline-block px-2 py-1 text-xs rounded ${it.status === 'available' ? 'bg-green-100 text-green-800' : it.status === 'maintenance' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>{it.status}</div>
                   </div>

@@ -203,4 +203,6 @@ export default function Sidebar({ onNav, currentPage }: { onNav?: (page: string)
           </button>
         </div>
       </aside>
+    </>
+  )
 }

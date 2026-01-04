@@ -18,6 +18,8 @@ export default function Bookings() {
   const [selectedPackage, setSelectedPackage] = useState<string | null>(null)
   const [customerName, setCustomerName] = useState('')
   const [startTime, setStartTime] = useState('')
+  const [durationMinutes, setDurationMinutes] = useState(60) // default duration in minutes
+  const [computedPrice, setComputedPrice] = useState<number | null>(null)
 
   async function load() {
     const { data: eq } = await supabase.from('equipment').select('*').order('name')
@@ -36,11 +38,19 @@ export default function Bookings() {
     return () => window.removeEventListener('sups:changed', handler)
   }, [])
 
+  // recompute price preview when inputs change
+  useEffect(() => {
+    computePricePreview()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedEquipment, selectedPackage, durationMinutes])
+
   function resetForm() {
     setSelectedEquipment([])
     setSelectedPackage(null)
     setCustomerName('')
     setStartTime('')
+    setDurationMinutes(60)
+    setComputedPrice(null)
   }
 
   function handleEquipmentChange(equipId: string, quantity: number) {
@@ -56,20 +66,48 @@ export default function Bookings() {
     }
   }
 
+  async function computePricePreview() {
+    // compute price locally: if package selected use package.price, else sum equipment price_per_hour * qty * hours
+    if (selectedPackage) {
+      const pkg = packages.find(p => p.id === selectedPackage)
+      setComputedPrice(pkg ? (pkg.price || 0) : 0)
+      return
+    }
+    if (selectedEquipment.length === 0) { setComputedPrice(null); return }
+    const hours = Math.max(0.01, durationMinutes / 60)
+    let total = 0
+    for (const item of selectedEquipment) {
+      const eq = equipment.find(e => e.id === item.id)
+      const rate = eq?.price_per_hour ? Number(eq.price_per_hour) : 0
+      total += rate * (item.quantity || 1) * hours
+    }
+    setComputedPrice(Math.round((total + Number.EPSILON) * 100) / 100)
+  }
+
   async function createBooking() {
     if (!startTime) return alert('Seleziona data e ora')
     if (selectedEquipment.length === 0 && !selectedPackage) return alert('Seleziona almeno un\'attrezzatura o un pacchetto')
 
-    let duration = 60 // default 1 hour
+    let duration = durationMinutes || 60 // minutes
     let price = 0
 
     // Se c'è un pacchetto, usa i suoi parametri
     if (selectedPackage) {
       const pkg = packages.find(p => p.id === selectedPackage)
       if (pkg) {
-        duration = pkg.duration || 60
+        duration = pkg.duration || duration
         price = pkg.price || 0
       }
+    } else {
+      // compute from equipment rates
+      const hours = Math.max(0.01, duration / 60)
+      for (const item of selectedEquipment) {
+        const eq = equipment.find(e => e.id === item.id)
+        const rate = eq?.price_per_hour ? Number(eq.price_per_hour) : 0
+        price += rate * (item.quantity || 1) * hours
+      }
+      // round
+      price = Math.round((price + Number.EPSILON) * 100) / 100
     }
 
     const end_time = new Date(startTime)
@@ -391,6 +429,11 @@ export default function Bookings() {
           </div>
 
           <div>
+            <label className="block text-sm font-medium mb-2">Durata (minuti)</label>
+            <input type="number" value={durationMinutes} onChange={(e)=>{ setDurationMinutes(Number(e.target.value)); }} className="w-full border px-2 py-2 rounded" />
+          </div>
+
+          <div>
             <label className="block text-sm font-medium mb-2">Pacchetto (opzionale)</label>
             <select
               value={selectedPackage || ''}
@@ -411,7 +454,10 @@ export default function Bookings() {
                 const selected = selectedEquipment.find(e => e.id === eq.id)
                 return (
                   <div key={eq.id} className="flex items-center justify-between">
-                    <span className="text-sm">{eq.name}</span>
+                    <div>
+                      <div className="text-sm font-medium">{eq.name}</div>
+                      <div className="text-xs text-neutral-400">€ {eq.price_per_hour ?? 0} / ora</div>
+                    </div>
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleEquipmentChange(eq.id, (selected?.quantity || 0) - 1)}
@@ -436,7 +482,11 @@ export default function Bookings() {
             </div>
           </div>
 
-          <div className="flex gap-3 pt-4">
+          <div className="flex items-center gap-3 pt-4">
+            <div className="flex-1">
+              <div className="text-sm text-neutral-500">Prezzo stimato</div>
+              <div className="text-xl font-bold">{computedPrice !== null ? computedPrice.toFixed(2) + ' €' : '-'} </div>
+            </div>
             <Button onClick={createBooking} className="flex-1">Crea Prenotazione</Button>
             <button
               onClick={() => { setShowModal(false); resetForm(); }}
