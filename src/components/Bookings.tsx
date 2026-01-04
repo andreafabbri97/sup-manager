@@ -199,6 +199,8 @@ export default function Bookings() {
       const msg = err?.message || String(err)
       if (msg.includes("Could not find")) {
         alert("Errore: la colonna 'equipment_items' non è riconosciuta dal server. Assicurati di aver eseguito le migrazioni su Supabase e poi ricarica la pagina (F5). Se l'errore persiste, riavvia il progetto Supabase dal pannello Settings → Database → Restart e riprova.")
+      } else if (msg.includes('Disponibilità insufficiente')) {
+        alert('Disponibilità insufficiente per l\'attrezzatura selezionata. Riduci la quantità selezionata o verifica la disponibilità nel pannello Attrezzatura.')
       } else {
         alert(msg)
       }

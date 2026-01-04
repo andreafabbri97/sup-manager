@@ -27,6 +27,9 @@
   /* StatCard refinements */
   .stat-title { @apply text-xs uppercase tracking-wide text-neutral-400; }
   .stat-value { @apply mt-2 text-2xl font-extrabold; }
+  /* transitions */
+  .card, .btn, .stat-value { transition: all 160ms ease-in-out; }
+  .card:hover { transform: translateY(-4px); }
 }
 
 html, body, #root {
