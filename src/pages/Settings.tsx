@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
+import PageTitle from '../components/ui/PageTitle'
 import { supabase } from '../lib/supabaseClient'
 
 export default function Settings() {
@@ -31,7 +32,7 @@ export default function Settings() {
 
   return (
     <div className="w-full p-6">
-      <h2 className="text-2xl font-semibold mb-4">Impostazioni</h2>
+      <PageTitle className="mb-4">Impostazioni</PageTitle>
       <Card>
         <form onSubmit={save} className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
           <div className="col-span-2">

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import PageTitle from '../components/ui/PageTitle'
 import Sups from '../components/Sups'
 import Packages from '../components/Packages'
 import Bookings from '../components/Bookings'
@@ -121,7 +122,7 @@ export default function Dashboard({ page = 'dashboard' }: { page?: string }) {
     <div className="w-full max-w-screen-xl mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h2 className="text-2xl font-semibold">{pageTitle}</h2>
+          <PageTitle>{pageTitle}</PageTitle>
           <p className="text-sm text-neutral-500 dark:text-neutral-300">Panoramica attività — accesso pubblico</p>
         </div>
       </div>

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import Card from '../components/ui/Card'
+import PageTitle from '../components/ui/PageTitle'
 import Modal from '../components/ui/Modal'
 import Button from '../components/ui/Button'
 
@@ -73,7 +74,7 @@ export default function Archive() {
     <section>
       <div className="mb-4 flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-medium">Archivio Prenotazioni</h3>
+          <PageTitle className="m-0">Archivio Prenotazioni</PageTitle>
           <p className="text-sm text-neutral-500">Cerca fatture e verifica a quali prenotazioni si riferiscono</p>
         </div>
         <div className="flex gap-2">

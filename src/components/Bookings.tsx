@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabaseClient'
 import Button from './ui/Button'
 import Modal from './ui/Modal'
 import Card from './ui/Card'
+import PageTitle from './ui/PageTitle'
 
 type ViewMode = 'day' | 'week' | 'month'
 
@@ -512,7 +513,7 @@ export default function Bookings() {
     <section className="mt-6">
       <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
         <div>
-          <h3 className="font-medium text-lg">Calendario Prenotazioni</h3>
+          <PageTitle className="m-0">Calendario Prenotazioni</PageTitle>
           <p className="text-sm text-neutral-500 dark:text-neutral-400">Gestisci le prenotazioni della tua attrezzatura</p>
         </div>
         <Button onClick={() => setShowModal(true)}>+ Nuova Prenotazione</Button>

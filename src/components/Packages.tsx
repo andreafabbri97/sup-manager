@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import Modal from './ui/Modal'
 import Button from './ui/Button'
+import PageTitle from './ui/PageTitle'
 
 export default function Packages() {
   const [packages, setPackages] = useState<any[]>([])
@@ -84,7 +85,7 @@ export default function Packages() {
     <section className="mt-6">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="font-medium text-lg">I tuoi pacchetti</h3>
+          <PageTitle className="m-0">I tuoi pacchetti</PageTitle>
           <p className="text-sm text-neutral-500 dark:text-neutral-400">Crea pacchetti preimpostati per velocizzare le prenotazioni</p>
         </div>
         <Button onClick={() => setShowModal(true)}>+ Nuovo Pacchetto</Button>

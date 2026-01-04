@@ -8,6 +8,7 @@ import { Line } from 'react-chartjs-2'
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend } from 'chart.js'
 import StatCard from '../components/ui/StatCard'
 import Card from '../components/ui/Card'
+import PageTitle from '../components/ui/PageTitle'
 import Archive from './Archive'
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend)
@@ -338,7 +339,7 @@ export default function Reports() {
   return (
     <div className="w-full px-3 sm:px-4 lg:px-6 py-4 sm:py-6">
       <div className="flex items-center justify-between mb-3 sm:mb-4 flex-wrap gap-3">
-        <h2 className="text-2xl font-semibold">Amministrazione e Report</h2>
+        <PageTitle className="m-0">Amministrazione e Report</PageTitle>
         <div className="flex items-center gap-4">
           <div role="tablist" aria-label="Sezioni report" className="inline-flex rounded bg-neutral-100 dark:bg-neutral-800 p-1">
             <button role="tab" aria-selected={tab==='reports'} onClick={()=>setTab('reports')} className={`px-3 py-1 rounded ${tab==='reports' ? 'bg-white dark:bg-neutral-700 shadow' : ''}`}>Reports</button>

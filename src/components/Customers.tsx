@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabaseClient'
 import Button from './ui/Button'
 import Modal from './ui/Modal'
 import Card from './ui/Card'
+import PageTitle from './ui/PageTitle'
 
 type Customer = {
   id: string
@@ -125,7 +126,7 @@ export default function Customers() {
       <Card>
         <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
           <div>
-            <h3 className="font-medium text-lg">Anagrafica Clienti</h3>
+            <PageTitle className="m-0">Anagrafica Clienti</PageTitle>
             <p className="text-sm text-neutral-500 dark:text-neutral-400">
               Gestisci i dati dei tuoi clienti
             </p>

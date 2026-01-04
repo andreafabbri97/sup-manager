@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
+import PageTitle from './ui/PageTitle'
 
 export default function Sups() {
   const [sups, setSups] = useState<any[]>([])
@@ -37,7 +38,7 @@ export default function Sups() {
   return (
     <section className="mt-6 bg-white rounded-lg shadow p-6">
       <div className="flex items-center justify-between mb-3 flex-wrap gap-3">
-        <h3 className="font-medium">SUP</h3>
+        <PageTitle className="m-0">SUP</PageTitle>
         <div className="flex gap-2 items-center">
           <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nome SUP" className="border px-3 py-2 rounded" />
           <button onClick={create} className="bg-sky-600 text-white rounded px-3 py-2" disabled={loading}>

@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import Card from './ui/Card'
+import PageTitle from './ui/PageTitle'
 import Button from './ui/Button'
 import Listbox from './ui/Listbox'
 import Modal from './ui/Modal'
@@ -140,7 +141,7 @@ export default function Equipment() {
   return (
     <div className="mt-6">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-lg font-medium">Attrezzatura</h3>
+        <PageTitle className="m-0">Attrezzatura</PageTitle>
         <div className="flex gap-2">
           <Button onClick={openAdd}>Aggiungi attrezzatura</Button>
         </div>
