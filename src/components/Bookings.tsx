@@ -145,13 +145,27 @@ export default function Bookings() {
     const end_time = new Date(startTime)
     end_time.setMinutes(end_time.getMinutes() + duration)
 
+    // Merge package equipment_items (if any) with explicitly selected equipment
+    let mergedEquipment: {id: string, quantity: number}[] = [...selectedEquipment]
+    if (selectedPackage) {
+      const pkg = packages.find(p => p.id === selectedPackage)
+      if (pkg && Array.isArray(pkg.equipment_items)) {
+        for (const pei of pkg.equipment_items) {
+          const existing = mergedEquipment.find(m => m.id === pei.id)
+          const q = Number(pei.quantity || 1)
+          if (existing) existing.quantity = (existing.quantity || 0) + q
+          else mergedEquipment.push({ id: pei.id, quantity: q })
+        }
+      }
+    }
+
     const bookingData = {
       customer_name: customerName,
       start_time: new Date(startTime).toISOString(),
       end_time: end_time.toISOString(),
       price,
       package_id: selectedPackage,
-      equipment_items: selectedEquipment
+      equipment_items: mergedEquipment
     }
 
     // --- Availability check: ensure requested quantities do not exceed available inventory ---
@@ -164,7 +178,10 @@ export default function Bookings() {
       return Astart < Bend && Bstart < Aend
     }
 
-    for (const item of selectedEquipment) {
+    // check availability for merged items (package + manual selection)
+    const itemsToCheck = mergedEquipment
+
+    for (const item of itemsToCheck) {
       const eq = equipment.find(e => e.id === item.id)
       const totalQty = eq?.quantity != null ? Number(eq.quantity) : 1
       let bookedQty = 0

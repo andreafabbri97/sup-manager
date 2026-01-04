@@ -35,6 +35,11 @@ BEGIN
     -- Lock sup rows for this equipment to prevent race conditions
     SELECT COUNT(*) INTO total_sups FROM sup WHERE equipment_id = eq_id AND (status IS NULL OR status = 'available') FOR UPDATE;
 
+    -- If no individual `sup` rows exist for this equipment, fall back to equipment.quantity
+    IF total_sups = 0 THEN
+      SELECT COALESCE(quantity, 0) INTO total_sups FROM equipment WHERE id = eq_id;
+    END IF;
+
     -- Sum quantities already booked in overlapping bookings
     SELECT COALESCE(SUM( (je->>'quantity')::int ), 0) INTO booked_qty
     FROM booking b
