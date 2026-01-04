@@ -345,7 +345,16 @@ export default function Reports() {
             <form onSubmit={(e)=>{ createExpense(e); setShowExpenseModal(false); }} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-1">Importo</label>
-                <input value={amount} onChange={(e)=>setAmount(e.target.value)} placeholder="Importo" className="w-full border px-2 py-1 rounded" />
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  step="0.01"
+                  min="0"
+                  value={amount}
+                  onChange={(e)=>setAmount(e.target.value)}
+                  placeholder="Importo"
+                  className="w-full border px-2 py-1 rounded"
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Categoria</label>
