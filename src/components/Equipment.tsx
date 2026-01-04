@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import Card from './ui/Card'
 import Button from './ui/Button'
+import Listbox from './ui/Listbox'
 
 type EquipmentItem = { id: string; name: string; type: string; quantity: number; status?: string; notes?: string }
 
@@ -114,13 +115,7 @@ export default function Equipment() {
 
         <form onSubmit={createItem} className="flex gap-2 mb-4">
           <input className="border px-2 py-1 rounded flex-1 dark:bg-neutral-800" placeholder="Nome" value={name} onChange={(e)=>setName(e.target.value)} required />
-          <select className="border px-2 py-1 rounded" value={type} onChange={(e)=>setType(e.target.value)}>
-            <option>SUP</option>
-            <option>Barca</option>
-            <option>Remo</option>
-            <option>Salvagente</option>
-            <option>Altro</option>
-          </select>
+          <Listbox options={[{value:'SUP',label:'SUP'},{value:'Barca',label:'Barca'},{value:'Remo',label:'Remo'},{value:'Salvagente',label:'Salvagente'},{value:'Altro',label:'Altro'}]} value={type} onChange={(v)=>setType(v ?? 'SUP')} />
           <input type="number" min={1} className="w-20 border px-2 py-1 rounded" value={quantity} onChange={(e)=>setQuantity(Number(e.target.value))} />
           <Button> Aggiungi </Button>
         </form>
@@ -134,19 +129,9 @@ export default function Equipment() {
                 <div>
                   <div className="mb-2">
                     <input className="w-full border px-2 py-1 rounded mb-2 dark:bg-neutral-800" value={editName} onChange={(e)=>setEditName(e.target.value)} />
-                    <select className="w-full border px-2 py-1 rounded mb-2" value={editType} onChange={(e)=>setEditType(e.target.value)}>
-                      <option>SUP</option>
-                      <option>Barca</option>
-                      <option>Remo</option>
-                      <option>Salvagente</option>
-                      <option>Altro</option>
-                    </select>
+                    <Listbox options={[{value:'SUP',label:'SUP'},{value:'Barca',label:'Barca'},{value:'Remo',label:'Remo'},{value:'Salvagente',label:'Salvagente'},{value:'Altro',label:'Altro'}]} value={editType} onChange={(v)=>setEditType(v ?? 'SUP')} />
                     <input type="number" min={1} className="w-24 border px-2 py-1 rounded mb-2" value={editQuantity} onChange={(e)=>setEditQuantity(Number(e.target.value))} />
-                    <select className="w-full border px-2 py-1 rounded mb-2" value={editStatus} onChange={(e)=>setEditStatus(e.target.value)}>
-                      <option value="available">available</option>
-                      <option value="maintenance">maintenance</option>
-                      <option value="retired">retired</option>
-                    </select>
+                    <Listbox options={[{value:'available',label:'available'},{value:'maintenance',label:'maintenance'},{value:'retired',label:'retired'}]} value={editStatus} onChange={(v)=>setEditStatus(v ?? 'available')} />
                     <textarea className="w-full border px-2 py-1 rounded" rows={3} value={editNotes} onChange={(e)=>setEditNotes(e.target.value)} />
                   </div>
 

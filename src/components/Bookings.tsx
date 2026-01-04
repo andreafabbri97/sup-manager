@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import Card from './ui/Card'
 import Button from './ui/Button'
+import Listbox from './ui/Listbox'
 
 export default function Bookings() {
   const [sups, setSups] = useState<any[]>([])
@@ -87,18 +88,13 @@ export default function Bookings() {
         <h3 className="font-medium">Prenotazioni</h3>
 
         <div className="mt-3 grid grid-cols-1 sm:grid-cols-4 gap-3">
-          <select value={supId || ''} onChange={(e) => setSupId(e.target.value || null)} className="border px-3 py-2 rounded">
-            <option value="">Seleziona SUP</option>
-            {sups.map((s) => (
-              <option key={s.id} value={s.id}>{s.name}</option>
-            ))}
-          </select>
-          <select value={packageId || ''} onChange={(e) => setPackageId(e.target.value || null)} className="border px-3 py-2 rounded">
-            <option value="">Seziona pacchetto (opzionale)</option>
-            {packages.map((p) => (
-              <option key={p.id} value={p.id}>{p.name} {p.price ? `- ${p.price}€` : ''}</option>
-            ))}
-          </select>
+                  <div>
+            {/* custom listbox for SUP selection */}
+            <Listbox options={[{value:'', label:'Seleziona SUP'}, ...sups.map((s:any)=>({value:s.id, label:s.name}))].filter(o=>o.value!=='')} value={supId} onChange={(v)=>setSupId(v)} />
+          </div>
+          <div>
+            <Listbox options={packages.map((p:any)=>({ value: p.id, label: `${p.name}${p.price? ' - '+p.price+'€':''}` }))} value={packageId} onChange={(v)=>setPackageId(v)} placeholder="Seleziona pacchetto (opzionale)" />
+          </div>
           <input value={startTime} onChange={(e) => setStartTime(e.target.value)} type="datetime-local" className="border px-3 py-2 rounded" />
           <input value={customerName} onChange={(e) => setCustomerName(e.target.value)} placeholder="Nome cliente" className="border px-3 py-2 rounded" />
         </div>
@@ -113,10 +109,7 @@ export default function Bookings() {
                 <div className="flex-1">
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                     <input value={editStart} onChange={(e) => setEditStart(e.target.value)} type="datetime-local" className="border px-2 py-1 rounded" />
-                    <select value={editPackage || ''} onChange={(e)=>setEditPackage(e.target.value || null)} className="border px-2 py-1 rounded">
-                      <option value="">Nessun pacchetto</option>
-                      {packages.map((p)=> <option key={p.id} value={p.id}>{p.name}</option>)}
-                    </select>
+                    <Listbox options={[{value:'',label:'Nessun pacchetto'}, ...packages.map((p:any)=>({value:p.id, label:p.name}))].filter(o=>o.value!=='')} value={editPackage} onChange={(v)=>setEditPackage(v)} />
                     <input value={editCustomer} onChange={(e)=>setEditCustomer(e.target.value)} className="border px-2 py-1 rounded" />
                   </div>
 
