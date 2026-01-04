@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabaseClient'
 import Button from '../components/ui/Button'
 import Modal from '../components/ui/Modal'
 import Card from '../components/ui/Card'
+import Input from '../components/ui/Input'
 import { Line, Pie } from 'react-chartjs-2'
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, ArcElement, Tooltip, Legend } from 'chart.js'
 import StatCard from '../components/ui/StatCard'
@@ -24,7 +25,7 @@ export default function Reports() {
     const v = window.localStorage.getItem('reports_tab')
     return v === 'admin' ? 'admin' : 'reports'
   })
-  const [includeIva, setIncludeIva] = useState(true)
+  const [excludeIva, setExcludeIva] = useState(false)
   const [start, setStart] = useState(() => {
     if (typeof window === 'undefined') {
       const d=new Date(); d.setDate(d.getDate()-30); return d.toISOString().slice(0,10)
@@ -40,6 +41,7 @@ export default function Reports() {
 
   const [revByEquip, setRevByEquip] = useState<any[]>([])
   const [daily, setDaily] = useState<any[]>([])
+  const [dailyOrders, setDailyOrders] = useState<any[]>([])
   const [summary, setSummary] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
 
@@ -92,6 +94,12 @@ export default function Reports() {
     setRevByEquip(rev ?? [])
     const { data: d } = await supabase.rpc('report_daily_revenue', { start_date: start, end_date: end })
     setDaily(d ?? [])
+    try {
+      const { data: od } = await supabase.rpc('report_daily_orders', { start_date: start, end_date: end })
+      setDailyOrders(od ?? [])
+    } catch (e) {
+      setDailyOrders([])
+    }
     const { data: s } = await supabase.rpc('report_margin', { start_date: start, end_date: end })
     setSummary(s ?? [])
 
@@ -167,7 +175,10 @@ export default function Reports() {
 
   const lineData = {
     labels: daily.map((d) => d.day),
-    datasets: [{ label: 'Entrate', data: daily.map((d) => Number(d.revenue)), borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.2)' }]
+    datasets: [
+      { label: 'Entrate', data: daily.map((d) => Number(d.revenue)), borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.2)', yAxisID: 'y' },
+      { label: 'Ordini', data: dailyOrders.map((d) => Number(d.orders ?? d.count ?? 0)), borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.2)', yAxisID: 'y1' }
+    ]
   }
 
   const pieData = {
@@ -187,17 +198,18 @@ export default function Reports() {
     plugins: { legend: { labels: { color: axisColor }, position: isSmall ? 'bottom' : 'top' } },
     scales: {
       x: { ticks: { color: axisColor }, grid: { color: gridColor } },
-      y: { ticks: { color: axisColor }, grid: { color: gridColor } },
+      y: { ticks: { color: axisColor }, grid: { color: gridColor }, position: 'left' },
+      y1: { ticks: { color: axisColor }, grid: { display: false }, position: 'right' }
     }
   }
 
   const pieOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: axisColor }, position: isSmall ? 'bottom' : 'right' } } }
 
-  // derive profit value using includeIva toggle
+  // derive profit value using excludeIva toggle (when excluded, IVA is zeroed)
   const revenueSum = Number(summary.find(s=>s.metric==='revenue')?.value ?? 0)
   const revenueInvoiced = Number(summary.find(s=>s.metric==='revenue_invoiced')?.value ?? 0)
   const expensesSum = Number(summary.find(s=>s.metric==='expenses')?.value ?? 0)
-  const ivaAmount = includeIva ? (revenueInvoiced * ivaPercent/100) : 0
+  const ivaAmount = excludeIva ? 0 : (revenueInvoiced * ivaPercent/100)
   const profitValue = (revenueSum - expensesSum - ivaAmount).toFixed(2) + ' €'
 
   return (
@@ -210,7 +222,7 @@ export default function Reports() {
             <button role="tab" aria-selected={tab==='admin'} onClick={()=>{ setTab('admin'); loadExpenses() }} className={`px-3 py-1 rounded ${tab==='admin' ? 'bg-white dark:bg-neutral-700 shadow' : ''}`}>Amministrazione</button>
           </div>
           <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" checked={includeIva} onChange={(e)=>setIncludeIva(e.target.checked)} className="border rounded" />
+            <input type="checkbox" checked={excludeIva} onChange={(e)=>setExcludeIva(e.target.checked)} className="border rounded" />
             Escludi IVA
           </label>
         </div>
@@ -222,9 +234,7 @@ export default function Reports() {
           <StatCard title="Entrate" value={revenueSum.toFixed(2) + ' €'} color="accent" />
           <StatCard title="Ordini" value={bookingsCount} color="neutral" />
           <StatCard title="Spese" value={expensesSum.toFixed(2) + ' €'} color="warning" />
-          {!includeIva && (
-            <StatCard title="IVA" value={(revenueSum * ivaPercent / 100).toFixed(2) + ' €'} color="neutral" />
-          )}
+          <StatCard title="IVA" value={(ivaAmount).toFixed(2) + ' €'} color="neutral" />
           <StatCard title="Profitto" value={profitValue} color="success" />
         </div>
       </div>
@@ -361,28 +371,16 @@ export default function Reports() {
           <Modal isOpen={showExpenseModal} onClose={handleCloseExpenseModal} title="Aggiungi Spesa">
             <form onSubmit={(e)=>{ createExpense(e); setShowExpenseModal(false); }} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-1">Importo</label>
-                <input
-                  type="text"
-                  inputMode="decimal"
-                  pattern="^[0-9]+([.,][0-9]{1,2})?$"
-                  value={amount}
-                  onChange={(e)=>setAmount(e.target.value)}
-                  placeholder="Importo"
-                  className="w-full border px-2 py-1 rounded"
-                />
+                <Input label="Importo" value={amount} onChange={(e)=>setAmount(e.target.value)} placeholder="Importo" />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Data</label>
-                <input type="date" value={expenseDate} onChange={(e)=>setExpenseDate(e.target.value)} className="w-full border px-2 py-1 rounded" />
+                <Input label="Data" type="date" value={expenseDate} onChange={(e)=>setExpenseDate(e.target.value)} />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Categoria</label>
-                <input value={category} onChange={(e)=>setCategory(e.target.value)} placeholder="Categoria" className="w-full border px-2 py-1 rounded" />
+                <Input label="Categoria" value={category} onChange={(e)=>setCategory(e.target.value)} placeholder="Categoria" />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Note</label>
-                <input value={notes} onChange={(e)=>setNotes(e.target.value)} placeholder="Note" className="w-full border px-2 py-1 rounded" />
+                <Input label="Note" value={notes} onChange={(e)=>setNotes(e.target.value)} placeholder="Note" />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Ricevuta (opzionale)</label>

@@ -351,13 +351,15 @@ export default function Bookings() {
   }
 
   return (
-    <section className="mt-6">
-      <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
-        <div>
-          <h3 className="font-medium text-lg">Calendario Prenotazioni</h3>
-          <p className="text-sm text-neutral-500 dark:text-neutral-400">Gestisci le prenotazioni della tua attrezzatura</p>
+    <div className="max-w-6xl mx-auto p-6">
+      <div className="mb-4">
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+          <div>
+            <h3 className="font-medium text-lg">Calendario Prenotazioni</h3>
+            <p className="text-sm text-neutral-500 dark:text-neutral-400">Gestisci le prenotazioni della tua attrezzatura</p>
+          </div>
+          <Button onClick={() => setShowModal(true)}>+ Nuova Prenotazione</Button>
         </div>
-        <Button onClick={() => setShowModal(true)}>+ Nuova Prenotazione</Button>
       </div>
 
       {/* View controls */}
@@ -698,6 +700,6 @@ export default function Bookings() {
           </div>
         )}
       </Modal>
-    </section>
+    </div>
   )
 }

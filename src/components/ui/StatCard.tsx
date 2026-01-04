@@ -2,15 +2,15 @@ import React from 'react'
 
 export default function StatCard({ title, value, className = '', color = 'neutral' }: { title: string; value: React.ReactNode; className?: string; color?: 'neutral'|'success'|'warning'|'accent' }) {
   const colorClasses: Record<string,string> = {
-    neutral: 'bg-neutral-800 text-white',
-    success: 'bg-emerald-700 text-white',
-    warning: 'bg-amber-600 text-white',
-    accent: 'bg-violet-700 text-white'
+    neutral: 'bg-gradient-to-b from-neutral-800 to-neutral-700 text-white',
+    success: 'bg-gradient-to-b from-emerald-700 to-emerald-600 text-white',
+    warning: 'bg-gradient-to-b from-amber-600 to-amber-500 text-white',
+    accent: 'bg-gradient-to-b from-violet-700 to-violet-600 text-white'
   }
   return (
-    <div className={`w-full sm:w-52 md:w-56 p-4 rounded-xl shadow-sm min-h-[72px] ${colorClasses[color]} ${className}`}>
-      <div className="stat-title">{title}</div>
-      <div className="stat-value">{value}</div>
+    <div className={`w-full sm:w-52 md:w-56 p-4 rounded-xl shadow-md min-h-[72px] flex flex-col justify-center transition-transform transform hover:-translate-y-1 ${colorClasses[color]} ${className}`}>
+      <div className="text-sm uppercase tracking-wide text-white/90">{title}</div>
+      <div className="mt-2 text-2xl font-semibold leading-none">{value}</div>
     </div>
   )
 }

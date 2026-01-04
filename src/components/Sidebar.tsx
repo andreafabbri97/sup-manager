@@ -185,9 +185,9 @@ export default function Sidebar({ onNav, currentPage }: { onNav?: (page: string)
                 key={it.id}
                 onClick={() => { onNav?.(it.id); setMobileOpen(false) }}
                 aria-current={active ? 'page' : undefined}
-                className={`w-full flex items-center gap-3 px-3 py-2 rounded transition-colors ${active ? 'bg-brand-500 text-white' : 'hover:bg-neutral-100 dark:hover:bg-neutral-800'}`}>
-                <span className="flex-shrink-0 text-current"><Icon name={it.id} /></span>
-                <span className={`${collapsed ? 'hidden' : 'block truncate'}`}>{it.label}</span>
+                className={`w-full flex items-center gap-3 px-3 py-2 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-amber-300 ${active ? 'bg-amber-500 text-white shadow' : 'hover:bg-neutral-100 dark:hover:bg-neutral-800'}`}>
+                <span className="flex-shrink-0 text-current" aria-hidden><Icon name={it.id} /></span>
+                <span title={it.label} className={`${collapsed ? 'hidden' : 'block truncate'}`}>{it.label}</span>
               </button>
             )
           })}
