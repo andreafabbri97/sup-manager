@@ -243,24 +243,55 @@ export default function Bookings() {
         )}
 
         {viewMode === 'week' && (
-          <div className="overflow-x-auto">
-            <div className="grid grid-cols-7 min-w-[700px]">
-              {['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'].map((day, i) => (
-                <div key={i} className="p-2 text-center text-sm font-medium border-b border-neutral-200 dark:border-neutral-700">
-                  {day}
-                </div>
-              ))}
-              {getWeekDays(currentDate).map((day, i) => {
+          <>
+            {/* Desktop / Tablet: grid */}
+            <div className="hidden sm:block overflow-x-auto">
+              <div className="grid grid-cols-7 sm:min-w-[700px]">
+                {['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'].map((day, i) => (
+                  <div key={i} className="p-2 text-center text-sm font-medium border-b border-neutral-200 dark:border-neutral-700">
+                    {day}
+                  </div>
+                ))}
+                {getWeekDays(currentDate).map((day, i) => {
+                  const dayBookings = getBookingsForDate(day)
+                  const isToday = day.toDateString() === new Date().toDateString()
+                  return (
+                    <div key={i} className={`p-2 border-r border-b border-neutral-200 dark:border-neutral-700 min-h-[150px] ${isToday ? 'bg-amber-50 dark:bg-amber-900/10' : ''}`}>
+                      <div className={`text-sm font-medium mb-2 ${isToday ? 'text-amber-600 dark:text-amber-400' : ''}`}>{day.getDate()}</div>
+                      <div className="space-y-1">
+                        {dayBookings.map(b => (
+                          <div key={b.id} className="text-xs p-1 rounded bg-amber-100 dark:bg-amber-900/30 truncate cursor-pointer" onClick={() => removeBooking(b.id)}>
+                            <div className="font-medium truncate">{new Date(b.start_time).toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'})}</div>
+                            <div className="truncate">{b.customer_name || 'Cliente'}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* Mobile: stacked days */}
+            <div className="sm:hidden p-2">
+              {getWeekDays(currentDate).map((day) => {
                 const dayBookings = getBookingsForDate(day)
                 const isToday = day.toDateString() === new Date().toDateString()
                 return (
-                  <div key={i} className={`p-2 border-r border-b border-neutral-200 dark:border-neutral-700 min-h-[150px] ${isToday ? 'bg-amber-50 dark:bg-amber-900/10' : ''}`}>
-                    <div className={`text-sm font-medium mb-2 ${isToday ? 'text-amber-600 dark:text-amber-400' : ''}`}>{day.getDate()}</div>
-                    <div className="space-y-1">
+                  <div key={day.toDateString()} className={`mb-3 p-3 rounded border ${isToday ? 'bg-amber-50 dark:bg-amber-900/10 border-amber-200' : 'border-neutral-200 dark:border-neutral-700'}`}>
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="font-medium">{day.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'short' })}</div>
+                      <div className="text-sm text-neutral-500">{dayBookings.length} prenotazioni</div>
+                    </div>
+                    <div className="space-y-2">
+                      {dayBookings.length === 0 && <div className="text-neutral-500 text-sm">Nessuna prenotazione</div>}
                       {dayBookings.map(b => (
-                        <div key={b.id} className="text-xs p-1 rounded bg-amber-100 dark:bg-amber-900/30 truncate cursor-pointer" onClick={() => removeBooking(b.id)}>
-                          <div className="font-medium truncate">{new Date(b.start_time).toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'})}</div>
-                          <div className="truncate">{b.customer_name || 'Cliente'}</div>
+                        <div key={b.id} className="p-3 rounded bg-amber-100 dark:bg-amber-900/30 flex items-center justify-between">
+                          <div>
+                            <div className="font-medium text-sm">{b.customer_name || 'Cliente'}</div>
+                            <div className="text-xs text-neutral-600">{new Date(b.start_time).toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'})} – {new Date(b.end_time).toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'})}</div>
+                          </div>
+                          <button onClick={() => removeBooking(b.id)} className="text-red-500 ml-3">Elimina</button>
                         </div>
                       ))}
                     </div>
@@ -268,39 +299,71 @@ export default function Bookings() {
                 )
               })}
             </div>
-          </div>
+          </>
         )}
 
         {viewMode === 'month' && (
-          <div className="overflow-x-auto">
-            <div className="grid grid-cols-7 min-w-[700px]">
-              {['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'].map((day, i) => (
-                <div key={i} className="p-2 text-center text-sm font-medium border-b border-neutral-200 dark:border-neutral-700">
-                  {day}
-                </div>
-              ))}
-              {getMonthDays(currentDate).map((day, i) => {
+          <>
+            {/* Desktop / Tablet grid */}
+            <div className="hidden sm:block overflow-x-auto">
+              <div className="grid grid-cols-7 sm:min-w-[700px]">
+                {['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'].map((day, i) => (
+                  <div key={i} className="p-2 text-center text-sm font-medium border-b border-neutral-200 dark:border-neutral-700">
+                    {day}
+                  </div>
+                ))}
+                {getMonthDays(currentDate).map((day, i) => {
+                  const dayBookings = getBookingsForDate(day)
+                  const isToday = day.toDateString() === new Date().toDateString()
+                  const isCurrentMonth = day.getMonth() === currentDate.getMonth()
+                  return (
+                    <div key={i} className={`p-2 border-r border-b border-neutral-200 dark:border-neutral-700 min-h-[100px] ${isToday ? 'bg-amber-50 dark:bg-amber-900/10' : ''} ${!isCurrentMonth ? 'opacity-30' : ''}`}>
+                      <div className={`text-sm font-medium mb-1 ${isToday ? 'text-amber-600 dark:text-amber-400' : ''}`}>{day.getDate()}</div>
+                      <div className="space-y-1">
+                        {dayBookings.slice(0, 2).map(b => (
+                          <div key={b.id} className="text-xs p-1 rounded bg-amber-100 dark:bg-amber-900/30 truncate">
+                            {b.customer_name || 'Cliente'}
+                          </div>
+                        ))}
+                        {dayBookings.length > 2 && (
+                          <div className="text-xs text-neutral-500">+{dayBookings.length - 2}</div>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* Mobile stacked list */}
+            <div className="sm:hidden p-2">
+              {getMonthDays(currentDate).map((day) => {
                 const dayBookings = getBookingsForDate(day)
                 const isToday = day.toDateString() === new Date().toDateString()
                 const isCurrentMonth = day.getMonth() === currentDate.getMonth()
                 return (
-                  <div key={i} className={`p-2 border-r border-b border-neutral-200 dark:border-neutral-700 min-h-[100px] ${isToday ? 'bg-amber-50 dark:bg-amber-900/10' : ''} ${!isCurrentMonth ? 'opacity-30' : ''}`}>
-                    <div className={`text-sm font-medium mb-1 ${isToday ? 'text-amber-600 dark:text-amber-400' : ''}`}>{day.getDate()}</div>
-                    <div className="space-y-1">
-                      {dayBookings.slice(0, 2).map(b => (
-                        <div key={b.id} className="text-xs p-1 rounded bg-amber-100 dark:bg-amber-900/30 truncate">
-                          {b.customer_name || 'Cliente'}
+                  <div key={day.toDateString()} className={`mb-3 p-3 rounded border ${isToday ? 'bg-amber-50 dark:bg-amber-900/10 border-amber-200' : 'border-neutral-200 dark:border-neutral-700'} ${!isCurrentMonth ? 'opacity-50' : ''}`}>
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="font-medium">{day.toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric', month: 'short' })}</div>
+                      <div className="text-sm text-neutral-500">{dayBookings.length} prenotazioni</div>
+                    </div>
+                    <div className="space-y-2">
+                      {dayBookings.length === 0 && <div className="text-neutral-500 text-sm">Nessuna prenotazione</div>}
+                      {dayBookings.map(b => (
+                        <div key={b.id} className="p-3 rounded bg-amber-100 dark:bg-amber-900/30 flex items-center justify-between">
+                          <div>
+                            <div className="font-medium text-sm">{b.customer_name || 'Cliente'}</div>
+                            <div className="text-xs text-neutral-600">{new Date(b.start_time).toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'})} – {new Date(b.end_time).toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'})}</div>
+                          </div>
+                          <button onClick={() => removeBooking(b.id)} className="text-red-500 ml-3">Elimina</button>
                         </div>
                       ))}
-                      {dayBookings.length > 2 && (
-                        <div className="text-xs text-neutral-500">+{dayBookings.length - 2}</div>
-                      )}
                     </div>
                   </div>
                 )
               })}
             </div>
-          </div>
+          </>
         )}
       </div>
 
