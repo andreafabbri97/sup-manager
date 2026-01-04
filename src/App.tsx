@@ -24,7 +24,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-sky-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 flex">
       <Sidebar onNav={handleNav} currentPage={page} />
-      <main className="flex-1 flex flex-col w-full max-w-screen-xl mx-auto">
+      <main className="flex-1 flex flex-col w-full">
         <TopBar />
         <div className="px-2 sm:px-4 lg:px-6 py-3 sm:py-4 flex-1">
           {page === 'equipment' && <Equipment />}

@@ -12,7 +12,7 @@ export default function TopBar() {
 
   return (
     <div className="sticky top-0 z-40 bg-white/40 dark:bg-[#07101a]/40 backdrop-blur-sm border-b border-neutral-200 dark:border-neutral-800 py-2">
-      <div className="max-w-screen-xl mx-auto px-2 sm:px-4 lg:px-6 text-sm text-neutral-600 dark:text-neutral-300 flex items-center gap-3">
+      <div className="w-full px-2 sm:px-4 lg:px-6 text-sm text-neutral-600 dark:text-neutral-300 flex items-center gap-3">
         {/* Mobile menu button moved here to avoid floating overlay */}
         <button
           onClick={() => window.dispatchEvent(new CustomEvent('sidebar:toggle'))}
