@@ -53,5 +53,21 @@ jobs:
           git add remove-auth-output.txt || true
           git commit -m "Add remove-auth-output debug (auto)" || true
           git push origin remove-auth-debug --force || true
-          echo "Pushed debug output to branch remove-auth-debug"
+          echo "Pushed debug output to branch remove-auth-debug" 
+
+      - name: Create debug issue with script output
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Preparing issue payload (first 3000 chars only)"
+          payload=$(python - <<'PY'
+import json
+s=open('remove-auth-output.txt','r',encoding='utf8').read()
+print(json.dumps({'title':'remove-auth debug: output','body': s[:3000]}))
+PY
+)
+          REPO='${{ github.repository }}'
+          echo "Creating issue in $REPO"
+          curl -s -H "Authorization: token $GITHUB_TOKEN" -H "Content-Type: application/json" -d "$payload" "https://api.github.com/repos/$REPO/issues" || true
+          echo "Issue creation step completed (may have failed if runner lacks permission)."
 
