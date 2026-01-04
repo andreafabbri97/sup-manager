@@ -4,11 +4,11 @@ import Button from '../components/ui/Button'
 import Modal from '../components/ui/Modal'
 import Card from '../components/ui/Card'
 import Input from '../components/ui/Input'
-import { Line, Pie } from 'react-chartjs-2'
-import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, ArcElement, Tooltip, Legend } from 'chart.js'
+import { Line } from 'react-chartjs-2'
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend } from 'chart.js'
 import StatCard from '../components/ui/StatCard'
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, ArcElement, Tooltip, Legend)
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend)
 
 function toCSV(rows: any[], headers: string[]) {
   const esc = (v: any) => (v === null || v === undefined ? '' : String(v).replace(/"/g, '""'))
@@ -206,23 +206,12 @@ export default function Reports() {
     datasets: [ { label: 'Entrate', data: daily.map((d) => Number(d.revenue)), borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.2)', fill: true } ]
   }
 
-  const ordersData = {
-    labels: dailyOrders.map((d) => d.day),
-    datasets: [ { label: 'Ordini', data: dailyOrders.map((d) => Number(d.orders ?? d.count ?? 0)), borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.2)', fill: false } ]
-  }
-
-  const pieData = {
-    labels: revByEquip.map((r) => r.equipment),
-    datasets: [{ data: revByEquip.map((r) => Number(r.revenue)), backgroundColor: revByEquip.map((_,i)=>['#60a5fa','#3b82f6','#2563eb','#1e3a8a','#93c5fd'][i%5]) }]
-  }
-
-  // Chart options that adapt to light/dark theme and are responsive
-  const isDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark')
-  const axisColor = isDark ? '#9CA3AF' : '#374151'
-  const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'
-  const isSmall = typeof window !== 'undefined' && window.innerWidth < 640
-
-  // Options for revenue chart (euros)
+  // derived metrics for enhanced report overview
+  const avgOrderValue = bookingsCount > 0 ? (revenueSum / bookingsCount) : 0
+  const bestDayObj = daily.length ? daily.reduce((a:any,b:any)=> Number(b.revenue) > Number(a.revenue) ? b : a) : null
+  const bestDayLabel = bestDayObj ? `${bestDayObj.day} (${Number(bestDayObj.revenue).toFixed(2)} €)` : '—'
+  const peakOrdersObj = dailyOrders.length ? dailyOrders.reduce((a:any,b:any)=> Number(b.orders ?? b.count ?? 0) > Number(a.orders ?? a.count ?? 0) ? b : a) : null
+  const peakOrdersLabel = peakOrdersObj ? `${peakOrdersObj.day} (${Number(peakOrdersObj.orders ?? peakOrdersObj.count ?? 0)} )` : '—'
   const revenueOptions = {
     responsive: true,
     maintainAspectRatio: false,
@@ -268,18 +257,7 @@ export default function Reports() {
     }
   }
 
-  const pieOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: { labels: { color: axisColor }, position: isSmall ? 'bottom' : 'right' },
-      tooltip: {
-        callbacks: {
-          label: (ctx: any) => `${ctx.label}: ${Number(ctx.raw ?? 0).toFixed(2)} €`
-        }
-      }
-    }
-  }
+  
 
   // derive profit value using excludeIva toggle (when excluded, IVA is zeroed)
   const revenueSum = Number(summary.find(s=>s.metric==='revenue')?.value ?? 0)
@@ -378,16 +356,33 @@ export default function Reports() {
 
               <div>
                 <div className="mb-4">
-                  <div className="text-sm text-neutral-500">Ripartizione entrate</div>
-                  <div className="h-40 sm:h-48"><div className="h-full"><Pie data={pieData} options={pieOptions} /></div></div>
+                  <div className="text-sm text-neutral-500">Statistiche rapide</div>
+                  <div className="mt-2 space-y-2">
+                    <div className="p-2 rounded bg-white/5 dark:bg-slate-800">
+                      <div className="text-xs text-neutral-400">Valore medio prenotazione</div>
+                      <div className="font-medium text-lg">{avgOrderValue.toFixed(2)} €</div>
+                    </div>
+                    <div className="p-2 rounded bg-white/5 dark:bg-slate-800">
+                      <div className="text-xs text-neutral-400">Giorno migliore (ricavi)</div>
+                      <div className="font-medium text-lg">{bestDayLabel}</div>
+                    </div>
+                    <div className="p-2 rounded bg-white/5 dark:bg-slate-800">
+                      <div className="text-xs text-neutral-400">Giorno con più ordini</div>
+                      <div className="font-medium text-lg">{peakOrdersLabel}</div>
+                    </div>
+                  </div>
                 </div>
                 <div>
-                  <div className="text-sm text-neutral-500">Riepilogo</div>
-                  <ul className="mt-2">
-                    {summary.map((s:any)=> (
-                      <li key={s.metric} className="py-1"><strong>{s.metric}</strong>: {Number(s.value).toFixed(2)} €</li>
+                  <div className="text-sm text-neutral-500">Top attrezzature (incasso)</div>
+                  <div className="mt-2">
+                    {revByEquip.slice(0,3).map((r:any)=> (
+                      <div key={r.equipment} className="py-2 border-b border-neutral-100 dark:border-neutral-800 flex justify-between">
+                        <div className="font-medium">{r.equipment}</div>
+                        <div className="text-sm text-neutral-500">{Number(r.revenue).toFixed(2)} €</div>
+                      </div>
                     ))}
-                  </ul>
+                    {revByEquip.length === 0 && <div className="text-neutral-500 mt-2">Nessuna entrata</div>}
+                  </div>
                 </div>
               </div>
             </div>
