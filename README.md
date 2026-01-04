@@ -10,6 +10,9 @@ Per avviare in locale:
 
    Nota: assicurati di eseguire questo comando prima di aprire il progetto in VS Code o prima di eseguire il server di sviluppo, altrimenti il TypeScript language server mostrerà errori (es. "Cannot find module 'react'").
 
+> CI: trigger build after sidebar fix (no-op change to re-run workflow)
+
+
 2. Avvia in sviluppo:
 
    npm run dev
