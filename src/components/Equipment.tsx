@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
+import Card from './ui/Card'
+import Button from './ui/Button'
 
 type EquipmentItem = { id: string; name: string; type: string; quantity: number; status?: string; notes?: string }
 
@@ -8,6 +10,13 @@ export default function Equipment() {
   const [name, setName] = useState('')
   const [type, setType] = useState('SUP')
   const [quantity, setQuantity] = useState(1)
+
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editName, setEditName] = useState('')
+  const [editType, setEditType] = useState('')
+  const [editQuantity, setEditQuantity] = useState(1)
+  const [editStatus, setEditStatus] = useState('available')
+  const [editNotes, setEditNotes] = useState('')
 
   useEffect(() => { fetchItems() }, [])
 
@@ -19,50 +28,108 @@ export default function Equipment() {
 
   async function createItem(e: React.FormEvent){
     e.preventDefault()
-    const { data, error } = await supabase.from('equipment').insert([{ name, type, quantity }])
+    if (!name.trim()) return
+    const { data, error } = await supabase.from('equipment').insert([{ name: name.trim(), type, quantity }])
     if (error) { console.error(error); return }
     setName(''); setQuantity(1); setType('SUP')
     fetchItems()
   }
 
   async function deleteItem(id: string){
-    await supabase.from('equipment').delete().eq('id', id)
+    if (!confirm('Sei sicuro di eliminare questo elemento?')) return
+    const { error } = await supabase.from('equipment').delete().eq('id', id)
+    if (error) console.error(error)
     fetchItems()
   }
 
+  function startEdit(it: EquipmentItem){
+    setEditingId(it.id)
+    setEditName(it.name)
+    setEditType(it.type)
+    setEditQuantity(it.quantity)
+    setEditStatus(it.status || 'available')
+    setEditNotes(it.notes || '')
+  }
+
+  async function saveEdit(){
+    if (!editingId) return
+    const { error } = await supabase.from('equipment').update({ name: editName.trim(), type: editType, quantity: editQuantity, status: editStatus, notes: editNotes }).eq('id', editingId)
+    if (error) console.error(error)
+    setEditingId(null)
+    fetchItems()
+  }
+
+  function cancelEdit(){
+    setEditingId(null)
+  }
+
   return (
-    <div className="mt-6 bg-white dark:bg-slate-800 rounded-lg shadow p-4">
-      <h3 className="text-lg font-medium mb-3">Attrezzatura</h3>
+    <div className="mt-6">
+      <Card>
+        <h3 className="text-lg font-medium mb-3">Attrezzatura</h3>
 
-      <form onSubmit={createItem} className="flex gap-2 mb-4">
-        <input className="border px-2 py-1 rounded flex-1 dark:bg-slate-700" placeholder="Nome" value={name} onChange={(e)=>setName(e.target.value)} required />
-        <select className="border px-2 py-1 rounded" value={type} onChange={(e)=>setType(e.target.value)}>
-          <option>SUP</option>
-          <option>Barca</option>
-          <option>Remo</option>
-          <option>Salvagente</option>
-          <option>Altro</option>
-        </select>
-        <input type="number" min={1} className="w-20 border px-2 py-1 rounded" value={quantity} onChange={(e)=>setQuantity(Number(e.target.value))} />
-        <button className="bg-sky-600 text-white px-3 py-1 rounded">Aggiungi</button>
-      </form>
+        <form onSubmit={createItem} className="flex gap-2 mb-4">
+          <input className="border px-2 py-1 rounded flex-1 dark:bg-neutral-800" placeholder="Nome" value={name} onChange={(e)=>setName(e.target.value)} required />
+          <select className="border px-2 py-1 rounded" value={type} onChange={(e)=>setType(e.target.value)}>
+            <option>SUP</option>
+            <option>Barca</option>
+            <option>Remo</option>
+            <option>Salvagente</option>
+            <option>Altro</option>
+          </select>
+          <input type="number" min={1} className="w-20 border px-2 py-1 rounded" value={quantity} onChange={(e)=>setQuantity(Number(e.target.value))} />
+          <Button> Aggiungi </Button>
+        </form>
 
-      <div>
-        {items.length === 0 && <p className="text-sm text-slate-500">Nessun elemento</p>}
-        <ul className="space-y-2">
+        {items.length === 0 && <p className="text-sm text-neutral-500">Nessun elemento</p>}
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           {items.map(it => (
-            <li key={it.id} className="flex items-center justify-between border rounded p-2 dark:border-slate-700">
-              <div>
-                <div className="font-medium">{it.name} <span className="text-xs text-slate-400">({it.type})</span></div>
-                <div className="text-sm text-slate-500">Quantità: {it.quantity}</div>
-              </div>
-              <div className="flex gap-2">
-                <button className="text-red-600" onClick={()=>deleteItem(it.id)}>Elimina</button>
-              </div>
-            </li>
+            <Card key={it.id} className="flex flex-col justify-between">
+              {editingId === it.id ? (
+                <div>
+                  <div className="mb-2">
+                    <input className="w-full border px-2 py-1 rounded mb-2 dark:bg-neutral-800" value={editName} onChange={(e)=>setEditName(e.target.value)} />
+                    <select className="w-full border px-2 py-1 rounded mb-2" value={editType} onChange={(e)=>setEditType(e.target.value)}>
+                      <option>SUP</option>
+                      <option>Barca</option>
+                      <option>Remo</option>
+                      <option>Salvagente</option>
+                      <option>Altro</option>
+                    </select>
+                    <input type="number" min={1} className="w-24 border px-2 py-1 rounded mb-2" value={editQuantity} onChange={(e)=>setEditQuantity(Number(e.target.value))} />
+                    <select className="w-full border px-2 py-1 rounded mb-2" value={editStatus} onChange={(e)=>setEditStatus(e.target.value)}>
+                      <option value="available">available</option>
+                      <option value="maintenance">maintenance</option>
+                      <option value="retired">retired</option>
+                    </select>
+                    <textarea className="w-full border px-2 py-1 rounded" rows={3} value={editNotes} onChange={(e)=>setEditNotes(e.target.value)} />
+                  </div>
+
+                  <div className="flex gap-2 mt-3">
+                    <Button onClick={saveEdit} className="bg-green-600">Salva</Button>
+                    <button onClick={cancelEdit} type="button" className="px-3 py-1 rounded border">Annulla</button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div>
+                    <div className="font-medium text-lg">{it.name}</div>
+                    <div className="text-sm text-neutral-500">{it.type} • Quantità: {it.quantity}</div>
+                    {it.notes && <div className="mt-2 text-sm text-neutral-600 dark:text-neutral-300">{it.notes}</div>}
+                    <div className={`mt-3 inline-block px-2 py-1 text-xs rounded ${it.status === 'available' ? 'bg-green-100 text-green-800' : it.status === 'maintenance' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>{it.status}</div>
+                  </div>
+
+                  <div className="mt-4 flex gap-2 justify-end">
+                    <button onClick={()=>startEdit(it)} className="px-3 py-1 border rounded">Modifica</button>
+                    <button onClick={()=>deleteItem(it.id)} className="px-3 py-1 rounded text-red-600">Elimina</button>
+                  </div>
+                </>
+              )}
+            </Card>
           ))}
-        </ul>
-      </div>
+        </div>
+      </Card>
     </div>
   )
 }
