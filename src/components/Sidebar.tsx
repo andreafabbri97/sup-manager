@@ -49,7 +49,6 @@ export default function Sidebar({ onNav, currentPage }: { onNav?: (page: string)
     { id: 'packages', label: 'Pacchetti' },
     { id: 'customers', label: 'Clienti' },
     { id: 'reports', label: 'Amministrazione e Report' },
-    { id: 'archive', label: 'Archivio prenotazioni' },
     { id: 'settings', label: 'Impostazioni' }
   ]
 
