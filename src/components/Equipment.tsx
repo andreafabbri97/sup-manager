@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import Card from './ui/Card'
 import Button from './ui/Button'
@@ -117,8 +117,8 @@ export default function Equipment() {
   const [isAddOpen, setIsAddOpen] = useState(false)
 
   // move creation form into modal; keep edit inline in cards
-  function openAdd(){ setIsAddOpen(true) }
-  function closeAdd(){ setIsAddOpen(false); setName(''); setQuantity(1); setType('SUP'); setPricePerHour('') }
+  const openAdd = useCallback(() => { setIsAddOpen(true) }, [])
+  const closeAdd = useCallback(() => { setIsAddOpen(false); setName(''); setQuantity(1); setType('SUP'); setPricePerHour('') }, [])
 
   return (
     <div className="mt-6">
