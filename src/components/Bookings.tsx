@@ -596,18 +596,18 @@ export default function Bookings() {
                   const dayBookings = getBookingsForDate(day)
                   const isToday = day.toDateString() === new Date().toDateString()
                   return (
-                    <div key={i} className={`p-2 border-r border-b border-neutral-200 dark:border-neutral-700 min-h-[150px] ${isToday ? 'bg-amber-50 dark:bg-amber-900/10' : ''}`}>
-                      <div className={`text-sm font-medium mb-2 ${isToday ? 'text-amber-600 dark:text-amber-400' : ''}`}>{day.getDate()}</div>
-                      <div className="space-y-1">
+                    <div key={i} className={`p-3 border-r border-b border-neutral-200 dark:border-neutral-700 min-h-[180px] ${isToday ? 'bg-amber-50 dark:bg-amber-900/10' : ''}`}>
+                      <div className={`text-base font-medium mb-3 ${isToday ? 'text-amber-600 dark:text-amber-400' : ''}`}>{day.getDate()}</div>
+                      <div className="space-y-2">
                         {dayBookings.map(b => (
-                          <button key={b.id} title={bookingTitle(b)} onClick={() => { setSelectedBooking(b); setShowBookingDetails(true) }} className={`w-full text-left text-xs p-1 rounded bg-amber-100 dark:bg-neutral-800/60 text-neutral-900 dark:text-neutral-100 truncate interactive ${statusClass(b)}`}>
-                            <div className="flex items-center justify-between">
-                              <div className="font-medium truncate">{new Date(b.start_time).toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'})} — {b.customer_name || 'Cliente'}</div>
-                              <div className="flex items-center gap-2">
-                                <div className="text-xs text-neutral-500">{equipmentCount(b)}×</div>
-                                {!b.paid && <button onClick={(e)=>{ e.stopPropagation(); markPaid(b.id) }} className="text-green-600 text-xs focus-ring">Registra</button>}
-                                {b.paid && <span className="text-xs text-green-500 dark:text-green-300">Pagato</span>}
-                                <button onClick={(e)=>{ e.stopPropagation(); removeBooking(b.id) }} className="text-red-500 text-xs focus-ring">Elimina</button>
+                          <button key={b.id} title={bookingTitle(b)} onClick={() => { setSelectedBooking(b); setShowBookingDetails(true) }} className={`w-full text-left text-sm p-2.5 rounded-md bg-amber-100 dark:bg-neutral-800/60 text-neutral-900 dark:text-neutral-100 interactive ${statusClass(b)} min-h-[64px]`}>
+                            <div className="flex flex-col gap-1.5">
+                              <div className="font-medium">{new Date(b.start_time).toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'})} — {b.customer_name || 'Cliente'}</div>
+                              <div className="flex items-center gap-2 text-xs">
+                                <div className="text-neutral-600 dark:text-neutral-400">{equipmentCount(b)}×</div>
+                                {!b.paid && <button onClick={(e)=>{ e.stopPropagation(); markPaid(b.id) }} className="text-green-600 hover:text-green-700 focus-ring px-1.5 py-0.5 rounded bg-white/50 dark:bg-neutral-700/50">Registra</button>}
+                                {b.paid && <span className="text-green-600 dark:text-green-400 font-semibold">Pagato</span>}
+                                <button onClick={(e)=>{ e.stopPropagation(); removeBooking(b.id) }} className="text-red-500 hover:text-red-600 focus-ring px-1.5 py-0.5 rounded bg-white/50 dark:bg-neutral-700/50">Elimina</button>
                               </div>
                             </div>
                           </button>
