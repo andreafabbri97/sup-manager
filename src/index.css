@@ -67,3 +67,17 @@ html, body, #root {
 @media (max-width: 640px) {
   body { overflow-x: hidden; }
 }
+
+/* Micro-interactions and small helpers */
+@layer components {
+  .interactive { transition: transform .12s ease, box-shadow .12s ease, opacity .12s ease; }
+  .interactive:hover { transform: translateY(-3px); }
+  .interactive:active { transform: translateY(0) scale(.995); }
+  .press-scale:active { transform: scale(.98); }
+
+  .table-hover tbody tr { transition: background-color .12s ease; }
+  .table-hover tbody tr:hover { background-color: rgba(0,0,0,0.03); }
+  .dark .table-hover tbody tr:hover { background-color: rgba(255,255,255,0.02); }
+
+  .focus-ring:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(250,204,21,0.18); }
+}
