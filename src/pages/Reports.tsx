@@ -134,7 +134,10 @@ export default function Reports() {
       }
     }
 
-    const { error } = await supabase.from('expense').insert([{ amount: Number(amount), category, notes, date: expenseDate, receipt_url }])
+    const parsedAmount = Number(String(amount).replace(',', '.'))
+    if (!Number.isFinite(parsedAmount)) return alert('Importo non valido')
+
+    const { error } = await supabase.from('expense').insert([{ amount: parsedAmount, category, notes, date: expenseDate, receipt_url }])
     if (error) return alert(error.message)
     setAmount(''); setCategory(''); setNotes(''); setReceiptFile(null); setExpenseDate(new Date().toISOString().slice(0,10))
     loadExpenses()
@@ -350,10 +353,9 @@ export default function Reports() {
               <div>
                 <label className="block text-sm font-medium mb-1">Importo</label>
                 <input
-                  type="number"
+                  type="text"
                   inputMode="decimal"
-                  step="0.01"
-                  min="0"
+                  pattern="^[0-9]+([.,][0-9]{1,2})?$"
                   value={amount}
                   onChange={(e)=>setAmount(e.target.value)}
                   placeholder="Importo"
