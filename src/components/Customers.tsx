@@ -153,10 +153,7 @@ export default function Customers() {
           )}
 
           {filteredCustomers.map((customer) => (
-            <div
-              key={customer.id}
-              className="border border-neutral-200 dark:border-neutral-700 rounded p-3 flex items-start justify-between hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition"
-            >
+            <Card key={customer.id} className="flex items-start justify-between interactive">
               <div className="flex-1">
                 <div className="font-medium text-neutral-900 dark:text-neutral-100">
                   {customer.name}
@@ -199,7 +196,7 @@ export default function Customers() {
                   Elimina
                 </button>
               </div>
-            </div>
+            </Card>
           ))}
         </div>
       </Card>

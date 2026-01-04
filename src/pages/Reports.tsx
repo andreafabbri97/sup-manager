@@ -7,6 +7,7 @@ import Input from '../components/ui/Input'
 import { Line } from 'react-chartjs-2'
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend } from 'chart.js'
 import StatCard from '../components/ui/StatCard'
+import Card from '../components/ui/Card'
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend)
 
@@ -398,13 +399,13 @@ export default function Reports() {
                   {/* Stacked cards for mobile */}
                   <div className="sm:hidden mt-2 space-y-2">
                     {revByEquip.map((r:any)=> (
-                      <div key={r.equipment} className="p-3 rounded border bg-white/5 dark:bg-slate-800 hover:shadow-sm transition-shadow">
+                      <Card key={r.equipment} className="interactive">
                         <div className="flex items-center justify-between">
                           <div className="font-medium">{r.equipment}</div>
                           <div className="text-sm text-neutral-500">{Number(r.revenue).toFixed(2)} €</div>
                         </div>
                         <div className="text-xs text-neutral-400 mt-1">Prenotazioni: {r.bookings_count}</div>
-                      </div>
+                      </Card>
                     ))}
                     {revByEquip.length === 0 && <div className="text-neutral-500">Nessuna entrata</div>}
                   </div>
@@ -415,10 +416,10 @@ export default function Reports() {
                 <div className="mb-4">
                   <div className="text-sm text-neutral-500">Statistiche rapide</div>
                   <div className="mt-2 space-y-2">
-                    <div className="p-2 rounded bg-white/5 dark:bg-slate-800">
+                    <Card className="p-2">
                       <div className="text-xs text-neutral-400">Valore medio prenotazione</div>
                       <div className="font-medium text-lg">{avgBookingValue.toFixed(2)} €</div>
-                    </div>
+                    </Card>
                     <div className="p-2 rounded bg-white/5 dark:bg-slate-800">
                       <div className="text-xs text-neutral-400">Giorno migliore (ricavi)</div>
                       <div className="font-medium text-lg">{bestDayLabel}</div>

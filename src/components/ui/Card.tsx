@@ -1,9 +1,12 @@
 import React from 'react'
 
-export default function Card({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+export default function Card({ title, children, footer, className = '', as = 'div' }: { title?: React.ReactNode; children: React.ReactNode; footer?: React.ReactNode; className?: string; as?: any }) {
+  const Component: any = as
   return (
-    <div className={`bg-white dark:bg-neutral-800 border border-neutral-100 dark:border-neutral-700 shadow-sm rounded-xl p-3 sm:p-4 lg:p-5 transition-shadow hover:shadow-lg ${className}`}>
-      {children}
-    </div>
+    <Component className={`app-card animate-fade-up transition-shadow ${className}`}>
+      {title && <div className="card-title">{title}</div>}
+      <div className="card-body">{children}</div>
+      {footer && <div className="card-footer">{footer}</div>}
+    </Component>
   )
 }

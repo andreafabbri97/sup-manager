@@ -55,7 +55,7 @@ export default function PWAInstallPrompt() {
   if (isInstalled || !showPrompt) return null
 
   return (
-    <div className="fixed bottom-4 right-4 max-w-sm bg-white dark:bg-neutral-800 rounded-lg shadow-2xl border border-neutral-200 dark:border-neutral-700 p-4 z-50 animate-slide-up">
+    <div className="fixed bottom-4 right-4 max-w-sm app-card p-4 z-50 animate-fade-up">
       <button
         onClick={handleDismiss}
         className="absolute top-2 right-2 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200"

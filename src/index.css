@@ -21,15 +21,39 @@
   }
   .btn:focus-visible { @apply outline-none ring-2 ring-amber-400; }
 
-  /* Card subtle elevation */
+  /* Card subtle elevation and app card standards */
   .card { @apply bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl p-4 shadow-sm; }
+  .app-card { @apply card; box-shadow: 0 6px 18px rgba(2,6,23,0.06); }
+  .card-title { @apply text-sm font-semibold mb-1; }
+  .card-sub { @apply text-sm text-neutral-500 dark:text-neutral-400; }
+  .card-footer { @apply mt-3 flex items-center justify-between gap-3 text-sm; }
 
   /* StatCard refinements */
   .stat-title { @apply text-xs uppercase tracking-wide text-neutral-400; }
   .stat-value { @apply mt-2 text-2xl font-extrabold; }
+
+  /* Global motion variables */
+  :root {
+    --motion-duration: 180ms;
+    --motion-ease: cubic-bezier(.2,.9,.2,1);
+  }
+
   /* transitions */
-  .card, .btn, .stat-value { transition: all 160ms ease-in-out; }
-  .card:hover { transform: translateY(-4px); }
+  .card, .btn, .stat-value { transition: transform var(--motion-duration) var(--motion-ease), box-shadow var(--motion-duration) var(--motion-ease), opacity var(--motion-duration) var(--motion-ease); }
+  .card:hover { transform: translateY(-6px); box-shadow: 0 10px 30px rgba(2,6,23,0.12); }
+
+  /* entrance animations */
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  .animate-fade-up { animation: fadeUp var(--motion-duration) var(--motion-ease) both; }
+
+  /* modal open */
+  @keyframes modalOpen { from { opacity: 0; transform: translateY(8px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+  .animate-modal-open { animation: modalOpen calc(var(--motion-duration) * 1.2) var(--motion-ease) both; }
+
+  /* reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    .animate-fade-up, .animate-modal-open, .card, .btn, .interactive { animation: none; transition: none; transform: none !important; }
+  }
 }
 
 html, body, #root {

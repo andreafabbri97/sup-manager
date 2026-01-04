@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
+import Card from './ui/Card'
 
 type Notification = {
   id: string
@@ -116,7 +117,7 @@ export default function NotificationBell() {
       </button>
 
       {showPopup && (
-        <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-neutral-800 rounded-lg shadow-xl border border-neutral-200 dark:border-neutral-700 z-50">
+        <Card as="div" className="absolute right-0 mt-2 w-80 p-0 z-50">
           <div className="p-3 border-b border-neutral-200 dark:border-neutral-700 flex items-center justify-between">
             <h3 className="font-semibold">Notifiche</h3>
             <button
@@ -146,7 +147,7 @@ export default function NotificationBell() {
             {!loading && notifications.map((notif) => (
               <div
                 key={notif.id}
-                className={`p-3 border-b border-neutral-100 dark:border-neutral-700 last:border-b-0 hover:bg-neutral-50 dark:hover:bg-neutral-700/50 cursor-pointer ${notif.priority === 'high' ? 'bg-red-50 dark:bg-red-900/10' : ''}`}
+                className={`p-3 border-b border-neutral-100 dark:border-neutral-700 last:border-b-0 hover:bg-neutral-50 dark:hover:bg-neutral-700/50 cursor-pointer ${notif.priority === 'high' ? 'bg-red-50 dark:bg-red-900/10' : ''} animate-fade-up`}
               >
                 <div className="flex items-start gap-3">
                   <div className="flex-shrink-0 mt-1">
@@ -190,7 +191,7 @@ export default function NotificationBell() {
               Ricarica
             </button>
           </div>
-        </div>
+        </Card>
       )}
     </div>
   )
