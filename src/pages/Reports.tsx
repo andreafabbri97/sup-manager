@@ -250,7 +250,6 @@ export default function Reports() {
   }
 
   // derived metrics for enhanced report overview
-  const avgOrderValue = bookingsCount > 0 ? (revenueSum / bookingsCount) : 0
   const bestDayObj = daily.length ? daily.reduce((a:any,b:any)=> Number(b.revenue) > Number(a.revenue) ? b : a) : null
   const bestDayLabel = bestDayObj ? `${bestDayObj.day} (${Number(bestDayObj.revenue).toFixed(2)} €)` : '—'
   const peakOrdersObj = dailyOrders.length ? dailyOrders.reduce((a:any,b:any)=> Number(b.orders ?? b.count ?? 0) > Number(a.orders ?? a.count ?? 0) ? b : a) : null
@@ -405,7 +404,7 @@ export default function Reports() {
                   <div className="mt-2 space-y-2">
                     <div className="p-2 rounded bg-white/5 dark:bg-slate-800">
                       <div className="text-xs text-neutral-400">Valore medio prenotazione</div>
-                      <div className="font-medium text-lg">{avgOrderValue.toFixed(2)} €</div>
+                      <div className="font-medium text-lg">{avgRevenuePerDay.toFixed(2)} €</div>
                     </div>
                     <div className="p-2 rounded bg-white/5 dark:bg-slate-800">
                       <div className="text-xs text-neutral-400">Giorno migliore (ricavi)</div>
