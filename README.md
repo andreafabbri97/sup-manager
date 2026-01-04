@@ -30,8 +30,19 @@ NOTE:
    - npm install
    - npm run dev
 5. Apri l'app, manda il magic link tramite la form di accesso (email). Dopo il primo login verrà creato automaticamente un record nella tabella `user` con `role` vuoto (di default `staff`).
-6. Assegna manualmente il ruolo `owner` al tuo account tramite Supabase Studio:
-   - vai in Table Editor -> `user`, trova la riga con il tuo `id` (auth UID) e imposta `role='owner'`.
+6. (OPZIONALE) Assegna manualmente il ruolo `owner` al tuo account tramite Supabase Studio dopo la registrazione:
+   - vai in Table Editor -> `user`, trova la riga con `username = 'admin'` e imposta `role='owner'` (o esegui lo SQL indicato sotto).
+
+### Rimozione autenticazione (impostazione attuale)
+Per ora l'app è stata configurata per essere accessibile pubblicamente (nessun login). Questo rende più semplice provare il programma dal link GitHub Pages, ma significa che tutte le operazioni (creare SUP, prenotazioni, spese) sono accessibili pubblicamente.
+
+Se vuoi ripristinare l'autenticazione in futuro, possiamo reintegrare Supabase Auth e ripristinare policy RLS più restrittive.
+
+### Promuovere admin a owner (se vuoi che abbia permessi speciali)
+Esegui nel SQL Editor di Supabase:
+```sql
+UPDATE "user" SET role='owner' WHERE username = 'admin';
+```
 
 ### Creare login con username + password (flow impostato)
 - L'app supporta ora **username + password** (senza email reale); i nomi utenti sono unici e case-insensitive.

@@ -24,6 +24,15 @@ jobs:
         env:
           VITE_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+      - name: Upload build logs (for debugging)
+        if: failure()
+        run: |
+          echo "Build failed. Listing dist:"
+          ls -la dist || true
+          echo "Node version:"
+          node --version || true
+          echo "NPM version:"
+          npm --version || true
       - uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}

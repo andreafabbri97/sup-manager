@@ -54,14 +54,54 @@ CREATE POLICY "Owners can manage expense" ON expense
   USING ( EXISTS (SELECT 1 FROM "user" u WHERE u.id = auth.uid() AND u.role = 'owner') )
   WITH CHECK ( EXISTS (SELECT 1 FROM "user" u WHERE u.id = auth.uid() AND u.role = 'owner') );
 
--- Public read for SUP and packages (any authenticated user can read)
-CREATE POLICY "Public select sup" ON sup
+-- Public access for SUP and package (no auth)
+DROP POLICY IF EXISTS "Public select sup" ON sup;
+CREATE POLICY "Public access sup" ON sup
+  FOR ALL
+  USING ( true )
+  WITH CHECK ( true );
+
+DROP POLICY IF EXISTS "Public select package" ON package;
+CREATE POLICY "Public access package" ON package
+  FOR ALL
+  USING ( true )
+  WITH CHECK ( true );
+
+-- Public access for bookings and expenses (allow create/read/delete for now)
+DROP POLICY IF EXISTS "Owners can manage bookings" ON booking;
+DROP POLICY IF EXISTS "Authenticated can read bookings" ON booking;
+DROP POLICY IF EXISTS "Owners or staff can create bookings" ON booking;
+
+CREATE POLICY "Public access bookings" ON booking
+  FOR ALL
+  USING ( true )
+  WITH CHECK ( true );
+
+DROP POLICY IF EXISTS "Authenticated can insert expense" ON expense;
+DROP POLICY IF EXISTS "Owners can manage expense" ON expense;
+CREATE POLICY "Public access expense" ON expense
+  FOR ALL
+  USING ( true )
+  WITH CHECK ( true );
+
+-- Users: allow inserts/select but prevent clients from setting role='owner'
+DROP POLICY IF EXISTS "Allow insert own user profile" ON "user";
+DROP POLICY IF EXISTS "Allow select own user profile" ON "user";
+DROP POLICY IF EXISTS "Allow update own user profile" ON "user";
+DROP POLICY IF EXISTS "Owners can manage users" ON "user";
+
+CREATE POLICY "Public insert user" ON "user"
+  FOR INSERT
+  WITH CHECK ( role IS NULL OR role = 'staff' );
+
+CREATE POLICY "Public select user" ON "user"
   FOR SELECT
   USING ( true );
 
-CREATE POLICY "Public select package" ON package
-  FOR SELECT
-  USING ( true );
+CREATE POLICY "Public update user" ON "user"
+  FOR UPDATE
+  USING ( true )
+  WITH CHECK ( role IS NULL OR role = 'staff' );
 
 /*
 Note: after running these policies, we recommend using Supabase Studio to set your user row's role to 'owner' for the primary account(s):
