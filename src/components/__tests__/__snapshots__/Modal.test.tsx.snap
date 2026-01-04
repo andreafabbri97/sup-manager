@@ -1,0 +1,58 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Modal > renders content and matches snapshot 1`] = `
+<div>
+  <div
+    class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50"
+  >
+    <div
+      aria-label="Test Modal"
+      aria-modal="true"
+      class="bg-white dark:bg-slate-800 rounded-t-3xl sm:rounded-lg shadow-xl w-full sm:max-w-2xl max-h-[100vh] sm:max-h-[90vh] overflow-y-auto"
+      role="dialog"
+    >
+      <div
+        class="sm:hidden flex justify-center pt-3"
+      >
+        <div
+          class="w-12 h-1.5 bg-neutral-200 dark:bg-neutral-700 rounded-full"
+        />
+      </div>
+      <div
+        class="sticky top-0 bg-white dark:bg-slate-800 border-b border-neutral-200 dark:border-neutral-700 px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between"
+      >
+        <h3
+          class="text-lg sm:text-xl font-semibold"
+        >
+          Test Modal
+        </h3>
+        <button
+          aria-label="Chiudi"
+          class="text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200 p-2 rounded"
+        >
+          <svg
+            class="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M6 18L18 6M6 6l12 12"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+            />
+          </svg>
+        </button>
+      </div>
+      <div
+        class="p-4 sm:p-6"
+      >
+        <div>
+          Contenuto
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
