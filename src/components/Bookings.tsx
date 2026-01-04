@@ -32,6 +32,9 @@ export default function Bookings() {
   const [durationMinutes, setDurationMinutes] = useState(60) // default duration in minutes
   const [computedPrice, setComputedPrice] = useState<number | null>(null)
   const [availabilityMap, setAvailabilityMap] = useState<Record<string, number>>({})
+  const [newPaid, setNewPaid] = useState<boolean>(false)
+  const [newInvoiced, setNewInvoiced] = useState<boolean>(false)
+  const [newInvoiceNumber, setNewInvoiceNumber] = useState<string | null>(null)
 
   async function load() {
     const { data: eq } = await supabase.from('equipment').select('*').order('name')
@@ -309,6 +312,17 @@ export default function Bookings() {
         p_equipment_items: bookingData.equipment_items
       })
       if (error) throw error
+      // RPC returns the created booking id (table result). Update paid/invoiced if user set them at creation
+      const createdId = Array.isArray(data) ? data[0]?.id : (data?.id ?? null)
+      if (createdId && (newPaid || newInvoiced || newInvoiceNumber)) {
+        const payload: any = {}
+        if (newPaid) payload.paid = true
+        if (newPaid) payload.paid_at = new Date().toISOString()
+        if (newInvoiced !== undefined) payload.invoiced = newInvoiced
+        if (newInvoiceNumber) payload.invoice_number = newInvoiceNumber
+        const { error: upErr } = await supabase.from('booking').update(payload).eq('id', createdId)
+        if (upErr) throw upErr
+      }
     } catch (err: any) {
       const msg = err?.message || String(err)
       if (msg.includes("Could not find")) {
@@ -323,6 +337,9 @@ export default function Bookings() {
     
     resetForm()
     setShowModal(false)
+    setNewPaid(false)
+    setNewInvoiced(false)
+    setNewInvoiceNumber(null)
     load()
   }
 
@@ -746,6 +763,17 @@ export default function Bookings() {
             <div className="flex-1">
               <div className="text-sm text-neutral-500">Prezzo stimato</div>
               <div className="text-xl font-bold">{computedPrice !== null ? computedPrice.toFixed(2) + ' €' : '-'} </div>
+            </div>
+            <div className="flex-1">
+              <label className="inline-flex items-center gap-2">
+                <input type="checkbox" checked={newPaid} onChange={(e)=>setNewPaid(e.target.checked)} /> Pagata
+              </label>
+              <label className="inline-flex items-center gap-2 ml-4">
+                <input type="checkbox" checked={newInvoiced} onChange={(e)=>setNewInvoiced(e.target.checked)} /> Fatturata
+              </label>
+              {newInvoiced && (
+                <input value={newInvoiceNumber ?? ''} onChange={(e)=>setNewInvoiceNumber(e.target.value||null)} placeholder="Numero fattura (opzionale)" className="w-full border px-2 py-2 rounded mt-2" />
+              )}
             </div>
             <Button onClick={createBooking} className="flex-1">Crea Prenotazione</Button>
             <button
