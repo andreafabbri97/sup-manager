@@ -6,7 +6,6 @@ export default function Sidebar({ onNav, currentPage }: { onNav?: (page: string)
   const { theme, toggle } = useTheme()
   const [collapsed, setCollapsed] = React.useState(false)
   const [mobileOpen, setMobileOpen] = React.useState(false)
-  const burgerRef = React.useRef<HTMLButtonElement | null>(null)
   const sidebarRef = React.useRef<HTMLElement | null>(null)
 
   // focus trap on mobile overlay sidebar
@@ -39,8 +38,19 @@ export default function Sidebar({ onNav, currentPage }: { onNav?: (page: string)
     return () => document.removeEventListener('keydown', onKey)
   }, [mobileOpen])
 
+  // Listen to a custom event so the TopBar's menu button can toggle the sidebar
   React.useEffect(() => {
-    if (!mobileOpen) burgerRef.current?.focus()
+    const onToggle = () => setMobileOpen((s) => !s)
+    window.addEventListener('sidebar:toggle', onToggle as any)
+    return () => window.removeEventListener('sidebar:toggle', onToggle as any)
+  }, [])
+
+  // When the sidebar closes, restore focus to the TopBar menu button if present
+  React.useEffect(() => {
+    if (!mobileOpen) {
+      const btn = document.querySelector<HTMLButtonElement>('button[aria-controls="sidebar"]')
+      btn?.focus()
+    }
   }, [mobileOpen])
 
   const items = [
@@ -132,25 +142,7 @@ export default function Sidebar({ onNav, currentPage }: { onNav?: (page: string)
 
   return (
     <>
-      {/* Fixed hamburger button (always visible on mobile, fixed top-left) */}
-      <button
-        ref={burgerRef}
-        onClick={() => setMobileOpen((s) => !s)}
-        aria-controls="sidebar"
-        aria-expanded={mobileOpen}
-        aria-label={mobileOpen ? 'Chiudi menu' : 'Apri menu'}
-        className="fixed top-3 left-3 z-50 lg:hidden p-2 rounded-md bg-white/90 dark:bg-neutral-900/90 backdrop-blur shadow"
-      >
-        {mobileOpen ? (
-          <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        ) : (
-          <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        )}
-      </button>
+
 
       {/* (removed duplicate top-right theme toggle — theme control available in the sidebar) */}
 
