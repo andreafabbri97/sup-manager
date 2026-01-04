@@ -2,6 +2,10 @@ import React, { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import Button from '../components/ui/Button'
 import Card from '../components/ui/Card'
+import { Line, Pie } from 'react-chartjs-2'
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, ArcElement, Tooltip, Legend } from 'chart.js'
+
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, ArcElement, Tooltip, Legend)
 
 function toCSV(rows: any[], headers: string[]) {
   const esc = (v: any) => (v === null || v === undefined ? '' : String(v).replace(/"/g, '""'))
@@ -42,40 +46,55 @@ export default function Reports() {
   return (
     <div className="max-w-4xl mx-auto p-6">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-2xl font-semibold">Reports</h2>
+        <h2 className="text-2xl font-semibold">Amministrazione e Report</h2>
+        <div className="flex gap-2">
+          <button className="px-3 py-1 rounded border">Reports</button>
+          <button className="px-3 py-1 rounded border">Amministrazione</button>
+        </div>
       </div>
 
       <Card>
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="text-sm text-neutral-500">Entrate mensili</div>
-            <div className="mt-2 font-semibold">{incomeRows.length} mesi</div>
-          </div>
-          <div>
-            <Button onClick={downloadCsv}>Esporta CSV</Button>
-          </div>
+        <div className="flex items-center gap-2 mb-4">
+          <label className="text-sm">Da</label>
+          <input type="date" className="border px-2 py-1 rounded" />
+          <label className="text-sm">A</label>
+          <input type="date" className="border px-2 py-1 rounded" />
+          <div className="flex-1" />
+          <Button>Aggiorna</Button>
+          <Button className="bg-gray-600">Esporta CSV</Button>
         </div>
 
-        <div className="mt-4">
-          {loading && <div>Caricamento...</div>}
-          {!loading && (
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-left text-neutral-500">
-                  <th>Mese</th>
-                  <th>Incasso</th>
-                </tr>
-              </thead>
-              <tbody>
-                {incomeRows.map((r: any) => (
-                  <tr key={r.month} className="border-t border-neutral-100 dark:border-neutral-800">
-                    <td className="py-2">{r.month}</td>
-                    <td className="py-2">{Number(r.revenue).toFixed(2)} €</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="col-span-2">
+            <div className="mb-4">
+              <div className="text-sm text-neutral-500">Entrate giornaliere</div>
+              <div className="h-48"><Line data={{labels: [], datasets:[]}} /></div>
+            </div>
+            <div>
+              <div className="text-sm text-neutral-500">Entrate per attrezzatura</div>
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left text-neutral-500"><th>Attrezzatura</th><th>Prenotazioni</th><th>Incasso</th></tr>
+                </thead>
+                <tbody>
+                  {/* rows will be populated dynamically */}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div>
+            <div className="mb-4">
+              <div className="text-sm text-neutral-500">Ripartizione entrate</div>
+              <div className="h-48"><Pie data={{labels:[], datasets:[{data:[]} ]}} /></div>
+            </div>
+            <div>
+              <div className="text-sm text-neutral-500">Riepilogo</div>
+              <ul className="mt-2">
+                {/* summary items */}
+              </ul>
+            </div>
+          </div>
         </div>
       </Card>
     </div>

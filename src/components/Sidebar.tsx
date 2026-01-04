@@ -12,7 +12,7 @@ export default function Sidebar({ onNav, currentPage }: { onNav?: (page: string)
     { id: 'bookings', label: 'Prenotazioni' },
     { id: 'packages', label: 'Pacchetti' },
     { id: 'expenses', label: 'Spese' },
-    { id: 'reports', label: 'Reports' }
+    { id: 'reports', label: 'Amministrazione e Report' }
   ]
 
   const Icon = ({ name }: { name: string }) => {

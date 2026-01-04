@@ -117,6 +117,60 @@ AS $$
   ORDER BY 1 DESC;
 $$;
 
+-- Add links between sup and equipment to enable equipment-level reporting
+ALTER TABLE IF EXISTS sup ADD COLUMN IF NOT EXISTS equipment_id uuid REFERENCES equipment(id);
+
+-- Allow storing receipt url on expenses
+ALTER TABLE IF EXISTS expense ADD COLUMN IF NOT EXISTS receipt_url text;
+
+-- Reports: revenue by equipment and margin
+CREATE OR REPLACE FUNCTION report_revenue_by_equipment(start_date date, end_date date)
+RETURNS TABLE(equipment text, bookings_count int, revenue numeric)
+LANGUAGE sql
+AS $$
+  SELECT COALESCE(eq.name, s.name) AS equipment,
+         COUNT(b.id) AS bookings_count,
+         COALESCE(SUM(b.price), 0) AS revenue
+  FROM booking b
+  LEFT JOIN sup s on s.id = b.sup_id
+  LEFT JOIN equipment eq on eq.id = s.equipment_id
+  WHERE b.start_time::date BETWEEN start_date AND end_date
+  GROUP BY 1
+  ORDER BY revenue DESC;
+$$;
+
+CREATE OR REPLACE FUNCTION report_margin(start_date date, end_date date)
+RETURNS TABLE(metric text, value numeric)
+LANGUAGE sql
+AS $$
+  WITH rev AS (
+    SELECT COALESCE(SUM(price),0) AS revenue
+    FROM booking
+    WHERE start_time::date BETWEEN start_date AND end_date
+  ),
+  exp AS (
+    SELECT COALESCE(SUM(amount),0) AS expenses
+    FROM expense
+    WHERE date BETWEEN start_date AND end_date
+  )
+  SELECT 'revenue'::text AS metric, (SELECT revenue FROM rev) AS value
+  UNION ALL
+  SELECT 'expenses'::text, (SELECT expenses FROM exp)
+  UNION ALL
+  SELECT 'margin'::text, (SELECT revenue - expenses FROM rev, exp);
+$$;
+
+CREATE OR REPLACE FUNCTION report_daily_revenue(start_date date, end_date date)
+RETURNS TABLE(day date, revenue numeric)
+LANGUAGE sql
+AS $$
+  SELECT day::date AS day, COALESCE(SUM(b.price),0) AS revenue
+  FROM generate_series(start_date, end_date, '1 day'::interval) AS day
+  LEFT JOIN booking b ON b.start_time::date = day::date
+  GROUP BY day
+  ORDER BY day;
+$$;
+
 -- Grants: ensure anon/authenticated clients can use the public schema and tables
 -- This fixes "permission denied for schema public" when using client anon keys
 GRANT USAGE ON SCHEMA public TO anon, authenticated;
