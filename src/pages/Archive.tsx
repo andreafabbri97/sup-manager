@@ -106,14 +106,30 @@ export default function Archive() {
           <input placeholder="Nr fattura" value={qInvoice} onChange={(e)=>setQInvoice(e.target.value)} className="border px-2 py-1 rounded" />
         </div>
 
-        <div className="overflow-x-auto">
+        {/* Mobile stacked list */}
+      <div className="sm:hidden space-y-2 mb-3">
+        {paginated.map(b => (
+          <button key={b.id} onClick={()=>{ setDetail(b); setShowDetail(true) }} className="w-full text-left p-3 rounded border bg-white/5 dark:bg-slate-800">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="font-medium">{b.customer_name}</div>
+                <div className="text-xs text-neutral-400">{new Date(b.start_time).toLocaleString('it-IT', { day: '2-digit', month: 'short', year: 'numeric' })} • {b.invoice_number ?? '—'}</div>
+              </div>
+              <div className="text-sm text-neutral-500">{b.paid ? 'Pagato' : 'Non pagato'}</div>
+            </div>
+          </button>
+        ))}
+        {paginated.length === 0 && <div className="text-neutral-500">Nessuna prenotazione</div>}
+      </div>
+
+      <div className="overflow-x-auto hidden sm:block">
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left text-neutral-500"><th>Data</th><th>Cliente</th><th>Fattura</th><th>Prezzo</th><th>Pagato</th><th>Azioni</th></tr>
             </thead>
             <tbody>
               {paginated.map(b => (
-                <tr key={b.id} className="border-t border-neutral-100 dark:border-neutral-800">
+                <tr key={b.id} role="button" tabIndex={0} onClick={(e) => { if ((e.target as HTMLElement).closest('button')) return; setDetail(b); setShowDetail(true) }} onKeyDown={(e:any) => { if (e.key === 'Enter') { setDetail(b); setShowDetail(true) } }} className="border-t border-neutral-100 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-800 cursor-pointer">
                   <td className="py-2">{new Date(b.start_time).toLocaleString('it-IT', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
                   <td>{b.customer_name}</td>
                   <td>{b.invoice_number ?? '—'}</td>
@@ -121,8 +137,8 @@ export default function Archive() {
                   <td>{b.paid ? 'Sì' : 'No'}</td>
                   <td>
                     <div className="flex items-center gap-2">
-                      <button onClick={()=>{ setDetail(b); setShowDetail(true) }} className="text-sm px-2 py-1 rounded border">Dettagli</button>
-                      {!b.paid && <button onClick={()=>markPaid(b.id)} className="text-sm px-2 py-1 rounded bg-green-600 text-white">Segna pagato</button>}
+                      <button onClick={(e)=>{ e.stopPropagation(); setDetail(b); setShowDetail(true) }} className="text-sm px-2 py-1 rounded border">Dettagli</button>
+                      {!b.paid && <button onClick={(e)=>{ e.stopPropagation(); markPaid(b.id) }} className="text-sm px-2 py-1 rounded bg-green-600 text-white">Segna pagato</button>}
                     </div>
                   </td>
                 </tr>
