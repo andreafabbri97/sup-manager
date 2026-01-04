@@ -40,6 +40,15 @@ export default function Bookings() {
   const [newInvoiceNumber, setNewInvoiceNumber] = useState<string | null>(null)
   const [newNotes, setNewNotes] = useState<string>('')
 
+  // Day-list modal state (for +N overflow)
+  const [showDayListModal, setShowDayListModal] = useState(false)
+  const [modalDay, setModalDay] = useState<Date | null>(null)
+
+  function openDayListModal(day: Date) {
+    setModalDay(day)
+    setShowDayListModal(true)
+  }
+
   // Helpers for improved display
   function formatTimeRange(b: any) {
     try {
@@ -613,7 +622,7 @@ export default function Bookings() {
                           </button>
                         ))}
                         {dayBookings.length > 3 && (
-                          <button onClick={() => { setCurrentDate(day); setViewMode('day') }} className="text-xs text-neutral-500 hover:underline">+{dayBookings.length - 3} altre prenotazioni</button>
+                          <button onClick={() => openDayListModal(day)} className="text-xs text-neutral-500 hover:underline">+{dayBookings.length - 3} altre prenotazioni</button>
                         )}
                       </div>
                     </div>
@@ -687,7 +696,7 @@ export default function Bookings() {
                           </button>
                         ))}
                         {dayBookings.length > 2 && (
-                          <button onClick={() => { setCurrentDate(day); setViewMode('day') }} className="text-xs text-neutral-500 hover:underline">+{dayBookings.length - 2} altre prenotazioni</button>
+                          <button onClick={() => openDayListModal(day)} className="text-xs text-neutral-500 hover:underline">+{dayBookings.length - 2} altre prenotazioni</button>
                         )}
                       </div>
                     </div>
@@ -843,6 +852,37 @@ export default function Bookings() {
             </button>
           </div>
         </div>
+      </Modal>
+
+      {/* Day bookings modal (all bookings for a selected date) */}
+      <Modal isOpen={showDayListModal} onClose={() => { setShowDayListModal(false); setModalDay(null) }} title={modalDay ? `Prenotazioni ${modalDay.toLocaleDateString('it-IT')}` : 'Prenotazioni'}>
+        {modalDay && (
+          <div className="space-y-3 max-h-[60vh] overflow-y-auto">
+            {getBookingsForDate(modalDay).length === 0 && <div className="text-neutral-500">Nessuna prenotazione</div>}
+            {getBookingsForDate(modalDay).map(b => (
+              <div key={b.id} className={`p-3 rounded border ${statusClass(b)} bg-amber-50 dark:bg-neutral-800/50`}>
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <div className="font-medium truncate">{formatTimeRange(b)} — {b.customer_name || 'Cliente'}</div>
+                      <div className="text-sm text-neutral-500">{b.price ? `€ ${Number(b.price).toFixed(2)}` : ''}</div>
+                    </div>
+                    <div className="mt-1 text-sm text-neutral-600 dark:text-neutral-300">{b.notes ? (b.notes.length > 150 ? b.notes.slice(0,150) + '…' : b.notes) : ''}</div>
+                    <div className="mt-2 flex items-center gap-3 text-sm">
+                      <div className="text-neutral-500">{equipmentCount(b)} attrezzatura{equipmentCount(b) > 1 ? 'e' : ''}</div>
+                      {b.paid && <div className="text-green-600 font-semibold">Pagato</div>}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => { setSelectedBooking(b); setShowBookingDetails(true); setShowDayListModal(false) }} className="text-sm px-3 py-1 rounded bg-white/50 dark:bg-neutral-700/50">Dettagli</button>
+                    {!b.paid && <button onClick={() => { markPaid(b.id) }} className="text-sm px-3 py-1 rounded bg-green-600 text-white">Segna come pagato</button>}
+                    <button onClick={() => { if (confirm('Eliminare questa prenotazione?')) { removeBooking(b.id); } }} className="text-sm px-3 py-1 rounded border text-red-500">Elimina</button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </Modal>
 
       <Modal isOpen={showBookingDetails} onClose={() => { setShowBookingDetails(false); setSelectedBooking(null) }} title="Dettaglio Prenotazione">
