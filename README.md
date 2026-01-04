@@ -40,17 +40,44 @@ Se la query restituisce `false`, contattami e verifico il progetto Supabase (pos
 
 **Nota:** l'app è stata configurata per funzionare senza autenticazione (accesso pubblico). Se in futuro vuoi ripristinare l'autenticazione, dovremo reintrodurre la tabella `user` e ripristinare policy RLS adeguate.
 
-### Nuove sezioni aggiunte
-- **Attrezzatura** — puoi aggiungere elementi generici come SUP, remi, salvagenti, ecc. (tabella `equipment` in DB).
-- **Prenotazioni** — gestione booking (già esistente).
-- **Amministrazione** — spese e contabilità (component `Expenses`).
-- **Reports** — nuova pagina `Reports` con riepiloghi mensili e esportazione CSV (richiede funzione SQL `report_monthly_income` e altre RPC).
-- **Impostazioni** — nuova pagina per regolare valori globali come l'IVA (tabella `app_setting` in DB).
-- **Menu laterale** — nuova `Sidebar` per navigare tra le sezioni.
-- **Tema chiaro/scuro** — supporto tema con toggle (persistenza in localStorage) e supporto Tailwind `dark`.
+## Nuove funzionalità e aggiornamenti
 
-Per applicare le nuove funzioni SQL senza resettare tutto, esegui il file `supabase-migrations/add-settings-and-reports.sql` dalla SQL Editor del progetto Supabase: questo creerà la tabella `app_setting` (con `iva_percent` di default) e le nuove RPC `report_top_products` e `report_counts`.
-### Resettare completamente il database (DISTRUTTIVO)
+### Sistema di Pacchetti
+La sezione **Pacchetti** ora supporta:
+- Creazione pacchetti con modal "Nuovo Pacchetto"
+- Selezione multipla di attrezzatura (es. 1 barca + 2 SUP)
+- Durata personalizzabile (in minuti)
+- Prezzo fisso per pacchetto
+
+**Migrazione DB necessaria**: Esegui il file `supabase-migrations/add-package-fields.sql` per aggiungere i campi `duration` e `equipment_items` alla tabella `package`.
+
+### Vista Calendario per Prenotazioni
+La sezione **Prenotazioni** è stata completamente rinnovata con:
+- Vista giorno/settimana/mese stile calendario
+- Navigazione tra periodi con frecce avanti/indietro
+- Pulsante "Nuova Prenotazione" in alto a destra
+- Modal per creare prenotazioni con selezione multipla di attrezzatura
+- Supporto per pacchetti opzionali nelle prenotazioni
+
+**Migrazione DB necessaria**: Esegui il file `supabase-migrations/add-booking-equipment-items.sql` per aggiungere il campo `equipment_items` alla tabella `booking`.
+
+### Progressive Web App (PWA)
+L'app è ora installabile come Progressive Web App:
+- Manifest.json configurato
+- Service Worker per caching offline
+- Icone app (192x192 e 512x512)
+- Funziona anche offline (risorse in cache)
+
+Gli utenti possono installare l'app direttamente dal browser (Chrome/Edge: menu → Installa app).
+
+### Miglioramenti UI
+- Titoli corretti per ogni sezione (Dashboard, Attrezzatura, Prenotazioni, ecc.)
+- Rimossa sezione "Spese" dalla sidebar (già inclusa in Amministrazione)
+- Modal componente riutilizzabile per dialoghi
+- Design responsive ottimizzato per mobile
+- Dark mode completo supportato
+
+## Configurare Supabase (passo-passo)
 Se vuoi cancellare TUTTO e ripartire da zero (OK perché il progetto è vuoto), esegui il file `supabase-reset.sql` nel SQL Editor del progetto Supabase:
 
 1. Apri il progetto su https://app.supabase.com → SQL Editor → New query

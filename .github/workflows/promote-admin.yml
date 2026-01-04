@@ -1,3 +1,0 @@
-# promote-admin workflow removed — authentication and service role operations are disabled for this repository.
-# If you need to reintroduce role management, recreate a secure workflow that uses a short-lived server environment and rotates service keys.
-

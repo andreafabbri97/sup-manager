@@ -107,11 +107,19 @@ export default function Dashboard({ page = 'dashboard' }: { page?: string }) {
     scales: { x: { ticks: { color: axisColor }, grid: { color: gridColor } }, y: { ticks: { color: axisColor }, grid: { color: gridColor } } }
   }
 
+  const pageTitle = {
+    dashboard: 'Dashboard',
+    equipment: 'Attrezzatura',
+    bookings: 'Prenotazioni',
+    packages: 'Pacchetti',
+    expenses: 'Spese'
+  }[page] || 'Dashboard'
+
   return (
     <div className="max-w-6xl mx-auto p-6">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h2 className="text-2xl font-semibold">Dashboard</h2>
+          <h2 className="text-2xl font-semibold">{pageTitle}</h2>
           <p className="text-sm text-neutral-500 dark:text-neutral-300">Panoramica attività — accesso pubblico</p>
         </div>
       </div>
@@ -181,7 +189,6 @@ export default function Dashboard({ page = 'dashboard' }: { page?: string }) {
       {page === 'equipment' && <Equipment />}
       {page === 'bookings' && <Bookings />}
       {page === 'packages' && <Packages />}
-      {page === 'expenses' && <Expenses />}
 
       <div className="mt-6">
         <div className="text-sm text-neutral-500 dark:text-neutral-400">Usa la sidebar per navigare tra le sezioni.</div>

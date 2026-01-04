@@ -11,7 +11,6 @@ export default function Sidebar({ onNav, currentPage }: { onNav?: (page: string)
     { id: 'equipment', label: 'Attrezzatura' },
     { id: 'bookings', label: 'Prenotazioni' },
     { id: 'packages', label: 'Pacchetti' },
-    { id: 'expenses', label: 'Spese' },
     { id: 'reports', label: 'Amministrazione e Report' },
     { id: 'settings', label: 'Impostazioni' }
   ]
