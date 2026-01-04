@@ -173,7 +173,9 @@ export default function Reports() {
           <StatCard title="Entrate" value={revenueSum.toFixed(2) + ' €'} color="accent" />
           <StatCard title="Ordini" value={bookingsCount} color="neutral" />
           <StatCard title="Spese" value={expensesSum.toFixed(2) + ' €'} color="warning" />
-          <StatCard title="IVA" value={(revenueSum * ivaPercent / 100).toFixed(2) + ' €'} color="neutral" />
+          {!includeIva && (
+            <StatCard title="IVA" value={(revenueSum * ivaPercent / 100).toFixed(2) + ' €'} color="neutral" />
+          )}
           <StatCard title="Profitto" value={profitValue} color="success" />
         </div>
       </div>
