@@ -130,18 +130,19 @@ export default function Reports() {
   const isDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark')
   const axisColor = isDark ? '#9CA3AF' : '#374151'
   const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'
+  const isSmall = typeof window !== 'undefined' && window.innerWidth < 640
 
   const lineOptions = {
     responsive: true,
     maintainAspectRatio: false,
-    plugins: { legend: { labels: { color: axisColor } } },
+    plugins: { legend: { labels: { color: axisColor }, position: isSmall ? 'bottom' : 'top' } },
     scales: {
       x: { ticks: { color: axisColor }, grid: { color: gridColor } },
       y: { ticks: { color: axisColor }, grid: { color: gridColor } },
     }
   }
 
-  const pieOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: axisColor } } } }
+  const pieOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: axisColor }, position: isSmall ? 'bottom' : 'right' } } }
 
   return (
     <div className="max-w-6xl mx-auto p-6">
@@ -182,27 +183,29 @@ export default function Reports() {
               <div className="col-span-2">
                 <div className="mb-4">
                   <div className="text-sm text-neutral-500">Entrate giornaliere</div>
-                  <div className="h-48"><div className="h-full"><Line data={lineData} options={lineOptions} /></div></div>
+                  <div className="h-40 sm:h-48"><div className="h-full"><Line data={lineData} options={lineOptions} /></div></div>
                 </div>
                 <div>
                   <div className="text-sm text-neutral-500">Entrate per attrezzatura</div>
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="text-left text-neutral-500"><th>Attrezzatura</th><th>Prenotazioni</th><th>Incasso</th></tr>
-                    </thead>
-                    <tbody>
-                      {revByEquip.map((r:any)=> (
-                        <tr key={r.equipment} className="border-t border-neutral-100 dark:border-neutral-800"><td className="py-2">{r.equipment}</td><td className="py-2">{r.bookings_count}</td><td className="py-2">{Number(r.revenue).toFixed(2)} €</td></tr>
-                      ))}
-                    </tbody>
-                  </table>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm min-w-[420px]">
+                      <thead>
+                        <tr className="text-left text-neutral-500"><th>Attrezzatura</th><th>Prenotazioni</th><th>Incasso</th></tr>
+                      </thead>
+                      <tbody>
+                        {revByEquip.map((r:any)=> (
+                          <tr key={r.equipment} className="border-t border-neutral-100 dark:border-neutral-800"><td className="py-2">{r.equipment}</td><td className="py-2">{r.bookings_count}</td><td className="py-2">{Number(r.revenue).toFixed(2)} €</td></tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
 
               <div>
                 <div className="mb-4">
                   <div className="text-sm text-neutral-500">Ripartizione entrate</div>
-                  <div className="h-48"><div className="h-full"><Pie data={pieData} options={pieOptions} /></div></div>
+                  <div className="h-40 sm:h-48"><div className="h-full"><Pie data={pieData} options={pieOptions} /></div></div>
                 </div>
                 <div>
                   <div className="text-sm text-neutral-500">Riepilogo</div>
@@ -223,8 +226,8 @@ export default function Reports() {
                 <Button onClick={()=>downloadCSV(topProducts,'top-products.csv')}>Esporta CSV</Button>
               </div>
             </div>
-            <div>
-              <table className="w-full text-sm">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm min-w-[420px]">
                 <thead>
                   <tr className="text-left text-neutral-500"><th>Prodotto</th><th>Prenotazioni</th><th>Incasso</th></tr>
                 </thead>

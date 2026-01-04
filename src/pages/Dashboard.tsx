@@ -99,11 +99,12 @@ export default function Dashboard({ page = 'dashboard' }: { page?: string }) {
   const isDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark')
   const axisColor = isDark ? '#9CA3AF' : '#374151'
   const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'
+  const isSmall = typeof window !== 'undefined' && window.innerWidth < 640
 
   const lineOptions = {
     responsive: true,
     maintainAspectRatio: false,
-    plugins: { legend: { labels: { color: axisColor } } },
+    plugins: { legend: { labels: { color: axisColor }, position: isSmall ? 'bottom' : 'top' } },
     scales: { x: { ticks: { color: axisColor }, grid: { color: gridColor } }, y: { ticks: { color: axisColor }, grid: { color: gridColor } } }
   }
 

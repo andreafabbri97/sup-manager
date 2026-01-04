@@ -102,10 +102,11 @@ export default function Packages() {
               <div className="mt-3 text-sm">
                 <div className="font-medium text-neutral-600 dark:text-neutral-300 mb-1">Include:</div>
                 <ul className="space-y-1">
-                  {p.equipment_items.map((item: any, idx: number) => {
+                  {p.equipment_items.slice(0,3).map((item: any, idx: number) => {
                     const eq = equipment.find(e => e.id === item.id)
                     return <li key={idx} className="text-neutral-500 dark:text-neutral-400">• {item.quantity}x {eq?.name || 'Attrezzatura'}</li>
                   })}
+                  {p.equipment_items.length > 3 && <li className="text-neutral-400">… e {p.equipment_items.length - 3} altri</li>}
                 </ul>
               </div>
             )}
