@@ -139,9 +139,9 @@ export default function Archive() {
               <option value={50}>50</option>
             </select>
             <div className="flex items-center gap-1">
-              <button onClick={()=>setPage(p => Math.max(1, p-1))} className="px-2 py-1 rounded border">Prev</button>
-              <div className="px-2">{page}/{totalPages}</div>
-              <button onClick={()=>setPage(p => Math.min(totalPages, p+1))} className="px-2 py-1 rounded border">Next</button>
+              <button onClick={()=>setPage(p => Math.max(1, p-1))} className="px-2 py-1 rounded border" aria-label="Pagina precedente" title="Pagina precedente">Prev</button>
+              <div className="px-2" aria-live="polite">{page}/{totalPages}</div>
+              <button onClick={()=>setPage(p => Math.min(totalPages, p+1))} className="px-2 py-1 rounded border" aria-label="Pagina successiva" title="Pagina successiva">Next</button>
             </div>
           </div>
         </div>

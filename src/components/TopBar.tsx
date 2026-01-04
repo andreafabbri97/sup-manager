@@ -8,7 +8,7 @@ export default function TopBar() {
     return () => clearInterval(t)
   }, [])
 
-  const formatted = now.toLocaleString('it-IT', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+  const formatted = now.toLocaleString('it-IT', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }).replace(/(^\w)/, (m)=>m.toLowerCase())
 
   return (
     <div className="sticky top-0 z-40 bg-white/40 dark:bg-[#07101a]/40 backdrop-blur-sm border-b border-neutral-200 dark:border-neutral-800 py-2">
