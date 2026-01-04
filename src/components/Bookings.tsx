@@ -599,7 +599,7 @@ export default function Bookings() {
                     <div key={i} className={`p-3 border-r border-b border-neutral-200 dark:border-neutral-700 min-h-[180px] ${isToday ? 'bg-amber-50 dark:bg-amber-900/10' : ''}`}>
                       <div className={`text-base font-medium mb-3 ${isToday ? 'text-amber-600 dark:text-amber-400' : ''}`}>{day.getDate()}</div>
                       <div className="space-y-2">
-                        {dayBookings.map(b => (
+                        {dayBookings.slice(0,3).map(b => (
                           <button key={b.id} title={bookingTitle(b)} onClick={() => { setSelectedBooking(b); setShowBookingDetails(true) }} className={`w-full text-left text-sm p-2.5 rounded-md bg-amber-100 dark:bg-neutral-800/60 text-neutral-900 dark:text-neutral-100 interactive ${statusClass(b)} min-h-[64px]`}>
                             <div className="flex flex-col gap-1.5">
                               <div className="font-medium">{new Date(b.start_time).toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'})} — {b.customer_name || 'Cliente'}</div>
@@ -612,6 +612,9 @@ export default function Bookings() {
                             </div>
                           </button>
                         ))}
+                        {dayBookings.length > 3 && (
+                          <button onClick={() => { setCurrentDate(day); setViewMode('day') }} className="text-xs text-neutral-500 hover:underline">+{dayBookings.length - 3} altre prenotazioni</button>
+                        )}
                       </div>
                     </div>
                   )
@@ -684,7 +687,7 @@ export default function Bookings() {
                           </button>
                         ))}
                         {dayBookings.length > 2 && (
-                          <div className="text-xs text-neutral-500">+{dayBookings.length - 2}</div>
+                          <button onClick={() => { setCurrentDate(day); setViewMode('day') }} className="text-xs text-neutral-500 hover:underline">+{dayBookings.length - 2} altre prenotazioni</button>
                         )}
                       </div>
                     </div>
