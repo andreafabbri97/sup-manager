@@ -5,6 +5,42 @@ export default function Sidebar({ onNav, currentPage }: { onNav?: (page: string)
   const { theme, toggle } = useTheme()
   const [collapsed, setCollapsed] = React.useState(false)
   const [mobileOpen, setMobileOpen] = React.useState(false)
+  const burgerRef = React.useRef<HTMLButtonElement | null>(null)
+  const sidebarRef = React.useRef<HTMLElement | null>(null)
+
+  // focus trap on mobile overlay sidebar
+  React.useEffect(() => {
+    if (!mobileOpen || !sidebarRef.current) return
+    const node = sidebarRef.current
+    const focusable = node.querySelectorAll<HTMLElement>(
+      'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])'
+    )
+    const first = focusable[0]
+    const last = focusable[focusable.length - 1]
+    first?.focus()
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab') return
+      if (e.shiftKey) {
+        if (document.activeElement === first) {
+          e.preventDefault()
+          last?.focus()
+        }
+      } else {
+        if (document.activeElement === last) {
+          e.preventDefault()
+          first?.focus()
+        }
+      }
+    }
+
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [mobileOpen])
+
+  React.useEffect(() => {
+    if (!mobileOpen) burgerRef.current?.focus()
+  }, [mobileOpen])
 
   const items = [
     { id: 'dashboard', label: 'Dashboard' },
@@ -85,6 +121,7 @@ export default function Sidebar({ onNav, currentPage }: { onNav?: (page: string)
     <>
       {/* Fixed hamburger button (always visible on mobile, fixed top-left) */}
       <button
+        ref={burgerRef}
         onClick={() => setMobileOpen((s) => !s)}
         aria-controls="sidebar"
         aria-expanded={mobileOpen}
@@ -116,6 +153,7 @@ export default function Sidebar({ onNav, currentPage }: { onNav?: (page: string)
 
       <aside
         id="sidebar"
+        ref={(el) => (sidebarRef.current = el)}
         className={`fixed z-50 top-0 left-0 h-full w-64 bg-neutral-50 dark:bg-neutral-900 border-r dark:border-neutral-800 p-4 transform transition-transform duration-200 ${mobileOpen ? 'translate-x-0' : '-translate-x-full'} lg:static lg:translate-x-0 lg:block`}
         aria-hidden={!mobileOpen}
       >
