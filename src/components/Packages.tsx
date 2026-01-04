@@ -92,7 +92,7 @@ export default function Packages() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {packages.map((p) => (
-          <div key={p.id} className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-neutral-200 dark:border-neutral-700 p-4">
+          <div key={p.id} className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-neutral-200 dark:border-neutral-700 p-4 hover:shadow-lg transition-shadow">
             <div className="flex items-start justify-between mb-2">
               <div className="font-semibold text-lg">{p.name}</div>
               <button onClick={() => remove(p.id)} className="text-red-500 hover:text-red-600 text-sm">
@@ -101,7 +101,7 @@ export default function Packages() {
                 </svg>
               </button>
             </div>
-            <div className="text-2xl font-bold text-amber-500 mb-2">€ {p.price}</div>
+            <div className="text-2xl font-bold text-amber-500 mb-2">€ {Number(p.price).toFixed(2)}</div>
             {p.duration && <div className="text-sm text-neutral-500 dark:text-neutral-400">Durata: {p.duration} min</div>}
             {p.equipment_items && Array.isArray(p.equipment_items) && p.equipment_items.length > 0 && (
               <div className="mt-3 text-sm">

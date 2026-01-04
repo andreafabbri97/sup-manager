@@ -134,7 +134,7 @@ export default function Equipment() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           {items.map(it => (
-            <Card key={it.id} className="flex flex-col justify-between">
+            <Card key={it.id} className="flex flex-col justify-between hover:shadow-lg transition-shadow">
               {editingId === it.id ? (
                 <div>
                   <div className="mb-2">
@@ -161,9 +161,9 @@ export default function Equipment() {
                     <div className={`mt-3 inline-block px-2 py-1 text-xs rounded ${it.status === 'available' ? 'bg-green-100 text-green-800' : it.status === 'maintenance' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>{it.status}</div>
                   </div>
 
-                  <div className="mt-4 flex gap-2 justify-end">
-                    <button onClick={()=>startEdit(it)} className="px-3 py-1 border rounded">Modifica</button>
-                    <button onClick={()=>deleteItem(it.id)} className="px-3 py-1 rounded text-red-600">Elimina</button>
+                    <div className="mt-4 flex gap-2 justify-end">
+                    <Button onClick={()=>startEdit(it)} className="px-3 py-1">Modifica</Button>
+                    <button onClick={()=>deleteItem(it.id)} className="px-3 py-1 rounded text-red-600 hover:bg-red-50 dark:hover:bg-red-900">Elimina</button>
                   </div>
                 </>
               )}
