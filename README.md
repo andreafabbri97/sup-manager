@@ -32,6 +32,13 @@ NOTE:
 
 **Nota:** l'app è stata configurata per funzionare senza autenticazione (accesso pubblico). Se in futuro vuoi ripristinare l'autenticazione, dovremo reintrodurre la tabella `user` e ripristinare policy RLS adeguate.
 
+### Nuove sezioni aggiunte
+- **Attrezzatura** — puoi aggiungere elementi generici come SUP, Barche, Remi, Salvagenti, ecc. (tabella `equipment` in DB).
+- **Prenotazioni** — gestione booking (già esistente).
+- **Amministrazione** — spese e contabilità (component `Expenses`).
+- **Menu laterale** — nuova `Sidebar` per navigare tra le sezioni.
+- **Tema chiaro/scuro** — supporto tema con toggle (persistenza in localStorage) e supporto Tailwind `dark`.
+
 ### Resettare completamente il database (DISTRUTTIVO)
 Se vuoi cancellare TUTTO e ripartire da zero (OK perché il progetto è vuoto), esegui il file `supabase-reset.sql` nel SQL Editor del progetto Supabase:
 

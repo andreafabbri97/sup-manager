@@ -1,19 +1,16 @@
-import React from 'react'
+import React, { useCallback, useState } from 'react'
 import Dashboard from './pages/Dashboard'
+import Sidebar from './components/Sidebar'
 
 export default function App() {
-  return (
-    <div className="min-h-screen bg-sky-50 text-slate-800">
-      <header className="max-w-4xl mx-auto p-4 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Sup Manager</h1>
-        <nav className="space-x-3">
-          <button className="px-3 py-1 rounded-md bg-white shadow">Dashboard</button>
-          <button className="px-3 py-1 rounded-md">Bookings</button>
-        </nav>
-      </header>
+  const [page, setPage] = useState('dashboard')
+  const handleNav = useCallback((p: string) => setPage(p), [])
 
-      <main className="max-w-4xl mx-auto p-4">
-        <Dashboard />
+  return (
+    <div className="min-h-screen bg-sky-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 flex">
+      <Sidebar onNav={handleNav} />
+      <main className="flex-1 p-4">
+        <Dashboard page={page} />
       </main>
     </div>
   )
