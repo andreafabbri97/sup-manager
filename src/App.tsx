@@ -26,7 +26,7 @@ export default function App() {
       <Sidebar onNav={handleNav} currentPage={page} />
       <main className="flex-1 flex flex-col w-full">
         <TopBar />
-        <div className="px-2 sm:px-4 lg:px-6 py-2 sm:py-3 flex-1">
+        <div className="px-2 sm:px-4 lg:px-6 py-1 sm:py-1 flex-1">
           {page === 'equipment' && <Equipment />}
           {page === 'bookings' && <Bookings />}
           {page === 'packages' && <Packages />}
