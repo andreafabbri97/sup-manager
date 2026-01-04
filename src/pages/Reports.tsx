@@ -28,7 +28,18 @@ export default function Reports() {
     const v = window.localStorage.getItem('reports_tab')
     return v === 'admin' ? 'admin' : 'reports'
   })
-  const [excludeIva, setExcludeIva] = useState(false)
+  const [excludeIva, setExcludeIva] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false
+    try {
+      const v = window.localStorage.getItem('reports_exclude_iva')
+      return v === '1' || v === 'true'
+    } catch (e) { return false }
+  })
+
+  // persist excludeIva to localStorage
+  useEffect(() => {
+    try { window.localStorage.setItem('reports_exclude_iva', excludeIva ? '1' : '0') } catch (e) {}
+  }, [excludeIva])
   const [start, setStart] = useState(() => {
     if (typeof window === 'undefined') {
       const d=new Date(); d.setDate(d.getDate()-30); return d.toISOString().slice(0,10)

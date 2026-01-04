@@ -131,7 +131,7 @@ export default function Customers() {
         <Button onClick={openCreateModal}>+ Nuovo Cliente</Button>
       </div>
 
-      <Card>
+      <Card className="mt-2">
         {/* Search */}
         <div className="mb-4">
           <input

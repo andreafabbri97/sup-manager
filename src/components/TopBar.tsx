@@ -13,7 +13,7 @@ export default function TopBar() {
   const formatted = `${datePart} ore ${timePart}`
 
   return (
-    <div className="sticky top-0 z-40 bg-white/40 dark:bg-[#07101a]/40 backdrop-blur-sm border-b border-neutral-200 dark:border-neutral-800 py-1">
+    <div className="sticky top-0 z-40 bg-white/40 dark:bg-[#07101a]/40 backdrop-blur-sm border-b border-neutral-200 dark:border-neutral-800 py-0">
       <div className="w-full px-2 sm:px-4 lg:px-6 text-sm text-neutral-600 dark:text-neutral-300 flex items-center gap-3">
         {/* Mobile menu button moved here to avoid floating overlay */}
         <button
