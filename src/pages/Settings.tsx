@@ -30,7 +30,7 @@ export default function Settings() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
+    <div className="w-full p-6">
       <h2 className="text-2xl font-semibold mb-4">Impostazioni</h2>
       <Card>
         <form onSubmit={save} className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
