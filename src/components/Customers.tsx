@@ -123,17 +123,15 @@ export default function Customers() {
 
   return (
     <section className="mt-6">
-      <Card>
-        <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
-          <div>
-            <PageTitle className="m-0">Anagrafica Clienti</PageTitle>
-            <p className="text-sm text-neutral-500 dark:text-neutral-400">
-              Gestisci i dati dei tuoi clienti
-            </p>
-          </div>
-          <Button onClick={openCreateModal}>+ Nuovo Cliente</Button>
+      <div className="flex items-center justify-between mb-3">
+        <div>
+          <h3 className="text-lg font-medium m-0">Anagrafica Clienti</h3>
+          <p className="text-sm text-neutral-500 dark:text-neutral-400">Gestisci i dati dei tuoi clienti</p>
         </div>
+        <Button onClick={openCreateModal}>+ Nuovo Cliente</Button>
+      </div>
 
+      <Card>
         {/* Search */}
         <div className="mb-4">
           <input

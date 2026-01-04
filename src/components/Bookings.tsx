@@ -25,7 +25,7 @@ export default function Bookings() {
   const [detailNotes, setDetailNotes] = useState<string>('')
   const [detailPaid, setDetailPaid] = useState<boolean>(false)
   const [detailInvoiced, setDetailInvoiced] = useState<boolean>(false)
-  const [viewMode, setViewMode] = useState<ViewMode>('week')
+  const [viewMode, setViewMode] = useState<ViewMode>('day')
   const [currentDate, setCurrentDate] = useState(new Date())
   
   // Modal state
