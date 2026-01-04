@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import Button from './ui/Button'
 import Modal from './ui/Modal'
@@ -84,6 +84,11 @@ export default function Bookings() {
     setDurationMinutes(60)
     setComputedPrice(null)
   }
+
+  const handleCloseModal = useCallback(() => {
+    setShowModal(false)
+    resetForm()
+  }, [])
 
   function handleEquipmentChange(equipId: string, quantity: number) {
     if (quantity <= 0) {
@@ -525,7 +530,7 @@ export default function Bookings() {
       </div>
 
       {/* New booking modal */}
-      <Modal isOpen={showModal} onClose={() => { setShowModal(false); resetForm(); }} title="Nuova Prenotazione">
+      <Modal isOpen={showModal} onClose={handleCloseModal} title="Nuova Prenotazione">
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-1">Cliente</label>
@@ -612,7 +617,7 @@ export default function Bookings() {
             </div>
             <Button onClick={createBooking} className="flex-1">Crea Prenotazione</Button>
             <button
-              onClick={() => { setShowModal(false); resetForm(); }}
+              onClick={handleCloseModal}
               className="px-4 py-2 rounded border border-neutral-300 dark:border-neutral-600 hover:bg-neutral-100 dark:hover:bg-neutral-700"
             >
               Annulla

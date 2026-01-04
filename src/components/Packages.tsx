@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import Modal from './ui/Modal'
 import Button from './ui/Button'
@@ -62,6 +62,11 @@ export default function Packages() {
     setSelectedEquipment([])
   }
 
+  const handleClosePackageModal = useCallback(() => {
+    setShowModal(false)
+    resetForm()
+  }, [])
+
   function handleEquipmentChange(equipId: string, quantity: number) {
     if (quantity <= 0) {
       setSelectedEquipment(selectedEquipment.filter(e => e.id !== equipId))
@@ -119,7 +124,7 @@ export default function Packages() {
         )}
       </div>
 
-      <Modal isOpen={showModal} onClose={() => { setShowModal(false); resetForm(); }} title="Nuovo Pacchetto">
+      <Modal isOpen={showModal} onClose={handleClosePackageModal} title="Nuovo Pacchetto">
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-1">Nome Pacchetto</label>
@@ -193,7 +198,7 @@ export default function Packages() {
           <div className="flex gap-3 pt-4">
             <Button onClick={create} className="flex-1">Crea Pacchetto</Button>
             <button
-              onClick={() => { setShowModal(false); resetForm(); }}
+              onClick={handleClosePackageModal}
               className="px-4 py-2 rounded border border-neutral-300 dark:border-neutral-600 hover:bg-neutral-100 dark:hover:bg-neutral-700"
             >
               Annulla
