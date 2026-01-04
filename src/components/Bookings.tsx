@@ -540,15 +540,15 @@ export default function Bookings() {
           <div className="p-4">
               <div className="space-y-2">
               {getBookingsForDate(currentDate).map(b => (
-                <button key={b.id} title={bookingTitle(b)} onClick={() => { setSelectedBooking(b); setShowBookingDetails(true) }} className={`w-full text-left p-3 rounded border border-neutral-200 dark:border-neutral-700 bg-amber-50 dark:bg-neutral-800 interactive ${statusClass(b)}`}>
+                <button key={b.id} title={bookingTitle(b)} onClick={() => { setSelectedBooking(b); setShowBookingDetails(true) }} className={`w-full text-left p-3 rounded-md border border-neutral-200 dark:border-neutral-700 bg-amber-50/70 dark:bg-neutral-800/60 interactive ${statusClass(b)} min-h-[48px]`}>
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
-                        <div className="font-medium truncate text-neutral-900 dark:text-neutral-100">{b.customer_name || 'Cliente'}</div>
-                        <div className="text-xs text-neutral-500">{formatTimeRange(b)}</div>
+                        <div className="font-medium truncate text-neutral-900 dark:text-neutral-100 text-sm">{b.customer_name || 'Cliente'}</div>
+                        <div className="text-sm text-neutral-500">{formatTimeRange(b)}</div>
                       </div>
-                      <div className="mt-1 text-sm text-neutral-600 dark:text-neutral-300 truncate">{b.notes ? (b.notes.length > 80 ? b.notes.slice(0,80) + '…' : b.notes) : ''}</div>
-                      <div className="mt-2 flex items-center gap-3 text-xs">
+                      <div className="mt-1 text-sm text-neutral-600 dark:text-neutral-300">{b.notes ? (b.notes.length > 100 ? b.notes.slice(0,100) + '…' : b.notes) : ''}</div>
+                      <div className="mt-2 flex items-center gap-3 text-sm">
                         {b.price && <div className="text-amber-600 dark:text-amber-300 font-semibold">€ {Number(b.price).toFixed(2)}</div>}
                         <div className="text-neutral-500">{equipmentCount(b)} attrezzatura{equipmentCount(b) > 1 ? 'e' : ''}</div>
                         <div className="text-neutral-500">Durata: {Math.round((new Date(b.end_time).getTime() - new Date(b.start_time).getTime())/60000)}m</div>
@@ -564,8 +564,8 @@ export default function Bookings() {
                           </svg>
                         </button>
                       )}
-                      {b.paid && <div className="text-xs text-green-600 font-semibold">Pagato</div>}
-                      {b.invoiced && <div className="text-xs text-blue-600 font-semibold">Fatturato</div>}
+                      {b.paid && <div className="text-sm text-green-600 font-semibold">Pagato</div>}
+                      {b.invoiced && <div className="text-sm text-blue-600 font-semibold">Fatturato</div>}
                       <button onClick={(e)=>{ e.stopPropagation(); removeBooking(b.id) }} className="text-red-500 hover:text-red-600 p-1 focus-ring" title="Elimina">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -586,7 +586,7 @@ export default function Bookings() {
           <>
             {/* Desktop / Tablet: grid */}
             <div className="hidden sm:block">
-              <div className="grid grid-cols-7">
+              <div className="grid grid-cols-7 gap-2">
                 {['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'].map((day, i) => (
                   <div key={i} className="p-2 text-center text-sm font-medium border-b border-neutral-200 dark:border-neutral-700">
                     {day}
