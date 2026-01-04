@@ -117,7 +117,7 @@ export default function Dashboard({ page = 'dashboard' }: { page?: string }) {
   }[page] || 'Dashboard'
 
   return (
-    <div className="w-full max-w-screen-xl mx-auto p-6">
+    <div className="w-full max-w-screen-xl mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6">
       <div className="flex items-center justify-between mb-4">
         <div>
           <h2 className="text-2xl font-semibold">{pageTitle}</h2>

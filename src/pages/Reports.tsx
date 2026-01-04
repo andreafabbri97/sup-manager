@@ -322,8 +322,8 @@ export default function Reports() {
   const profitValue = (revenueSum - expensesSum - ivaAmount).toFixed(2) + ' €'
 
   return (
-    <div className="max-w-screen-xl mx-auto p-6">
-      <div className="flex items-center justify-between mb-4 flex-wrap">
+    <div className="max-w-screen-xl mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6">
+      <div className="flex items-center justify-between mb-3 sm:mb-4 flex-wrap gap-3">
         <h2 className="text-2xl font-semibold">Amministrazione e Report</h2>
         <div className="flex items-center gap-4">
           <div role="tablist" aria-label="Sezioni report" className="inline-flex rounded bg-neutral-100 dark:bg-neutral-800 p-1">
@@ -338,8 +338,8 @@ export default function Reports() {
       </div>
 
       {/* Top metrics (mobile scrollable) */}
-      <div className="mb-4">
-          <div className="flex flex-wrap gap-4 pb-2">
+      <div className="mb-4 sm:mb-6">
+          <div className="flex flex-wrap gap-3 sm:gap-4 pb-2">
           <StatCard title="Entrate" value={revenueSum.toFixed(2) + ' €'} color="accent" />
           <StatCard title="Incasso/giorno" value={avgRevenuePerDay.toFixed(2) + ' €'} color="accent" />
           <StatCard title="Ordini" value={bookingsCount} color="neutral" />
@@ -366,13 +366,13 @@ export default function Reports() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="col-span-2">
-                <div className="mb-4">
-                  <div className="text-sm text-neutral-500">Ordini giornalieri</div>
-                  <div className="h-40 sm:h-48"><div className="h-full"><Line data={ordersData} options={ordersOptions} /></div></div>
+                <div className="mb-4 sm:mb-6">
+                  <div className="text-sm text-neutral-500 mb-2">Ordini giornalieri</div>
+                  <div className="h-64 sm:h-72 lg:h-80"><div className="h-full"><Line data={ordersData} options={ordersOptions} /></div></div>
                 </div>
-                <div className="mb-4">
-                  <div className="text-sm text-neutral-500">Entrate giornaliere</div>
-                  <div className="h-40 sm:h-48"><div className="h-full"><Line data={revenueData} options={revenueOptions} /></div></div>
+                <div className="mb-4 sm:mb-6">
+                  <div className="text-sm text-neutral-500 mb-2">Entrate giornaliere</div>
+                  <div className="h-64 sm:h-72 lg:h-80"><div className="h-full"><Line data={revenueData} options={revenueOptions} /></div></div>
                 </div>
                 <div>
                   <div className="text-sm text-neutral-500">Entrate per attrezzatura</div>
