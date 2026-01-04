@@ -195,15 +195,39 @@ export default function Reports() {
   const lineOptions = {
     responsive: true,
     maintainAspectRatio: false,
-    plugins: { legend: { labels: { color: axisColor }, position: isSmall ? 'bottom' : 'top' } },
+    plugins: {
+      legend: { labels: { color: axisColor }, position: isSmall ? 'bottom' : 'top' },
+      tooltip: {
+        callbacks: {
+          label: (ctx: any) => {
+            const label = ctx.dataset.label || ''
+            const val = ctx.parsed?.y ?? ctx.parsed ?? 0
+            if (ctx.dataset.yAxisID === 'y') return `${label}: ${Number(val).toFixed(2)} €`
+            return `${label}: ${Number(val).toFixed(0)}`
+          }
+        }
+      }
+    },
+    elements: { point: { radius: 3 } },
     scales: {
       x: { ticks: { color: axisColor }, grid: { color: gridColor } },
-      y: { ticks: { color: axisColor }, grid: { color: gridColor }, position: 'left' },
-      y1: { ticks: { color: axisColor }, grid: { display: false }, position: 'right' }
+      y: { ticks: { color: axisColor, callback: (v: any) => `${Number(v).toFixed(0)} €` }, grid: { color: gridColor }, position: 'left' },
+      y1: { ticks: { color: axisColor, callback: (v: any) => `${Number(v).toFixed(0)}` }, grid: { display: false }, position: 'right' }
     }
   }
 
-  const pieOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: axisColor }, position: isSmall ? 'bottom' : 'right' } } }
+  const pieOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { labels: { color: axisColor }, position: isSmall ? 'bottom' : 'right' },
+      tooltip: {
+        callbacks: {
+          label: (ctx: any) => `${ctx.label}: ${Number(ctx.raw ?? 0).toFixed(2)} €`
+        }
+      }
+    }
+  }
 
   // derive profit value using excludeIva toggle (when excluded, IVA is zeroed)
   const revenueSum = Number(summary.find(s=>s.metric==='revenue')?.value ?? 0)
