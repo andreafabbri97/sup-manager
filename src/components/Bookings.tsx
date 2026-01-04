@@ -28,6 +28,11 @@ export default function Bookings() {
 
   useEffect(() => {
     load()
+
+    // refresh when SUP list changes
+    const handler = () => load()
+    window.addEventListener('sups:changed', handler)
+    return () => window.removeEventListener('sups:changed', handler)
   }, [])
 
   function computeEnd(start: string, pkgId?: string | null) {

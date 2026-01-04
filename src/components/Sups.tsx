@@ -23,6 +23,8 @@ export default function Sups() {
     if (error) return alert(error.message)
     setName('')
     load()
+    // notify other components that sup list changed (Bookings listens for this)
+    window.dispatchEvent(new CustomEvent('sups:changed'))
   }
 
   async function remove(id: string) {
