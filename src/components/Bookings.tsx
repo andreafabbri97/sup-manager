@@ -9,6 +9,8 @@ export default function Bookings() {
   const [equipment, setEquipment] = useState<any[]>([])
   const [packages, setPackages] = useState<any[]>([])
   const [bookings, setBookings] = useState<any[]>([])
+  const [selectedBooking, setSelectedBooking] = useState<any | null>(null)
+  const [showBookingDetails, setShowBookingDetails] = useState(false)
   const [viewMode, setViewMode] = useState<ViewMode>('week')
   const [currentDate, setCurrentDate] = useState(new Date())
   
@@ -241,6 +243,33 @@ export default function Bookings() {
     load()
   }
 
+  async function saveBookingChanges(updated: any) {
+    const { id, customer_name, start_time, end_time, price, package_id, equipment_items, paid, invoiced, invoice_number } = updated
+    const updatePayload: any = { customer_name, start_time, end_time, price, package_id, equipment_items }
+    if (paid !== undefined) updatePayload.paid = paid
+    if (invoiced !== undefined) updatePayload.invoiced = invoiced
+    if (invoice_number !== undefined) updatePayload.invoice_number = invoice_number
+
+    const { error } = await supabase.from('booking').update(updatePayload).eq('id', id)
+    if (error) return alert(error.message)
+    load()
+    setShowBookingDetails(false)
+    setSelectedBooking(null)
+  }
+
+  async function togglePaidForBooking(id: string, paid: boolean) {
+    const paid_at = paid ? new Date().toISOString() : null
+    const { error } = await supabase.from('booking').update({ paid, paid_at }).eq('id', id)
+    if (error) return alert(error.message)
+    load()
+  }
+
+  async function toggleInvoicedForBooking(id: string, invoiced: boolean) {
+    const { error } = await supabase.from('booking').update({ invoiced }).eq('id', id)
+    if (error) return alert(error.message)
+    load()
+  }
+
   async function markPaid(id: string) {
     const paidAt = new Date().toISOString()
     const { error } = await supabase.from('booking').update({ paid: true, paid_at: paidAt }).eq('id', id)
@@ -359,7 +388,7 @@ export default function Bookings() {
           <div className="p-4">
             <div className="space-y-2">
               {getBookingsForDate(currentDate).map(b => (
-                <div key={b.id} className="p-3 rounded border border-neutral-200 dark:border-neutral-700 bg-amber-50 dark:bg-amber-900/20">
+                <button key={b.id} onClick={() => { setSelectedBooking(b); setShowBookingDetails(true) }} className="w-full text-left p-3 rounded border border-neutral-200 dark:border-neutral-700 bg-amber-50 dark:bg-amber-900/20">
                   <div className="flex items-start justify-between">
                     <div>
                       <div className="font-medium">{b.customer_name || 'Cliente'}</div>
@@ -371,21 +400,21 @@ export default function Bookings() {
                     </div>
                     <div className="flex items-center gap-2">
                       {!b.paid && (
-                        <button onClick={() => markPaid(b.id)} className="text-green-600 hover:text-green-700 p-1" title="Registra incasso">
+                        <button onClick={(e)=>{ e.stopPropagation(); markPaid(b.id) }} className="text-green-600 hover:text-green-700 p-1" title="Registra incasso">
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3" />
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
                         </button>
                       )}
-                      <button onClick={() => removeBooking(b.id)} className="text-red-500 hover:text-red-600 p-1">
+                      <button onClick={(e)=>{ e.stopPropagation(); removeBooking(b.id) }} className="text-red-500 hover:text-red-600 p-1">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                         </svg>
                       </button>
                     </div>
                   </div>
-                </div>
+                </button>
               ))}
               {getBookingsForDate(currentDate).length === 0 && (
                 <div className="text-center py-12 text-neutral-500 dark:text-neutral-400">Nessuna prenotazione per questa giornata</div>
@@ -624,6 +653,46 @@ export default function Bookings() {
             </button>
           </div>
         </div>
+      </Modal>
+
+      <Modal isOpen={showBookingDetails} onClose={() => { setShowBookingDetails(false); setSelectedBooking(null) }} title="Dettaglio Prenotazione">
+        {selectedBooking && (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Cliente</label>
+              <input value={selectedBooking.customer_name} onChange={(e)=>setSelectedBooking({...selectedBooking, customer_name: e.target.value})} className="w-full border px-3 py-2 rounded" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Data e Ora Inizio</label>
+              <input type="datetime-local" value={new Date(selectedBooking.start_time).toISOString().slice(0,16)} onChange={(e)=>{
+                const v = e.target.value; setSelectedBooking({...selectedBooking, start_time: new Date(v).toISOString()})
+              }} className="w-full border px-3 py-2 rounded" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Data e Ora Fine</label>
+              <input type="datetime-local" value={new Date(selectedBooking.end_time).toISOString().slice(0,16)} onChange={(e)=>{
+                const v = e.target.value; setSelectedBooking({...selectedBooking, end_time: new Date(v).toISOString()})
+              }} className="w-full border px-3 py-2 rounded" />
+            </div>
+            <div>
+              <label className="inline-flex items-center gap-2">
+                <input type="checkbox" checked={!!selectedBooking.paid} onChange={(e)=>{ setSelectedBooking({...selectedBooking, paid: e.target.checked}); }} />
+                Pagata
+              </label>
+            </div>
+            <div>
+              <label className="inline-flex items-center gap-2">
+                <input type="checkbox" checked={!!selectedBooking.invoiced} onChange={(e)=>{ setSelectedBooking({...selectedBooking, invoiced: e.target.checked}); }} />
+                Fatturata
+              </label>
+            </div>
+            <div className="flex gap-2 justify-end">
+              <button onClick={() => { saveBookingChanges(selectedBooking) }} className="bg-amber-500 text-white px-4 py-2 rounded">Salva</button>
+              <button onClick={() => { if (confirm('Eliminare questa prenotazione?')) { removeBooking(selectedBooking.id); setShowBookingDetails(false); setSelectedBooking(null) } }} className="px-4 py-2 rounded border">Elimina</button>
+              <button onClick={() => { setShowBookingDetails(false); setSelectedBooking(null) }} className="px-4 py-2 rounded border">Chiudi</button>
+            </div>
+          </div>
+        )}
       </Modal>
     </section>
   )

@@ -195,8 +195,9 @@ export default function Reports() {
 
   // derive profit value using includeIva toggle
   const revenueSum = Number(summary.find(s=>s.metric==='revenue')?.value ?? 0)
+  const revenueInvoiced = Number(summary.find(s=>s.metric==='revenue_invoiced')?.value ?? 0)
   const expensesSum = Number(summary.find(s=>s.metric==='expenses')?.value ?? 0)
-  const ivaAmount = includeIva ? (revenueSum * ivaPercent/100) : 0
+  const ivaAmount = includeIva ? (revenueInvoiced * ivaPercent/100) : 0
   const profitValue = (revenueSum - expensesSum - ivaAmount).toFixed(2) + ' €'
 
   return (
