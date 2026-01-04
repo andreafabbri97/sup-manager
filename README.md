@@ -44,10 +44,12 @@ Se la query restituisce `false`, contattami e verifico il progetto Supabase (pos
 - **Attrezzatura** — puoi aggiungere elementi generici come SUP, remi, salvagenti, ecc. (tabella `equipment` in DB).
 - **Prenotazioni** — gestione booking (già esistente).
 - **Amministrazione** — spese e contabilità (component `Expenses`).
-- **Reports** — nuova pagina `Reports` con riepiloghi mensili e esportazione CSV (richiede funzione SQL `report_monthly_income`).
+- **Reports** — nuova pagina `Reports` con riepiloghi mensili e esportazione CSV (richiede funzione SQL `report_monthly_income` e altre RPC).
+- **Impostazioni** — nuova pagina per regolare valori globali come l'IVA (tabella `app_setting` in DB).
 - **Menu laterale** — nuova `Sidebar` per navigare tra le sezioni.
 - **Tema chiaro/scuro** — supporto tema con toggle (persistenza in localStorage) e supporto Tailwind `dark`.
 
+Per applicare le nuove funzioni SQL senza resettare tutto, esegui il file `supabase-migrations/add-settings-and-reports.sql` dalla SQL Editor del progetto Supabase: questo creerà la tabella `app_setting` (con `iva_percent` di default) e le nuove RPC `report_top_products` e `report_counts`.
 ### Resettare completamente il database (DISTRUTTIVO)
 Se vuoi cancellare TUTTO e ripartire da zero (OK perché il progetto è vuoto), esegui il file `supabase-reset.sql` nel SQL Editor del progetto Supabase:
 

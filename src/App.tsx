@@ -2,6 +2,7 @@ import React, { useCallback, useState } from 'react'
 import Dashboard from './pages/Dashboard'
 import Sidebar from './components/Sidebar'
 import Reports from './pages/Reports'
+import Settings from './pages/Settings'
 
 export default function App() {
   const [page, setPage] = useState('dashboard')
@@ -11,7 +12,7 @@ export default function App() {
     <div className="min-h-screen bg-sky-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 flex">
       <Sidebar onNav={handleNav} currentPage={page} />
       <main className="flex-1 p-4">
-        {page === 'reports' ? <Reports /> : <Dashboard page={page} />}
+        {page === 'reports' ? <Reports /> : page === 'settings' ? <Settings /> : <Dashboard page={page} />}
       </main>
     </div>
   )

@@ -12,45 +12,52 @@ export default function Sidebar({ onNav, currentPage }: { onNav?: (page: string)
     { id: 'bookings', label: 'Prenotazioni' },
     { id: 'packages', label: 'Pacchetti' },
     { id: 'expenses', label: 'Spese' },
-    { id: 'reports', label: 'Amministrazione e Report' }
+    { id: 'reports', label: 'Amministrazione e Report' },
+    { id: 'settings', label: 'Impostazioni' }
   ]
 
   const Icon = ({ name }: { name: string }) => {
     switch (name) {
       case 'dashboard':
         return (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" d="M3 3h7v7H3V3zM14 3h7v7h-7V3zM14 14h7v7h-7v-7zM3 14h7v7H3v-7z" />
+          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" d="M3 13h8V3H3v10zM13 21h8v-8h-8v8zM13 3v8h8V3h-8zM3 21h8v-8H3v8z" />
           </svg>
         )
       case 'equipment':
         return (
           <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" d="M12 2v20M4 7h16" />
+            <path strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" d="M9 3h6v4H9V3zM4 8h16v13H4V8z" />
           </svg>
         )
       case 'bookings':
         return (
           <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" d="M3 7h18M8 3v4M16 3v4M21 10v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7" />
+            <path strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" d="M7 8h10M7 12h10M7 16h10M5 4h14v2H5V4z" />
           </svg>
         )
       case 'packages':
         return (
           <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" d="M21 16V8a2 2 0 0 0-1-1.73L13 3l-7 3.27A2 2 0 0 0 5 8v8a2 2 0 0 0 1 1.73L11 21l7-3.27A2 2 0 0 0 21 16z" />
+            <path strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" d="M12 3l9 4.5v9L12 21 3 16.5v-9L12 3zM12 12v8" />
           </svg>
         )
       case 'expenses':
         return (
           <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.105 0-2 .672-2 1.5S10.895 11 12 11s2-.672 2-1.5S13.105 8 12 8zm0 4c-1.105 0-2 .672-2 1.5S10.895 15 12 15s2-.672 2-1.5S13.105 12 12 12z" />
+            <path strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" d="M12 8c-2 0-4 1-4 3s2 3 4 3 4-1 4-3-2-3-4-3zM4 19h16" />
           </svg>
         )
       case 'reports':
         return (
           <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" d="M3 3v18h18" />
+          </svg>
+        )
+      case 'settings':
+        return (
+          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" d="M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7zM19.4 15a1.98 1.98 0 0 0 .35 2.04l.04.04a2 2 0 0 1-2.83 2.83l-.04-.04a1.98 1.98 0 0 0-2.04-.35 2 2 0 0 1-1.17 1.17c-.7.28-1.47.28-2.17 0a2 2 0 0 1-1.17-1.17 1.98 1.98 0 0 0-2.04.35l-.04.04a2 2 0 0 1-2.83-2.83l.04-.04a1.98 1.98 0 0 0 .35-2.04 2 2 0 0 1-1.17-1.17c-.28-.7-.28-1.47 0-2.17A2 2 0 0 1 3 8.58 1.98 1.98 0 0 0 2.65 6.54L2.61 6.5A2 2 0 0 1 5.44 3.67l.04.04c.7.28 1.47.28 2.17 0a2 2 0 0 1 1.17-1.17c.7-.28 1.47-.28 2.17 0a2 2 0 0 1 1.17 1.17c.28.7.28 1.47 0 2.17A2 2 0 0 1 19.4 8.58c.35.35.7.7.99 1.06z" />
           </svg>
         )
       default:

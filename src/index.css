@@ -7,10 +7,28 @@
     @apply bg-neutral-100 text-neutral-700 font-sans;
   }
   .dark body {
-    @apply bg-neutral-900 text-neutral-100;
+    /* darker background similar to your example */
+    background-color: #0b1220;
+    color: #e6eef8;
   }
 }
 
 html, body, #root {
   height: 100%;
+}
+
+/* Dark-mode form element fixes: ensure selects/options are readable */
+@layer utilities {
+  .dark select, .dark textarea, .dark input[type="text"], .dark input[type="date"], .dark input[type="number"], .dark input, .dark .select {
+    @apply bg-neutral-800 text-neutral-100 border-neutral-700;
+  }
+  /* Browsers differ in styling of <option> — set explicit colors for dark mode */
+  select option {
+    background-color: white;
+    color: black;
+  }
+  .dark select option {
+    background-color: #0b1220; /* deep dark */
+    color: #e5e7eb; /* neutral-100 */
+  }
 }

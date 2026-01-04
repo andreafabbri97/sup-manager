@@ -31,12 +31,29 @@ export default function Equipment() {
     if (!name.trim()) return
     const { data, error } = await supabase.from('equipment').insert([{ name: name.trim(), type, quantity }])
     if (error) { console.error(error); return }
+    const inserted = (data || [])[0] as any
+    // if equipment is SUP type, create matching SUP records so they are bookable
+    if (inserted && type === 'SUP' && Number(quantity) > 0){
+      try {
+        const supsToCreate = Array.from({length: Number(quantity)}, (_,i)=>({ name: `${inserted.name} #${i+1}`, equipment_id: (inserted as any).id }))
+        const { error: supErr } = await supabase.from('sup').insert(supsToCreate)
+        if (supErr) console.error('Error creating sup records:', supErr)
+        else window.dispatchEvent(new CustomEvent('sups:changed'))
+      } catch(err){ console.error(err) }
+    }
+
     setName(''); setQuantity(1); setType('SUP')
     fetchItems()
   }
 
   async function deleteItem(id: string){
     if (!confirm('Sei sicuro di eliminare questo elemento?')) return
+    // remove associated SUPs
+    try {
+      await supabase.from('sup').delete().eq('equipment_id', id)
+      window.dispatchEvent(new CustomEvent('sups:changed'))
+    } catch (err) { console.error(err) }
+
     const { error } = await supabase.from('equipment').delete().eq('id', id)
     if (error) console.error(error)
     fetchItems()
@@ -55,6 +72,33 @@ export default function Equipment() {
     if (!editingId) return
     const { error } = await supabase.from('equipment').update({ name: editName.trim(), type: editType, quantity: editQuantity, status: editStatus, notes: editNotes }).eq('id', editingId)
     if (error) console.error(error)
+
+    // sync SUP records if equipment is SUP
+    try {
+      const { data: currentSups } = await supabase.from('sup').select('id').eq('equipment_id', editingId)
+      const currentCount = (currentSups || []).length
+      if (editType === 'SUP'){
+        if (currentCount < editQuantity){
+          // create additional sups
+          const add = Array.from({length: editQuantity - currentCount}, (_,i)=>({ name: `${editName} #${currentCount + i + 1}`, equipment_id: editingId }))
+          await supabase.from('sup').insert(add)
+          window.dispatchEvent(new CustomEvent('sups:changed'))
+        } else if (currentCount > editQuantity){
+          // remove excess sups (oldest)
+          const { data: excess } = await supabase.from('sup').select('id').eq('equipment_id', editingId).order('created_at', { ascending: true }).limit(currentCount - editQuantity)
+          const ids = (excess || []).map((r:any)=>r.id)
+          if (ids.length) await supabase.from('sup').delete().in('id', ids)
+          window.dispatchEvent(new CustomEvent('sups:changed'))
+        }
+      } else {
+        // if type changed away from SUP, delete linked sups
+        if (currentCount > 0){
+          await supabase.from('sup').delete().eq('equipment_id', editingId)
+          window.dispatchEvent(new CustomEvent('sups:changed'))
+        }
+      }
+    } catch(err){ console.error(err) }
+
     setEditingId(null)
     fetchItems()
   }
