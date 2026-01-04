@@ -87,6 +87,7 @@ Gli utenti possono installare l'app direttamente dal browser (Chrome/Edge: menu 
 - Rimossa sezione "Spese" dalla sidebar (già inclusa in Amministrazione)
 - Modal componente riutilizzabile per dialoghi
 - Design responsive ottimizzato per mobile
+- Sidebar mobile ora è un overlay: pulsante "hamburger" fisso in alto a sinistra apre/chiude la sidebar, supporta backdrop, chiusura con ESC e focus-trap per accessibilità
 - Dark mode completo supportato
 
 ## Configurare Supabase (passo-passo)
