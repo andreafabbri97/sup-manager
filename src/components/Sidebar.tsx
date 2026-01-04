@@ -43,7 +43,6 @@ export default function Sidebar({ onNav, currentPage }: { onNav?: (page: string)
   }, [mobileOpen])
 
   const items = [
-    { id: 'dashboard', label: 'Dashboard' },
     { id: 'equipment', label: 'Attrezzatura' },
     { id: 'bookings', label: 'Prenotazioni' },
     { id: 'packages', label: 'Pacchetti' },

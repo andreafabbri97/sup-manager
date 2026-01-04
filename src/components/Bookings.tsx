@@ -283,8 +283,8 @@ export default function Bookings() {
         {viewMode === 'week' && (
           <>
             {/* Desktop / Tablet: grid */}
-            <div className="hidden sm:block overflow-x-auto">
-              <div className="grid grid-cols-7 sm:min-w-[700px]">
+            <div className="hidden sm:block">
+              <div className="grid grid-cols-7">
                 {['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'].map((day, i) => (
                   <div key={i} className="p-2 text-center text-sm font-medium border-b border-neutral-200 dark:border-neutral-700">
                     {day}
@@ -343,8 +343,8 @@ export default function Bookings() {
         {viewMode === 'month' && (
           <>
             {/* Desktop / Tablet grid */}
-            <div className="hidden sm:block overflow-x-auto">
-              <div className="grid grid-cols-7 sm:min-w-[700px]">
+            <div className="hidden sm:block">
+              <div className="grid grid-cols-7">
                 {['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'].map((day, i) => (
                   <div key={i} className="p-2 text-center text-sm font-medium border-b border-neutral-200 dark:border-neutral-700">
                     {day}

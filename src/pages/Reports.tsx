@@ -156,7 +156,7 @@ export default function Reports() {
 
       {/* Top metrics (mobile scrollable) */}
       <div className="mb-4">
-        <div className="flex gap-4 overflow-x-auto pb-2 -mx-2 px-2">
+        <div className="flex flex-wrap gap-4 pb-2">
           <StatCard title="Entrate" value={(Number(summary.find(s=>s.metric==='revenue')?.value ?? 0)).toFixed(2) + ' €'} color="accent" />
           <StatCard title="Ordini" value={bookingsCount} color="neutral" />
           <StatCard title="Spese" value={(Number(summary.find(s=>s.metric==='expenses')?.value ?? 0)).toFixed(2) + ' €'} color="warning" />

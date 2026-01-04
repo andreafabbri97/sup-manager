@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabaseClient'
 import Card from './ui/Card'
 import Button from './ui/Button'
 import Listbox from './ui/Listbox'
+import Modal from './ui/Modal'
 
 type EquipmentItem = { id: string; name: string; type: string; quantity: number; status?: string; notes?: string }
 
@@ -113,18 +114,21 @@ export default function Equipment() {
     setEditingId(null)
   }
 
+  const [isAddOpen, setIsAddOpen] = useState(false)
+
+  // move creation form into modal; keep edit inline in cards
+  function openAdd(){ setIsAddOpen(true) }
+  function closeAdd(){ setIsAddOpen(false); setName(''); setQuantity(1); setType('SUP'); setPricePerHour('') }
+
   return (
     <div className="mt-6">
       <Card>
-        <h3 className="text-lg font-medium mb-3">Attrezzatura</h3>
-
-        <form onSubmit={createItem} className="flex flex-col sm:flex-row gap-2 mb-4">
-          <input className="border px-2 py-1 rounded flex-1 dark:bg-neutral-800" placeholder="Nome" value={name} onChange={(e)=>setName(e.target.value)} required />
-          <Listbox options={[{value:'SUP',label:'SUP'},{value:'Barca',label:'Barca'},{value:'Remo',label:'Remo'},{value:'Salvagente',label:'Salvagente'},{value:'Altro',label:'Altro'}]} value={type} onChange={(v)=>setType(v ?? 'SUP')} />
-          <input type="number" min={1} className="w-20 border px-2 py-1 rounded" value={quantity} onChange={(e)=>setQuantity(Number(e.target.value))} />
-          <input type="number" step="0.01" className="w-36 border px-2 py-1 rounded" placeholder="Prezzo / ora (€)" value={pricePerHour} onChange={(e)=>setPricePerHour(e.target.value)} />
-          <Button> Aggiungi </Button>
-        </form>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-lg font-medium">Attrezzatura</h3>
+          <div className="flex gap-2">
+            <Button onClick={openAdd}>Aggiungi attrezzatura</Button>
+          </div>
+        </div>
 
         {items.length === 0 && <p className="text-sm text-neutral-500">Nessun elemento</p>}
 
@@ -167,6 +171,16 @@ export default function Equipment() {
           ))}
         </div>
       </Card>
+
+      <Modal isOpen={isAddOpen} onClose={closeAdd} title="Aggiungi attrezzatura">
+        <form onSubmit={(e)=>{ createItem(e); closeAdd() }} className="flex flex-col sm:flex-row gap-2 mb-4">
+          <input className="border px-2 py-1 rounded flex-1 dark:bg-neutral-800" placeholder="Nome" value={name} onChange={(e)=>setName(e.target.value)} required />
+          <Listbox options={[{value:'SUP',label:'SUP'},{value:'Barca',label:'Barca'},{value:'Remo',label:'Remo'},{value:'Salvagente',label:'Salvagente'},{value:'Altro',label:'Altro'}]} value={type} onChange={(v)=>setType(v ?? 'SUP')} />
+          <input type="number" min={1} className="w-20 border px-2 py-1 rounded" value={quantity} onChange={(e)=>setQuantity(Number(e.target.value))} />
+          <input type="number" step="0.01" className="w-36 border px-2 py-1 rounded" placeholder="Prezzo / ora (€)" value={pricePerHour} onChange={(e)=>setPricePerHour(e.target.value)} />
+          <Button> Aggiungi </Button>
+        </form>
+      </Modal>
     </div>
   )
 }

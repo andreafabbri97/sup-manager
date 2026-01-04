@@ -8,7 +8,7 @@ export default function StatCard({ title, value, className = '', color = 'neutra
     accent: 'bg-violet-700 text-white'
   }
   return (
-    <div className={`w-full sm:w-52 md:w-56 p-4 rounded-xl shadow-sm min-h-[72px] flex-shrink-0 ${colorClasses[color]} ${className}`}>
+    <div className={`w-full sm:w-52 md:w-56 p-4 rounded-xl shadow-sm min-h-[72px] ${colorClasses[color]} ${className}`}>
       <div className="text-xs uppercase tracking-wide text-neutral-200">{title}</div>
       <div className="mt-2 text-2xl font-bold truncate">{value}</div>
     </div>
