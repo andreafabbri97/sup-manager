@@ -187,7 +187,7 @@ export default function Sidebar({ onNav, currentPage }: { onNav?: (page: string)
                 aria-current={active ? 'page' : undefined}
                 className={`w-full flex items-center gap-3 px-3 py-2 rounded transition-colors ${active ? 'bg-brand-500 text-white' : 'hover:bg-neutral-100 dark:hover:bg-neutral-800'}`}>
                 <span className="flex-shrink-0 text-current"><Icon name={it.id} /></span>
-                <span className={`${collapsed ? 'hidden' : 'block'}`}>{it.label}</span>
+                <span className={`${collapsed ? 'hidden' : 'block truncate'}`}>{it.label}</span>
               </button>
             )
           })}
