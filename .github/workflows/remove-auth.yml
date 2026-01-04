@@ -35,11 +35,23 @@ jobs:
           db_status=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" "$SUPABASE_URL/rest/v1/user?select=id&limit=1" || true)
           echo "user table HTTP status: $db_status"
 
-      - name: Run removal script
+      - name: Run removal script (capture output)
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: |
           set -o pipefail
-          node scripts/remove-auth-data.mjs | sed -u 's/.*/[script] &/'
+          echo "Running removal script and capturing stdout/stderr to remove-auth-output.txt"
+          node scripts/remove-auth-data.mjs > remove-auth-output.txt 2>&1 || true
+          echo "---- OUTPUT START ----"
+          sed -n '1,200p' remove-auth-output.txt || true
+          echo "---- OUTPUT END ----"
+          echo "Preparing to push debug file to branch 'remove-auth-debug' (no secrets will be printed)."
+          git config user.email "actions-bot@github.com"
+          git config user.name "actions-bot"
+          git checkout -b remove-auth-debug || true
+          git add remove-auth-output.txt || true
+          git commit -m "Add remove-auth-output debug (auto)" || true
+          git push origin remove-auth-debug --force || true
+          echo "Pushed debug output to branch remove-auth-debug"
 
