@@ -36,12 +36,14 @@ export default function Sups() {
 
   return (
     <section className="mt-6 bg-white rounded-lg shadow p-6">
-      <h3 className="font-medium">SUP</h3>
-      <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nome SUP" className="border px-3 py-2 rounded" />
-        <button onClick={create} className="bg-sky-600 text-white rounded px-3 py-2" disabled={loading}>
-          Aggiungi
-        </button>
+      <div className="flex items-center justify-between mb-3 flex-wrap gap-3">
+        <h3 className="font-medium">SUP</h3>
+        <div className="flex gap-2 items-center">
+          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nome SUP" className="border px-3 py-2 rounded" />
+          <button onClick={create} className="bg-sky-600 text-white rounded px-3 py-2" disabled={loading}>
+            Aggiungi
+          </button>
+        </div>
       </div>
 
       <ul className="mt-4 space-y-2 text-sm">

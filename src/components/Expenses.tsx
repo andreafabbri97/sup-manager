@@ -35,12 +35,14 @@ export default function Expenses() {
 
   return (
     <section className="mt-6 bg-white rounded-lg shadow p-6">
-      <h3 className="font-medium">Spese</h3>
-      <div className="mt-3 grid grid-cols-1 sm:grid-cols-4 gap-3">
-        <input value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="Importo" className="border px-3 py-2 rounded" />
-        <input value={category} onChange={(e) => setCategory(e.target.value)} placeholder="Categoria" className="border px-3 py-2 rounded" />
-        <input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Note" className="border px-3 py-2 rounded" />
-        <button onClick={create} className="bg-sky-600 text-white rounded px-3 py-2">Aggiungi</button>
+      <div className="flex items-center justify-between mb-3 flex-wrap gap-3">
+        <h3 className="font-medium">Spese</h3>
+        <div className="flex gap-2 items-center flex-wrap">
+          <input value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="Importo" className="border px-3 py-2 rounded" />
+          <input value={category} onChange={(e) => setCategory(e.target.value)} placeholder="Categoria" className="border px-3 py-2 rounded" />
+          <input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Note" className="border px-3 py-2 rounded" />
+          <button onClick={create} className="bg-sky-600 text-white rounded px-3 py-2">Aggiungi</button>
+        </div>
       </div>
 
       <ul className="mt-4 space-y-2 text-sm">

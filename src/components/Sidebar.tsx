@@ -138,10 +138,7 @@ export default function Sidebar({ onNav, currentPage }: { onNav?: (page: string)
         )}
       </button>
 
-      {/* Top-right theme toggle on mobile (optional) */}
-      <div className="fixed top-3 right-3 z-50 lg:hidden">
-        <button onClick={() => toggle()} className="px-3 py-1 rounded bg-sky-600 text-white">{theme === 'light' ? 'Chiaro' : 'Scuro'}</button>
-      </div>
+      {/* (removed duplicate top-right theme toggle — theme control available in the sidebar) */}
 
       {/* Backdrop for mobile when menu open */}
       <div
