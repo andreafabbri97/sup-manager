@@ -147,7 +147,7 @@ export default function Bookings() {
 
     const bookingData = {
       customer_name: customerName,
-      start_time: startTime,
+      start_time: new Date(startTime).toISOString(),
       end_time: end_time.toISOString(),
       price,
       package_id: selectedPackage,
