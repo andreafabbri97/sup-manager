@@ -19,7 +19,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-sky-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 flex">
       <Sidebar onNav={handleNav} currentPage={page} />
-      <main className="flex-1 p-4 w-full sm:max-w-6xl sm:mx-auto">
+      <main className="flex-1 p-4 w-full max-w-screen-xl mx-auto">
         {page === 'equipment' && <Equipment />}
         {page === 'bookings' && <Bookings />}
         {page === 'packages' && <Packages />}
