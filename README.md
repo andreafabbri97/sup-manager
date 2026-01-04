@@ -23,7 +23,7 @@ NOTE:
 - Il prossimo passo è configurare Supabase (autenticazione + tabelle). Vedi `supabase-schema.sql` e `supabase-policies.sql`.
 
 ## Configurare Supabase (passo-passo)
-1. Crea un progetto su https://app.supabase.com e prendi il **Project URL** e la **anon (public) key** (Settings -> API).
+1. Crea un progetto su https://app.supabase.com e prendi il **Project URL** e la **anon (public) key** (Settings -> API). Assicurati di copiare il **Project API URL** (es. https://<project-ref>.supabase.co) — non la URL della dashboard (es. https://supabase.com/dashboard/...) che **non** è corretta per le chiamate client e provoca errori CORS.
 2. Nella sezione **SQL Editor**, esegui i file `supabase-schema.sql` e poi `supabase-policies.sql` per creare tabelle e policy RLS di base.
 3. Copia `.env.example` in `.env.local` e sostituisci i valori con il tuo `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY`.
 4. Avvia l'app in locale:

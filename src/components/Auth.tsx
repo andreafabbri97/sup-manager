@@ -32,13 +32,7 @@ export default function Auth() {
       return
     }
 
-    // Check username availability
-    const { data: existing } = await supabase.from('user').select('id').ilike('username', username).limit(1)
-    if (existing && existing.length) {
-      setMessage('Username già in uso.')
-      setLoading(false)
-      return
-    }
+    // NOTE: Avoid querying `user` for availability due to RLS/CORS; attempt signUp and upsert and handle conflicts instead.
 
     const email = syntheticEmailFor(username)
     try {
@@ -57,8 +51,22 @@ export default function Auth() {
       // If signUp succeeded, upsert profile row (role left as default 'staff')
       const user = data.user
       if (user) {
-        await supabase.from('user').upsert({ id: user.id, email: user.email, username })
-        setMessage('Registrazione completata. Effettua il login.')
+        try {
+          const upsertRes = await supabase.from('user').upsert({ id: user.id, email: user.email, username }, { onConflict: 'id' })
+          if (upsertRes.error) {
+            // Handle unique constraint error on username
+            if (upsertRes.error.message && upsertRes.error.message.includes('duplicate key')) {
+              setMessage('Username già in uso.')
+              // Optionally: cleanup auth user (requires service role) or prompt user to choose another username
+            } else {
+              setMessage(showError(upsertRes.error))
+            }
+          } else {
+            setMessage('Registrazione completata. Effettua il login.')
+          }
+        } catch (e) {
+          setMessage(showError(e))
+        }
       } else {
         setMessage('Registrazione: utente creato, controlla Supabase.')
       }
