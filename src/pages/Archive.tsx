@@ -72,15 +72,15 @@ export default function Archive() {
 
   return (
     <section>
-      <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <PageTitle className="m-0">Archivio Prenotazioni</PageTitle>
           <p className="text-sm text-neutral-500">Cerca fatture e verifica a quali prenotazioni si riferiscono</p>
         </div>
-        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-          <Button onClick={exportCSV} className="w-full sm:w-auto">Esporta CSV</Button>
-          <Button onClick={exportInvoicesCSV} className="bg-amber-600 w-full sm:w-auto">Esporta fatture</Button>
-          <Button onClick={load} className="bg-gray-600 w-full sm:w-auto">Applica</Button>
+        <div className="flex flex-row gap-2 w-full">
+          <Button onClick={exportCSV} className="flex-1">Esporta CSV</Button>
+          <Button onClick={exportInvoicesCSV} className="bg-amber-600 flex-1">Esporta fatture</Button>
+          <Button onClick={load} className="bg-gray-600 flex-1">Applica</Button>
         </div>
       </div>
 

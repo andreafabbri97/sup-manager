@@ -506,10 +506,10 @@ export default function Reports() {
             <div>
               <h3 className="text-lg font-medium">Gestione Spese</h3>
             </div>
-            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                <Button onClick={() => { setEditExpense(null); setExpenseDate(new Date().toISOString().slice(0,10)); setShowExpenseModal(true) }} className="w-full sm:w-auto">Aggiungi spesa</Button>
-                <Button onClick={() => loadExpenses(expenseFilterStart, expenseFilterEnd)} className="bg-gray-600 w-full sm:w-auto">Applica filtro</Button>
-                <Button onClick={() => { setExpenseFilterStart(new Date(new Date().setMonth(new Date().getMonth()-1)).toISOString().slice(0,10)); setExpenseFilterEnd(new Date().toISOString().slice(0,10)); loadExpenses(); }} className="bg-gray-600 w-full sm:w-auto">Reset</Button>
+            <div className="flex flex-row gap-2 w-full">
+                <Button onClick={() => { setEditExpense(null); setExpenseDate(new Date().toISOString().slice(0,10)); setShowExpenseModal(true) }} className="flex-1">Aggiungi spesa</Button>
+                <Button onClick={() => loadExpenses(expenseFilterStart, expenseFilterEnd)} className="bg-gray-600 flex-1">Applica filtro</Button>
+                <Button onClick={() => { setExpenseFilterStart(new Date(new Date().setMonth(new Date().getMonth()-1)).toISOString().slice(0,10)); setExpenseFilterEnd(new Date().toISOString().slice(0,10)); loadExpenses(); }} className="bg-gray-600 flex-1">Reset</Button>
               </div>
           </div>
 
