@@ -1,7 +1,7 @@
 const CACHE_NAME = 'sup-manager-v1'
 const urlsToCache = [
-  './',
-  './index.html'
+  '/sup-manager/',
+  '/sup-manager/index.html'
 ]
 
 self.addEventListener('install', (event) => {

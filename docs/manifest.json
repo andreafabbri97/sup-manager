@@ -2,22 +2,22 @@
   "name": "SUP Manager",
   "short_name": "SUP Manager",
   "description": "Gestione prenotazioni e attrezzatura per noleggio SUP e imbarcazioni",
-  "start_url": "./",
+  "start_url": "/sup-manager/",
   "display": "standalone",
   "background_color": "#0f172a",
   "theme_color": "#f59e0b",
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "./icon-192.svg",
+      "src": "/sup-manager/icon-192.png",
       "sizes": "192x192",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "./icon-512.svg",
+      "src": "/sup-manager/icon-512.png",
       "sizes": "512x512",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any maskable"
     }
   ]

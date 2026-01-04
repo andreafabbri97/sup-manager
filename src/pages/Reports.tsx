@@ -244,6 +244,17 @@ export default function Reports() {
     URL.revokeObjectURL(url)
   }
 
+  // Chart styling (keep charts visible in both light and dark themes)
+  const isDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark')
+  const axisColor = isDark ? '#9CA3AF' : '#374151'
+  const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'
+  const isSmall = typeof window !== 'undefined' && window.innerWidth < 640
+
+  const ordersData = {
+    labels: dailyOrders.map((d) => d.day),
+    datasets: [ { label: 'Ordini', data: dailyOrders.map((d) => Number(d.orders ?? d.count ?? 0)), borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.2)', fill: true } ]
+  }
+
   const revenueData = {
     labels: daily.map((d) => d.day),
     datasets: [ { label: 'Entrate', data: daily.map((d) => Number(d.revenue)), borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.2)', fill: true } ]

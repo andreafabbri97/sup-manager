@@ -10,18 +10,18 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <script type="module" crossorigin src="./assets/index-XBPiJg1o.js"></script>
+    <script type="module" crossorigin src="./assets/index-C-XbIQPP.js"></script>
     <link rel="modulepreload" crossorigin href="./assets/vendor-DwskwR46.js">
     <link rel="modulepreload" crossorigin href="./assets/vendor-charts-BCrMCkTm.js">
+    <link rel="modulepreload" crossorigin href="./assets/vendor-react-CLub8Mor.js">
     <link rel="stylesheet" crossorigin href="./assets/index-BnUsb3nL.css">
   </head>
   <body>
-    <div id="root"></div>
-
+    <div id="root"></div>
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('./sw.js').then(registration => {
+          navigator.serviceWorker.register('/sw.js').then(registration => {
             console.log('SW registered:', registration);
           }).catch(error => {
             console.log('SW registration failed:', error);
