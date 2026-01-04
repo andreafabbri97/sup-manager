@@ -21,6 +21,9 @@ export default function Equipment() {
   const [editPricePerHour, setEditPricePerHour] = useState('')
   const [editStatus, setEditStatus] = useState('available')
   const [editNotes, setEditNotes] = useState('')
+  const [editLastMaintenance, setEditLastMaintenance] = useState('')
+  const [editNextMaintenance, setEditNextMaintenance] = useState('')
+  const [editMaintenanceNotes, setEditMaintenanceNotes] = useState('')
 
   useEffect(() => { fetchItems() }, [])
 
@@ -72,12 +75,26 @@ export default function Equipment() {
     setEditPricePerHour((it as any).price_per_hour ? String((it as any).price_per_hour) : '')
     setEditStatus(it.status || 'available')
     setEditNotes(it.notes || '')
+    setEditLastMaintenance((it as any).last_maintenance ? new Date((it as any).last_maintenance).toISOString().slice(0,10) : '')
+    setEditNextMaintenance((it as any).next_maintenance ? new Date((it as any).next_maintenance).toISOString().slice(0,10) : '')
+    setEditMaintenanceNotes((it as any).maintenance_notes || '')
   }
 
   async function saveEdit(){
     if (!editingId) return
     const p = parseFloat(editPricePerHour) || 0
-    const { error } = await supabase.from('equipment').update({ name: editName.trim(), type: editType, quantity: editQuantity, price_per_hour: p, status: editStatus, notes: editNotes }).eq('id', editingId)
+    const updateData: any = { 
+      name: editName.trim(), 
+      type: editType, 
+      quantity: editQuantity, 
+      price_per_hour: p, 
+      status: editStatus, 
+      notes: editNotes,
+      last_maintenance: editLastMaintenance || null,
+      next_maintenance: editNextMaintenance || null,
+      maintenance_notes: editMaintenanceNotes || null
+    }
+    const { error } = await supabase.from('equipment').update(updateData).eq('id', editingId)
     if (error) console.error(error)
 
     // sync SUP records if equipment is SUP
@@ -143,7 +160,18 @@ export default function Equipment() {
                     <input type="number" min={1} className="w-24 border px-2 py-1 rounded mb-2" value={editQuantity} onChange={(e)=>setEditQuantity(Number(e.target.value))} />
                     <input type="number" step="0.01" className="w-36 border px-2 py-1 rounded mb-2" placeholder="Prezzo / ora (€)" value={editPricePerHour} onChange={(e)=>setEditPricePerHour(e.target.value)} />
                     <Listbox options={[{value:'available',label:'available'},{value:'maintenance',label:'maintenance'},{value:'retired',label:'retired'}]} value={editStatus} onChange={(v)=>setEditStatus(v ?? 'available')} />
-                    <textarea className="w-full border px-2 py-1 rounded" rows={3} value={editNotes} onChange={(e)=>setEditNotes(e.target.value)} />
+                    <textarea className="w-full border px-2 py-1 rounded mb-2" rows={2} placeholder="Note" value={editNotes} onChange={(e)=>setEditNotes(e.target.value)} />
+                    
+                    <div className="border-t pt-2 mt-2">
+                      <label className="block text-xs font-medium mb-1">Ultima manutenzione</label>
+                      <input type="date" className="w-full border px-2 py-1 rounded mb-2 dark:bg-neutral-800" value={editLastMaintenance} onChange={(e)=>setEditLastMaintenance(e.target.value)} />
+                      
+                      <label className="block text-xs font-medium mb-1">Prossima manutenzione</label>
+                      <input type="date" className="w-full border px-2 py-1 rounded mb-2 dark:bg-neutral-800" value={editNextMaintenance} onChange={(e)=>setEditNextMaintenance(e.target.value)} />
+                      
+                      <label className="block text-xs font-medium mb-1">Note manutenzione</label>
+                      <textarea className="w-full border px-2 py-1 rounded" rows={2} placeholder="Dettagli manutenzione..." value={editMaintenanceNotes} onChange={(e)=>setEditMaintenanceNotes(e.target.value)} />
+                    </div>
                   </div>
 
                   <div className="flex gap-2 mt-3">
@@ -158,6 +186,20 @@ export default function Equipment() {
                     <div className="text-sm text-neutral-500">{it.type} • Quantità: {it.quantity}</div>
                     <div className="text-sm text-amber-500 font-semibold">Prezzo: € {(it as any).price_per_hour ? Number((it as any).price_per_hour).toFixed(2) : '0.00'} / ora</div>
                     {it.notes && <div className="mt-2 text-sm text-neutral-600 dark:text-neutral-300">{it.notes}</div>}
+                    
+                    {((it as any).next_maintenance || (it as any).last_maintenance) && (
+                      <div className="mt-2 text-xs border-t pt-2">
+                        {(it as any).last_maintenance && (
+                          <div className="text-neutral-500">Ultima manutenzione: {new Date((it as any).last_maintenance).toLocaleDateString('it-IT')}</div>
+                        )}
+                        {(it as any).next_maintenance && (
+                          <div className={`font-medium ${new Date((it as any).next_maintenance) < new Date() ? 'text-red-600' : 'text-blue-600'}`}>
+                            Prossima: {new Date((it as any).next_maintenance).toLocaleDateString('it-IT')}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    
                     <div className={`mt-3 inline-block px-2 py-1 text-xs rounded ${it.status === 'available' ? 'bg-green-100 text-green-800' : it.status === 'maintenance' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>{it.status}</div>
                   </div>
 

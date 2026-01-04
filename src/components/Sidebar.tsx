@@ -1,5 +1,6 @@
 import React from 'react'
 import { useTheme } from '../lib/theme'
+import NotificationBell from './NotificationBell'
 
 export default function Sidebar({ onNav, currentPage }: { onNav?: (page: string) => void; currentPage?: string }) {
   const { theme, toggle } = useTheme()
@@ -46,6 +47,7 @@ export default function Sidebar({ onNav, currentPage }: { onNav?: (page: string)
     { id: 'equipment', label: 'Attrezzatura' },
     { id: 'bookings', label: 'Prenotazioni' },
     { id: 'packages', label: 'Pacchetti' },
+    { id: 'customers', label: 'Clienti' },
     { id: 'reports', label: 'Amministrazione e Report' },
     { id: 'settings', label: 'Impostazioni' }
   ]
@@ -74,6 +76,12 @@ export default function Sidebar({ onNav, currentPage }: { onNav?: (page: string)
         return (
           <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" d="M12 3l9 4.5v9L12 21 3 16.5v-9L12 3zM12 12v8" />
+          </svg>
+        )
+      case 'customers':
+        return (
+          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8zM23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
           </svg>
         )
       case 'expenses':
@@ -169,6 +177,7 @@ export default function Sidebar({ onNav, currentPage }: { onNav?: (page: string)
           </div>
 
           <div className="hidden lg:flex items-center gap-2">
+            <NotificationBell />
             <button onClick={() => setCollapsed((s) => !s)} aria-label="Riduci sidebar" className="p-1 rounded hover:bg-neutral-100 dark:hover:bg-neutral-800">
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <path strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" d="M20 12H4" />

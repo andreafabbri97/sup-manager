@@ -5,6 +5,8 @@ import Settings from './pages/Settings'
 import Equipment from './components/Equipment'
 import Bookings from './components/Bookings'
 import Packages from './components/Packages'
+import Customers from './components/Customers'
+import PWAInstallPrompt from './components/PWAInstallPrompt'
 
 export default function App() {
   const [page, setPage] = useState<string>(() => {
@@ -23,10 +25,12 @@ export default function App() {
         {page === 'equipment' && <Equipment />}
         {page === 'bookings' && <Bookings />}
         {page === 'packages' && <Packages />}
+        {page === 'customers' && <Customers />}
         {page === 'reports' && <Reports />}
         {page === 'settings' && <Settings />}
-        {!['equipment','bookings','packages','reports','settings'].includes(page) && <Reports />}
+        {!['equipment','bookings','packages','customers','reports','settings'].includes(page) && <Reports />}
       </main>
+      <PWAInstallPrompt />
     </div>
   )
 }
