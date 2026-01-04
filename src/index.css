@@ -5,12 +5,28 @@
 @layer base {
   body {
     @apply bg-neutral-100 text-neutral-700 font-sans;
+    font-feature-settings: "liga" 1, "kern" 1;
   }
   .dark body {
     /* darker background similar to your example */
     background-color: #0b1220;
     color: #e6eef8;
   }
+}
+
+@layer components {
+  /* Button base */
+  .btn {
+    @apply inline-flex items-center justify-center px-4 py-2 rounded-md bg-amber-500 text-white font-medium shadow-sm;
+  }
+  .btn:focus-visible { @apply outline-none ring-2 ring-amber-400; }
+
+  /* Card subtle elevation */
+  .card { @apply bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl p-4 shadow-sm; }
+
+  /* StatCard refinements */
+  .stat-title { @apply text-xs uppercase tracking-wide text-neutral-400; }
+  .stat-value { @apply mt-2 text-2xl font-extrabold; }
 }
 
 html, body, #root {

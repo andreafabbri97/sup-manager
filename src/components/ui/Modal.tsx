@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useRef } from 'react'
 
 interface ModalProps {
   isOpen: boolean
@@ -8,11 +8,33 @@ interface ModalProps {
 }
 
 export default function Modal({ isOpen, onClose, title, children }: ModalProps) {
+  const dialogRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    if (!isOpen) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+    }
+    document.addEventListener('keydown', onKey)
+    const t = setTimeout(() => {
+      const el = dialogRef.current?.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])') as HTMLElement | null
+      el?.focus()
+    }, 10)
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      clearTimeout(t)
+    }
+  }, [isOpen, onClose])
+
   if (!isOpen) return null
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50" onClick={onClose}>
       <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
         className="bg-white dark:bg-slate-800 rounded-t-3xl sm:rounded-lg shadow-xl w-full sm:max-w-2xl max-h-[100vh] sm:max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
@@ -25,6 +47,7 @@ export default function Modal({ isOpen, onClose, title, children }: ModalProps) 
           <h3 className="text-lg sm:text-xl font-semibold">{title}</h3>
           <button
             onClick={onClose}
+            aria-label="Chiudi"
             className="text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200 p-2 rounded"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -37,3 +60,4 @@ export default function Modal({ isOpen, onClose, title, children }: ModalProps) 
     </div>
   )
 }
+

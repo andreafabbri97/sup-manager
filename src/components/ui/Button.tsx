@@ -1,8 +1,8 @@
 import React from 'react'
 
-export default function Button({ children, onClick, className = '' }: { children: React.ReactNode; onClick?: () => void; className?: string }) {
+export default function Button({ children, onClick, className = '', disabled = false, type = 'button' }: { children: React.ReactNode; onClick?: () => void; className?: string, disabled?: boolean, type?: 'button'|'submit'|'reset' }) {
   return (
-    <button onClick={onClick} className={`px-4 py-2 rounded-md bg-amber-500 hover:bg-amber-600 text-white ${className}`}>
+    <button type={type} onClick={onClick} disabled={disabled} className={`btn ${disabled ? 'opacity-60 cursor-not-allowed' : 'hover:bg-amber-600'} ${className}`}>
       {children}
     </button>
   )
