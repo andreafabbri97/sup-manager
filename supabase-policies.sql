@@ -5,6 +5,7 @@ ALTER TABLE IF EXISTS booking ENABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS sup ENABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS package ENABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS expense ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS equipment ENABLE ROW LEVEL SECURITY;
 
 -- Public access for SUP and package
 DROP POLICY IF EXISTS "Public access sup" ON sup;
@@ -15,6 +16,13 @@ CREATE POLICY "Public access sup" ON sup
 
 DROP POLICY IF EXISTS "Public access package" ON package;
 CREATE POLICY "Public access package" ON package
+  FOR ALL
+  USING ( true )
+  WITH CHECK ( true );
+
+-- Public access for equipment
+DROP POLICY IF EXISTS "Public access equipment" ON equipment;
+CREATE POLICY "Public access equipment" ON equipment
   FOR ALL
   USING ( true )
   WITH CHECK ( true );

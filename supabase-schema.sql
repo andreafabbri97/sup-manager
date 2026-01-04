@@ -53,3 +53,14 @@ CREATE TABLE IF NOT EXISTS customer (
   created_at timestamptz DEFAULT now()
 );
 
+-- Equipment (general inventory for SUP, boats, paddles, lifejackets, etc.)
+CREATE TABLE IF NOT EXISTS equipment (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  name text NOT NULL,
+  type text NOT NULL,
+  quantity integer DEFAULT 1,
+  status text DEFAULT 'available',
+  notes text,
+  created_at timestamptz DEFAULT now()
+);
+

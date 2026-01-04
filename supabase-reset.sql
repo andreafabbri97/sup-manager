@@ -62,11 +62,23 @@ CREATE TABLE IF NOT EXISTS customer (
   created_at timestamptz DEFAULT now()
 );
 
+-- Equipment
+CREATE TABLE IF NOT EXISTS equipment (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  name text NOT NULL,
+  type text NOT NULL,
+  quantity integer DEFAULT 1,
+  status text DEFAULT 'available',
+  notes text,
+  created_at timestamptz DEFAULT now()
+);
+
 -- Policies: public access for main tables
 ALTER TABLE IF EXISTS booking ENABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS sup ENABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS package ENABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS expense ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS equipment ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Public access sup" ON sup
   FOR ALL
@@ -84,6 +96,11 @@ CREATE POLICY "Public access bookings" ON booking
   WITH CHECK ( true );
 
 CREATE POLICY "Public access expense" ON expense
+  FOR ALL
+  USING ( true )
+  WITH CHECK ( true );
+
+CREATE POLICY "Public access equipment" ON equipment
   FOR ALL
   USING ( true )
   WITH CHECK ( true );
