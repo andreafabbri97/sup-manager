@@ -21,6 +21,7 @@ DECLARE
   booked_qty int;
   avail int;
   v_booking_id uuid;
+  rec record;
 BEGIN
   -- Validate basic times
   IF p_start IS NULL OR p_end IS NULL OR p_start >= p_end THEN
@@ -33,7 +34,10 @@ BEGIN
     req_qty := COALESCE((ei->>'quantity')::int, 1);
 
     -- Lock sup rows for this equipment to prevent race conditions
-    SELECT COUNT(*) INTO total_sups FROM sup WHERE equipment_id = eq_id AND (status IS NULL OR status = 'available') FOR UPDATE;
+    total_sups := 0;
+    FOR rec IN SELECT id FROM sup WHERE equipment_id = eq_id AND (status IS NULL OR status = 'available') FOR UPDATE LOOP
+      total_sups := total_sups + 1;
+    END LOOP;
 
     -- If no individual `sup` rows exist for this equipment, fall back to equipment.quantity
     IF total_sups = 0 THEN
