@@ -847,12 +847,6 @@ export default function Bookings() {
             </div>
             <div className="sm:col-span-1 flex flex-col gap-3">
               <Button onClick={createBooking} className="w-full">Crea Prenotazione</Button>
-              <button
-                onClick={handleCloseModal}
-                className="w-full px-4 py-2 rounded border border-neutral-300 dark:border-neutral-600 hover:bg-neutral-100 dark:hover:bg-neutral-700"
-              >
-                Annulla
-              </button>
             </div>
           </div>
         </div>
@@ -889,7 +883,7 @@ export default function Bookings() {
         )}
       </Modal>
 
-      <Modal isOpen={showBookingDetails} onClose={() => { setShowBookingDetails(false); setSelectedBooking(null) }} title="Dettaglio Prenotazione">
+      <Modal isOpen={showBookingDetails} onClose={() => { setShowBookingDetails(false); setSelectedBooking(null) }} title="Dettaglio Prenotazione" autoFocus={false}>
         {selectedBooking && (
           <div className="space-y-4">
             <div>
@@ -1009,7 +1003,6 @@ export default function Bookings() {
                 saveBookingChanges(updated)
               }} className="bg-amber-500 text-white px-4 py-2 rounded">Salva</button>
               <button onClick={() => { if (confirm('Eliminare questa prenotazione?')) { removeBooking(selectedBooking.id); setShowBookingDetails(false); setSelectedBooking(null) } }} className="px-4 py-2 rounded border">Elimina</button>
-              <button onClick={() => { setShowBookingDetails(false); setSelectedBooking(null) }} className="px-4 py-2 rounded border">Chiudi</button>
             </div>
           </div>
         )}

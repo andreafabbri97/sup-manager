@@ -5,9 +5,14 @@ interface ModalProps {
   onClose: () => void
   title: string
   children: React.ReactNode
+  /**
+   * When true (default), modal will focus the first form control on open.
+   * Set to false for read-only/detail modals to avoid opening the keyboard on mobile.
+   */
+  autoFocus?: boolean
 }
 
-export default function Modal({ isOpen, onClose, title, children }: ModalProps) {
+export default function Modal({ isOpen, onClose, title, children, autoFocus = true }: ModalProps) {
   const dialogRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
@@ -16,17 +21,40 @@ export default function Modal({ isOpen, onClose, title, children }: ModalProps) 
       if (e.key === 'Escape') onClose()
     }
     document.addEventListener('keydown', onKey)
-    const t = setTimeout(() => {
-      // Prefer focusing the first form control (input/select/textarea). If none found, fall back to first focusable.
-      const firstControl = dialogRef.current?.querySelector('input, select, textarea') as HTMLElement | null
-      if (firstControl) {
-        firstControl.focus()
-        return
+    if (autoFocus) {
+      const t = setTimeout(() => {
+        // Prefer focusing the first form control (input/select/textarea). If none found, fall back to first focusable.
+        const firstControl = dialogRef.current?.querySelector('input, select, textarea') as HTMLElement | null
+        if (firstControl) {
+          firstControl.focus()
+          return
+        }
+        const fallback = dialogRef.current?.querySelector('button:not([aria-label="Chiudi"]), [href], [tabindex]:not([tabindex="-1"])') as HTMLElement | null
+        fallback?.focus()
+      }, 10)
+
+      // ensure focused inputs are scrolled into view on mobile when keyboard appears
+      const onFocusIn = (ev: any) => {
+        const target = ev.target as HTMLElement | null
+        if (!target) return
+        // small timeout to allow virtual keyboard to open
+        setTimeout(() => {
+          target.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        }, 200)
       }
-      const fallback = dialogRef.current?.querySelector('button:not([aria-label="Chiudi"]), [href], [tabindex]:not([tabindex="-1"])') as HTMLElement | null
-      fallback?.focus()
-    }, 10)
-    // ensure focused inputs are scrolled into view on mobile when keyboard appears
+      dialogRef.current?.addEventListener('focusin', onFocusIn)
+
+      return () => {
+        document.removeEventListener('keydown', onKey)
+        clearTimeout(t)
+        dialogRef.current?.removeEventListener('focusin', onFocusIn)
+      }
+    }
+
+    // If autoFocus is false, still add key handler and cleanup
+    return () => {
+      document.removeEventListener('keydown', onKey)
+    }    // ensure focused inputs are scrolled into view on mobile when keyboard appears
     const onFocusIn = (ev: any) => {
       const target = ev.target as HTMLElement | null
       if (!target) return
