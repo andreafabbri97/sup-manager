@@ -105,4 +105,26 @@ CREATE POLICY "Public access equipment" ON equipment
   USING ( true )
   WITH CHECK ( true );
 
+-- Reports functions (monthly income)
+CREATE OR REPLACE FUNCTION report_monthly_income()
+RETURNS TABLE(month text, revenue numeric)
+LANGUAGE sql
+AS $$
+  SELECT to_char(date_trunc('month', start_time), 'YYYY-MM') AS month,
+         COALESCE(SUM(price), 0) AS revenue
+  FROM booking
+  GROUP BY 1
+  ORDER BY 1 DESC;
+$$;
+
+-- Grants: ensure anon/authenticated clients can use the public schema and tables
+-- This fixes "permission denied for schema public" when using client anon keys
+GRANT USAGE ON SCHEMA public TO anon, authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO anon, authenticated;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO anon, authenticated;
+
+-- Sanity check suggestion: after running this script, from SQL Editor try:
+--   SELECT current_user, has_table_privilege(current_user, 'public.sup', 'select');
+-- to verify privileges for the connected role.
+
 -- End of reset

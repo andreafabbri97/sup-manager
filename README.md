@@ -24,8 +24,16 @@ NOTE:
 
 ## Configurare Supabase (passo-passo)
 1. Crea un progetto su https://app.supabase.com e prendi il **Project URL** e la **anon (public) key** (Settings -> API). Assicurati di copiare il **Project API URL** (es. https://<project-ref>.supabase.co) — non la URL della dashboard che **non** è corretta per le chiamate client.
-2. Nella sezione **SQL Editor**, esegui i file `supabase-schema.sql` e poi `supabase-policies.sql` per creare tabelle e policy (notare: in questa versione l'app è configurata senza autenticazione — tutte le risorse sono pubbliche).
+2. Nella sezione **SQL Editor**, esegui i file `supabase-schema.sql` e poi `supabase-policies.sql` per creare tabelle e policy (notare: in questa versione l'app è configurata senza autenticazione — tutte le risorse sono pubbliche). Se preferisci un reset completo, esegui il file `supabase-reset.sql` (vedi sotto).
 3. Copia `.env.example` in `.env.local` e sostituisci i valori con il tuo `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY`.
+
+**Nota importante**: lo script `supabase-reset.sql` ora include anche i `GRANT` sullo schema public per i ruoli `anon` e `authenticated` in modo da evitare l'errore `permission denied for schema public`. Se dopo il reset riscontri ancora problemi, prova da SQL Editor a eseguire:
+
+```sql
+SELECT current_user, has_table_privilege(current_user, 'public.sup', 'select');
+```
+
+Se la query restituisce `false`, contattami e verifico il progetto Supabase (posso anche applicare io lo script se mi fornisci la service role key, oppure lo puoi eseguire tu dalla dashboard).
 4. Avvia l'app in locale:
    - npm install
    - npm run dev
@@ -33,9 +41,10 @@ NOTE:
 **Nota:** l'app è stata configurata per funzionare senza autenticazione (accesso pubblico). Se in futuro vuoi ripristinare l'autenticazione, dovremo reintrodurre la tabella `user` e ripristinare policy RLS adeguate.
 
 ### Nuove sezioni aggiunte
-- **Attrezzatura** — puoi aggiungere elementi generici come SUP, Barche, Remi, Salvagenti, ecc. (tabella `equipment` in DB).
+- **Attrezzatura** — puoi aggiungere elementi generici come SUP, remi, salvagenti, ecc. (tabella `equipment` in DB).
 - **Prenotazioni** — gestione booking (già esistente).
 - **Amministrazione** — spese e contabilità (component `Expenses`).
+- **Reports** — nuova pagina `Reports` con riepiloghi mensili e esportazione CSV (richiede funzione SQL `report_monthly_income`).
 - **Menu laterale** — nuova `Sidebar` per navigare tra le sezioni.
 - **Tema chiaro/scuro** — supporto tema con toggle (persistenza in localStorage) e supporto Tailwind `dark`.
 
