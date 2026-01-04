@@ -22,6 +22,19 @@ jobs:
           if [ -z "$SUPABASE_SERVICE_ROLE_KEY" ]; then echo "SUPABASE_SERVICE_ROLE_KEY is missing"; exit 1; fi
           echo "Secrets present"
 
+      - name: Test Supabase Admin and REST endpoints
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          echo "Testing admin users endpoint (HTTP status):"
+          admin_status=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" "$SUPABASE_URL/auth/v1/admin/users" || true)
+          echo "admin users HTTP status: $admin_status"
+
+          echo "Testing DB table 'user' presence (HTTP status):"
+          db_status=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" "$SUPABASE_URL/rest/v1/user?select=id&limit=1" || true)
+          echo "user table HTTP status: $db_status"
+
       - name: Run removal script
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
