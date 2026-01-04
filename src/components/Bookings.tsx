@@ -20,6 +20,7 @@ export default function Bookings() {
   const [startTime, setStartTime] = useState('')
   const [durationMinutes, setDurationMinutes] = useState(60) // default duration in minutes
   const [computedPrice, setComputedPrice] = useState<number | null>(null)
+  const [availabilityMap, setAvailabilityMap] = useState<Record<string, number>>({})
 
   async function load() {
     const { data: eq } = await supabase.from('equipment').select('*').order('name')
@@ -43,6 +44,37 @@ export default function Bookings() {
     computePricePreview()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedEquipment, selectedPackage, durationMinutes])
+
+  // compute availability preview for each equipment based on overlapping bookings
+  useEffect(() => {
+    computeAvailabilityPreview()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [startTime, durationMinutes, bookings, equipment])
+
+  function computeAvailabilityPreview() {
+    if (!startTime) { setAvailabilityMap({}); return }
+    const start = new Date(startTime)
+    const end = new Date(start)
+    end.setMinutes(end.getMinutes() + (durationMinutes || 60))
+
+    const map: Record<string, number> = {}
+    for (const eq of equipment) {
+      const total = Number(eq.quantity ?? 1)
+      let booked = 0
+      for (const b of bookings) {
+        if (!b.start_time || !b.end_time) continue
+        const bStart = new Date(b.start_time)
+        const bEnd = new Date(b.end_time)
+        if (!(start < bEnd && bStart < end)) continue
+        const items = b.equipment_items || []
+        for (const bi of items) {
+          if (bi?.id === eq.id) booked += Number(bi.quantity || 1)
+        }
+      }
+      map[eq.id] = Math.max(0, total - booked)
+    }
+    setAvailabilityMap(map)
+  }
 
   function resetForm() {
     setSelectedEquipment([])
@@ -122,13 +154,53 @@ export default function Bookings() {
       equipment_items: selectedEquipment
     }
 
-    const { error } = await supabase.from('booking').insert(bookingData)
-    if (error) {
-      // Handle known Supabase/PostgREST schema cache issue with helpful guidance
-      if (error.message && error.message.includes("Could not find")) {
+    // --- Availability check: ensure requested quantities do not exceed available inventory ---
+    // For each selected equipment item, sum quantities from existing overlapping bookings
+    function timesOverlap(aStart: string | Date, aEnd: string | Date, bStart: string | Date, bEnd: string | Date) {
+      const Astart = new Date(aStart)
+      const Aend = new Date(aEnd)
+      const Bstart = new Date(bStart)
+      const Bend = new Date(bEnd)
+      return Astart < Bend && Bstart < Aend
+    }
+
+    for (const item of selectedEquipment) {
+      const eq = equipment.find(e => e.id === item.id)
+      const totalQty = eq?.quantity != null ? Number(eq.quantity) : 1
+      let bookedQty = 0
+
+      for (const b of bookings) {
+        if (!b.start_time || !b.end_time) continue
+        if (!timesOverlap(startTime, end_time.toISOString(), b.start_time, b.end_time)) continue
+        const items = b.equipment_items || []
+        for (const bi of items) {
+          if (bi?.id === item.id) bookedQty += Number(bi.quantity || 1)
+        }
+      }
+
+      const availableNow = Math.max(0, totalQty - bookedQty)
+      if ((item.quantity || 1) > availableNow) {
+        return alert(`Disponibilità insufficiente per ${eq?.name || 'attrezzatura'}: disponibili ${availableNow}, richiesti ${item.quantity || 1}`)
+      }
+    }
+
+    // Use server-side RPC to ensure transactional availability checks
+    try {
+      const { data, error } = await supabase.rpc('create_booking', {
+        p_customer_name: bookingData.customer_name,
+        p_start: bookingData.start_time,
+        p_end: bookingData.end_time,
+        p_price: bookingData.price,
+        p_package: bookingData.package_id,
+        p_equipment_items: bookingData.equipment_items
+      })
+      if (error) throw error
+    } catch (err: any) {
+      const msg = err?.message || String(err)
+      if (msg.includes("Could not find")) {
         alert("Errore: la colonna 'equipment_items' non è riconosciuta dal server. Assicurati di aver eseguito le migrazioni su Supabase e poi ricarica la pagina (F5). Se l'errore persiste, riavvia il progetto Supabase dal pannello Settings → Database → Restart e riprova.")
       } else {
-        alert(error.message)
+        alert(msg)
       }
       return
     }
@@ -456,7 +528,7 @@ export default function Bookings() {
                   <div key={eq.id} className="flex items-center justify-between">
                     <div>
                       <div className="text-sm font-medium">{eq.name}</div>
-                      <div className="text-xs text-neutral-400">€ {eq.price_per_hour ?? 0} / ora</div>
+                      <div className="text-xs text-neutral-400">€ {eq.price_per_hour ?? 0} / ora — <span className="text-neutral-500">Disponibili: {availabilityMap[eq.id] ?? (eq.quantity ?? 1)}</span></div>
                     </div>
                     <div className="flex items-center gap-2">
                       <button

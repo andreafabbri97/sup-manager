@@ -19,6 +19,7 @@ function toCSV(rows: any[], headers: string[]) {
 
 export default function Reports() {
   const [tab, setTab] = useState<'reports'|'admin'>('reports')
+  const [includeIva, setIncludeIva] = useState(true)
   const [start, setStart] = useState(() => { const d=new Date(); d.setDate(d.getDate()-30); return d.toISOString().slice(0,10) })
   const [end, setEnd] = useState(() => new Date().toISOString().slice(0,10))
 
@@ -144,24 +145,36 @@ export default function Reports() {
 
   const pieOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: axisColor }, position: isSmall ? 'bottom' : 'right' } } }
 
+  // derive profit value using includeIva toggle
+  const revenueSum = Number(summary.find(s=>s.metric==='revenue')?.value ?? 0)
+  const expensesSum = Number(summary.find(s=>s.metric==='expenses')?.value ?? 0)
+  const ivaAmount = includeIva ? (revenueSum * ivaPercent/100) : 0
+  const profitValue = (revenueSum - expensesSum - ivaAmount).toFixed(2) + ' €'
+
   return (
     <div className="max-w-6xl mx-auto p-6">
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-4 flex-wrap">
         <h2 className="text-2xl font-semibold">Amministrazione e Report</h2>
-        <div className="flex gap-2">
-          <button className={`px-3 py-1 rounded ${tab==='reports'? 'bg-brand-500 text-white':'border'}`} onClick={()=>setTab('reports')}>Reports</button>
-          <button className={`px-3 py-1 rounded ${tab==='admin'? 'bg-brand-500 text-white':'border'}`} onClick={()=>{ setTab('admin'); loadExpenses() }}>Amministrazione</button>
+        <div className="flex items-center gap-4">
+          <div role="tablist" aria-label="Sezioni report" className="inline-flex rounded bg-neutral-100 dark:bg-neutral-800 p-1">
+            <button role="tab" aria-selected={tab==='reports'} onClick={()=>setTab('reports')} className={`px-3 py-1 rounded ${tab==='reports' ? 'bg-white dark:bg-neutral-700 shadow' : ''}`}>Reports</button>
+            <button role="tab" aria-selected={tab==='admin'} onClick={()=>{ setTab('admin'); loadExpenses() }} className={`px-3 py-1 rounded ${tab==='admin' ? 'bg-white dark:bg-neutral-700 shadow' : ''}`}>Amministrazione</button>
+          </div>
+          <label className="flex items-center gap-2 text-sm">
+            <input type="checkbox" checked={includeIva} onChange={(e)=>setIncludeIva(e.target.checked)} className="border rounded" />
+            Includi IVA nei calcoli del profitto
+          </label>
         </div>
       </div>
 
       {/* Top metrics (mobile scrollable) */}
       <div className="mb-4">
-        <div className="flex flex-wrap gap-4 pb-2">
-          <StatCard title="Entrate" value={(Number(summary.find(s=>s.metric==='revenue')?.value ?? 0)).toFixed(2) + ' €'} color="accent" />
+          <div className="flex flex-wrap gap-4 pb-2">
+          <StatCard title="Entrate" value={revenueSum.toFixed(2) + ' €'} color="accent" />
           <StatCard title="Ordini" value={bookingsCount} color="neutral" />
-          <StatCard title="Spese" value={(Number(summary.find(s=>s.metric==='expenses')?.value ?? 0)).toFixed(2) + ' €'} color="warning" />
-          <StatCard title="IVA" value={( (Number(summary.find(s=>s.metric==='revenue')?.value ?? 0) * ivaPercent/100)).toFixed(2) + ' €'} color="neutral" />
-          <StatCard title="Profitto" value={(() => { const rev=Number(summary.find(s=>s.metric==='revenue')?.value ?? 0); const exp=Number(summary.find(s=>s.metric==='expenses')?.value ?? 0); const iva=(rev*ivaPercent/100); return (rev - exp - iva).toFixed(2)+' €' })()} color="success" />
+          <StatCard title="Spese" value={expensesSum.toFixed(2) + ' €'} color="warning" />
+          <StatCard title="IVA" value={(revenueSum * ivaPercent / 100).toFixed(2) + ' €'} color="neutral" />
+          <StatCard title="Profitto" value={profitValue} color="success" />
         </div>
       </div>
 
@@ -237,7 +250,7 @@ export default function Reports() {
 
           <Card>
             <div className="mb-3 flex items-center justify-between">
-              <div className="text-lg font-medium">Prodotti più richiesti</div>
+                <div className="text-lg font-medium">Attrezzature / Pacchetti più richiesti</div>
               <div>
                 <Button onClick={()=>downloadCSV(topProducts,'top-products.csv')}>Esporta CSV</Button>
               </div>

@@ -15,12 +15,28 @@ CREATE OR REPLACE FUNCTION report_top_products(start_date date, end_date date, p
 RETURNS TABLE(name text, bookings_count int, revenue numeric)
 LANGUAGE sql
 AS $$
-  SELECT p.name AS name, COUNT(b.id) AS bookings_count, COALESCE(SUM(b.price),0) AS revenue
-  FROM booking b
-  LEFT JOIN package p ON p.id = b.package_id
-  WHERE b.start_time::date BETWEEN start_date AND end_date
-  GROUP BY 1
-  ORDER BY bookings_count DESC
+  SELECT name, SUM(bookings_count) AS bookings_count, SUM(revenue) AS revenue FROM (
+    -- Packages
+    SELECT p.name AS name, COUNT(b.id) AS bookings_count, COALESCE(SUM(b.price),0) AS revenue
+    FROM booking b
+    LEFT JOIN package p ON p.id = b.package_id
+    WHERE b.start_time::date BETWEEN start_date AND end_date AND b.package_id IS NOT NULL
+    GROUP BY p.name
+
+    UNION ALL
+
+    -- Equipment (expand equipment_items JSONB)
+    SELECT COALESCE(eq.name, '—') AS name,
+           COUNT(b.id) AS bookings_count,
+           COALESCE(SUM( COALESCE(eq.price_per_hour,0) * ((ei->>'quantity')::int) * (EXTRACT(EPOCH FROM (b.end_time - b.start_time))/3600) ),0) AS revenue
+    FROM booking b
+    CROSS JOIN LATERAL jsonb_array_elements(coalesce(b.equipment_items, '[]'::jsonb)) AS ei
+    LEFT JOIN equipment eq ON eq.id = (ei->>'id')::uuid
+    WHERE b.start_time::date BETWEEN start_date AND end_date AND (ei->>'id') IS NOT NULL
+    GROUP BY eq.name
+  ) t
+  GROUP BY name
+  ORDER BY SUM(bookings_count) DESC
   LIMIT p_limit;
 $$;
 
