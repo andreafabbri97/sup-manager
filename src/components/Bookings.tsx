@@ -555,7 +555,7 @@ export default function Bookings() {
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
-                        <div className="font-medium truncate text-neutral-900 dark:text-neutral-100 text-sm">{b.customer_name || 'Cliente'}</div>
+                        <div className="font-medium truncate text-neutral-900 dark:text-neutral-100 text-base">{b.customer_name || 'Cliente'}</div>
                         <div className="text-sm text-neutral-500">{formatTimeRange(b)}</div>
                       </div>
                       <div className="mt-1 text-sm text-neutral-600 dark:text-neutral-300">{b.notes ? (b.notes.length > 100 ? b.notes.slice(0,100) + '…' : b.notes) : ''}</div>
@@ -825,12 +825,12 @@ export default function Bookings() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3 pt-4">
-            <div className="flex-1">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-4">
+            <div className="sm:col-span-1">
               <div className="text-sm text-neutral-500">Prezzo stimato</div>
               <div className="text-xl font-bold">{computedPrice !== null ? computedPrice.toFixed(2) + ' €' : '-'} </div>
             </div>
-            <div className="flex-1">
+            <div className="sm:col-span-1">
               <label className="block text-sm font-medium mb-1">Note (opzionale)</label>
               <textarea value={newNotes} onChange={(e)=>setNewNotes(e.target.value)} className="w-full border px-2 py-2 rounded" rows={2} />
               <div className="mt-3 flex items-center gap-4">
@@ -845,13 +845,15 @@ export default function Bookings() {
                 <input value={newInvoiceNumber ?? ''} onChange={(e)=>setNewInvoiceNumber(e.target.value||null)} placeholder="Numero fattura (opzionale)" className="w-full border px-2 py-2 rounded mt-2" />
               )}
             </div>
-            <Button onClick={createBooking} className="flex-1">Crea Prenotazione</Button>
-            <button
-              onClick={handleCloseModal}
-              className="px-4 py-2 rounded border border-neutral-300 dark:border-neutral-600 hover:bg-neutral-100 dark:hover:bg-neutral-700"
-            >
-              Annulla
-            </button>
+            <div className="sm:col-span-1 flex flex-col gap-3">
+              <Button onClick={createBooking} className="w-full">Crea Prenotazione</Button>
+              <button
+                onClick={handleCloseModal}
+                className="w-full px-4 py-2 rounded border border-neutral-300 dark:border-neutral-600 hover:bg-neutral-100 dark:hover:bg-neutral-700"
+              >
+                Annulla
+              </button>
+            </div>
           </div>
         </div>
       </Modal>

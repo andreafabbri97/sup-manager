@@ -17,8 +17,14 @@ export default function Modal({ isOpen, onClose, title, children }: ModalProps) 
     }
     document.addEventListener('keydown', onKey)
     const t = setTimeout(() => {
-      const el = dialogRef.current?.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])') as HTMLElement | null
-      el?.focus()
+      // Prefer focusing the first form control (input/select/textarea). If none found, fall back to first focusable.
+      const firstControl = dialogRef.current?.querySelector('input, select, textarea') as HTMLElement | null
+      if (firstControl) {
+        firstControl.focus()
+        return
+      }
+      const fallback = dialogRef.current?.querySelector('button:not([aria-label="Chiudi"]), [href], [tabindex]:not([tabindex="-1"])') as HTMLElement | null
+      fallback?.focus()
     }, 10)
     // ensure focused inputs are scrolled into view on mobile when keyboard appears
     const onFocusIn = (ev: any) => {
