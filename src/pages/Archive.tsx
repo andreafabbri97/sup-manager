@@ -74,7 +74,7 @@ export default function Archive() {
     <section>
         <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <PageTitle className="m-0">Archivio Prenotazioni</PageTitle>
+          <h3 className="text-lg font-medium m-0">Archivio Prenotazioni</h3>
           <p className="text-sm text-neutral-500">Cerca fatture e verifica a quali prenotazioni si riferiscono</p>
         </div>
         <div className="flex flex-row gap-2 w-full">
