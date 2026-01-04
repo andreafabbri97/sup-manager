@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import Button from './ui/Button'
 import Modal from './ui/Modal'
+import Card from './ui/Card'
 
 type ViewMode = 'day' | 'week' | 'month'
 
