@@ -184,10 +184,42 @@ export default function Reports() {
   }
 
   // If tab restored as 'admin' on load, ensure expenses are fetched
+  const [invoiceFilterStart, setInvoiceFilterStart] = useState<string>(() => { const d = new Date(); d.setMonth(d.getMonth()-1); return d.toISOString().slice(0,10) })
+  const [invoiceFilterEnd, setInvoiceFilterEnd] = useState<string>(() => new Date().toISOString().slice(0,10))
+  const [invoiceDeclaredFilter, setInvoiceDeclaredFilter] = useState<'all'|'declared'|'undeclared'>('undeclared')
+  const [invoiceList, setInvoiceList] = useState<any[]>([])
+
   useEffect(() => {
-    if (tab === 'admin') loadExpenses()
+    if (tab === 'admin') { loadExpenses(); loadInvoices(invoiceFilterStart, invoiceFilterEnd, invoiceDeclaredFilter) }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  async function loadInvoices(start?: string, end?: string, declared?: string) {
+    let q: any = supabase.from('booking').select('*').not('invoice_number', 'is', null).order('start_time', { ascending: false }).limit(1000)
+    if (start) q = q.gte('start_time', start + 'T00:00:00')
+    if (end) q = q.lte('start_time', end + 'T23:59:59')
+    if (declared === 'declared') q = q.eq('invoiced', true)
+    if (declared === 'undeclared') q = q.eq('invoiced', false)
+    const { data, error } = await q
+    if (error) { alert(error.message); setInvoiceList([]); return }
+    setInvoiceList(data ?? [])
+  }
+
+  function exportInvoicesListCSV() {
+    const rows = invoiceList.map(b => ({ date: b.start_time, customer: b.customer_name, invoice: b.invoice_number || '', price: b.price }))
+    if (rows.length === 0) return alert('Nessuna fattura da esportare for the selected filters')
+    const csv = [Object.keys(rows[0]||{}).join(','), ...rows.map(r => Object.values(r).map(v=>`"${String(v).replace(/"/g,'""')}"`).join(','))].join('\n')
+    const blob = new Blob([csv], { type: 'text/csv' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url; a.download = `invoices-list-${invoiceFilterStart}-${invoiceFilterEnd}.csv`; a.click(); URL.revokeObjectURL(url)
+  }
+
+  async function markInvoiceDeclared(id: string) {
+    const { error } = await supabase.from('booking').update({ invoiced: true }).eq('id', id)
+    if (error) return alert(error.message)
+    loadInvoices(invoiceFilterStart, invoiceFilterEnd, invoiceDeclaredFilter)
+  }
 
   async function createExpense(e: React.FormEvent) {
     e.preventDefault()
@@ -534,6 +566,56 @@ export default function Reports() {
                 ))}
               </tbody>
             </table>
+          </div>
+
+          {/* Fatture: prenotazioni con invoice_number */}
+          <div className="mt-6">
+            <div className="mb-3 flex items-center justify-between">
+              <div>
+                <h4 className="text-md font-medium">Fatture emesse</h4>
+                <div className="text-sm text-neutral-500">Controlla le prenotazioni con fattura e segna come dichiarate</div>
+              </div>
+              <div className="flex gap-2">
+                <Button onClick={()=>loadInvoices(invoiceFilterStart, invoiceFilterEnd, invoiceDeclaredFilter)} className="bg-gray-600">Applica</Button>
+                <Button onClick={exportInvoicesListCSV}>Esporta fatture</Button>
+              </div>
+            </div>
+
+            <div className="mb-3 flex items-center gap-2">
+              <label className="text-sm">Da</label>
+              <input type="date" value={invoiceFilterStart} onChange={(e)=>setInvoiceFilterStart(e.target.value)} className="border px-2 py-1 rounded" />
+              <label className="text-sm">A</label>
+              <input type="date" value={invoiceFilterEnd} onChange={(e)=>setInvoiceFilterEnd(e.target.value)} className="border px-2 py-1 rounded" />
+              <select value={invoiceDeclaredFilter} onChange={(e)=>setInvoiceDeclaredFilter(e.target.value as any)} className="border px-2 py-1 rounded ml-2">
+                <option value="all">Tutte</option>
+                <option value="declared">Dichiarate</option>
+                <option value="undeclared">Non dichiarate</option>
+              </select>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left text-neutral-500"><th>Data</th><th>Cliente</th><th>Fattura</th><th>Prezzo</th><th>Dichiarata</th><th></th></tr>
+                </thead>
+                <tbody>
+                  {invoiceList.map((inv:any)=> (
+                    <tr key={inv.id} className="border-t border-neutral-100 dark:border-neutral-800">
+                      <td className="py-2">{new Date(inv.start_time).toLocaleDateString('it-IT')}</td>
+                      <td>{inv.customer_name}</td>
+                      <td>{inv.invoice_number}</td>
+                      <td>{inv.price ? `€ ${Number(inv.price).toFixed(2)}` : '—'}</td>
+                      <td>{inv.invoiced ? 'Sì' : 'No'}</td>
+                      <td>
+                        <div className="flex items-center gap-2">
+                          {!inv.invoiced && <button onClick={()=>markInvoiceDeclared(inv.id)} className="text-sm px-2 py-1 rounded bg-amber-600 text-white">Marca dichiarata</button>}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
 
           <Modal isOpen={showExpenseModal} onClose={handleCloseExpenseModal} title="Aggiungi Spesa">
