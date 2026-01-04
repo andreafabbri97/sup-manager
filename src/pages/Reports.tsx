@@ -25,8 +25,18 @@ export default function Reports() {
     return v === 'admin' ? 'admin' : 'reports'
   })
   const [includeIva, setIncludeIva] = useState(true)
-  const [start, setStart] = useState(() => { const d=new Date(); d.setDate(d.getDate()-30); return d.toISOString().slice(0,10) })
-  const [end, setEnd] = useState(() => new Date().toISOString().slice(0,10))
+  const [start, setStart] = useState(() => {
+    if (typeof window === 'undefined') {
+      const d=new Date(); d.setDate(d.getDate()-30); return d.toISOString().slice(0,10)
+    }
+    const stored = window.localStorage.getItem('reports_start')
+    if (stored) return stored
+    const d=new Date(); d.setDate(d.getDate()-30); return d.toISOString().slice(0,10)
+  })
+  const [end, setEnd] = useState(() => {
+    if (typeof window === 'undefined') return new Date().toISOString().slice(0,10)
+    return window.localStorage.getItem('reports_end') || new Date().toISOString().slice(0,10)
+  })
 
   const [revByEquip, setRevByEquip] = useState<any[]>([])
   const [daily, setDaily] = useState<any[]>([])
@@ -57,6 +67,11 @@ export default function Reports() {
   useEffect(() => {
     try { window.localStorage.setItem('reports_tab', tab) } catch (e) {}
   }, [tab])
+
+  // Persist date range
+  useEffect(() => {
+    try { window.localStorage.setItem('reports_start', start); window.localStorage.setItem('reports_end', end) } catch (e) {}
+  }, [start, end])
 
   async function loadReports() {
     setLoading(true)

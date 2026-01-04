@@ -236,6 +236,13 @@ export default function Bookings() {
     load()
   }
 
+  async function markPaid(id: string) {
+    const paidAt = new Date().toISOString()
+    const { error } = await supabase.from('booking').update({ paid: true, paid_at: paidAt }).eq('id', id)
+    if (error) return alert(error.message)
+    load()
+  }
+
   // Calendar utilities
   function getWeekDays(date: Date) {
     const start = new Date(date)
@@ -355,12 +362,23 @@ export default function Bookings() {
                         {new Date(b.start_time).toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'})} - {new Date(b.end_time).toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'})}
                       </div>
                       {b.price && <div className="text-sm text-amber-600 dark:text-amber-400">€ {b.price}</div>}
+                      {b.paid ? <div className="text-xs text-green-600 font-semibold">Pagato{b.paid_at ? ` il ${new Date(b.paid_at).toLocaleString('it-IT')}` : ''}</div> : null}
                     </div>
-                    <button onClick={() => removeBooking(b.id)} className="text-red-500 hover:text-red-600 p-1">
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
+                    <div className="flex items-center gap-2">
+                      {!b.paid && (
+                        <button onClick={() => markPaid(b.id)} className="text-green-600 hover:text-green-700 p-1" title="Registra incasso">
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                        </button>
+                      )}
+                      <button onClick={() => removeBooking(b.id)} className="text-red-500 hover:text-red-600 p-1">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -389,9 +407,15 @@ export default function Bookings() {
                       <div className={`text-sm font-medium mb-2 ${isToday ? 'text-amber-600 dark:text-amber-400' : ''}`}>{day.getDate()}</div>
                       <div className="space-y-1">
                         {dayBookings.map(b => (
-                          <div key={b.id} className="text-xs p-1 rounded bg-amber-100 dark:bg-amber-900/30 truncate cursor-pointer" onClick={() => removeBooking(b.id)}>
-                            <div className="font-medium truncate">{new Date(b.start_time).toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'})}</div>
-                            <div className="truncate">{b.customer_name || 'Cliente'}</div>
+                          <div key={b.id} className="text-xs p-1 rounded bg-amber-100 dark:bg-amber-900/30 truncate">
+                            <div className="flex items-center justify-between">
+                              <div className="font-medium truncate">{new Date(b.start_time).toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'})} — {b.customer_name || 'Cliente'}</div>
+                              <div className="flex items-center gap-2">
+                                {!b.paid && <button onClick={() => markPaid(b.id)} className="text-green-600 text-xs">Registra</button>}
+                                {b.paid && <span className="text-xs text-green-600">Pagato</span>}
+                                <button onClick={() => removeBooking(b.id)} className="text-red-500 text-xs">Elimina</button>
+                              </div>
+                            </div>
                           </div>
                         ))}
                       </div>
@@ -419,8 +443,12 @@ export default function Bookings() {
                           <div>
                             <div className="font-medium text-sm">{b.customer_name || 'Cliente'}</div>
                             <div className="text-xs text-neutral-600">{new Date(b.start_time).toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'})} – {new Date(b.end_time).toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'})}</div>
+                            {b.paid && <div className="text-xs text-green-600 font-semibold">Pagato</div>}
                           </div>
-                          <button onClick={() => removeBooking(b.id)} className="text-red-500 ml-3">Elimina</button>
+                          <div className="flex items-center gap-2">
+                            {!b.paid && <button onClick={() => markPaid(b.id)} className="text-green-600 ml-3">Registra incasso</button>}
+                            <button onClick={() => removeBooking(b.id)} className="text-red-500 ml-3">Elimina</button>
+                          </div>
                         </div>
                       ))}
                     </div>
