@@ -85,7 +85,15 @@ export default function Bookings() {
     }
 
     const { error } = await supabase.from('booking').insert(bookingData)
-    if (error) return alert(error.message)
+    if (error) {
+      // Handle known Supabase/PostgREST schema cache issue with helpful guidance
+      if (error.message && error.message.includes("Could not find")) {
+        alert("Errore: la colonna 'equipment_items' non è riconosciuta dal server. Assicurati di aver eseguito le migrazioni su Supabase e poi ricarica la pagina (F5). Se l'errore persiste, riavvia il progetto Supabase dal pannello Settings → Database → Restart e riprova.")
+      } else {
+        alert(error.message)
+      }
+      return
+    }
     
     resetForm()
     setShowModal(false)

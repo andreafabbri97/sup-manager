@@ -62,6 +62,22 @@ Dovresti vedere:
 - `package.equipment_items` (jsonb, default '[]'::jsonb)
 - `booking.equipment_items` (jsonb, default '[]'::jsonb)
 
+Se compare questo errore quando provi a creare una prenotazione:
+
+```
+Could not find the 'equipment_items' column of 'booking' in the schema cache
+```
+
+prova questi passaggi (in ordine):
+1. Nella **SQL Editor** esegui una query di controllo per forzare l'aggiornamento della cache REST del server:
+   ```sql
+   SELECT * FROM booking LIMIT 1;
+   ```
+2. Attendi qualche secondo, ricarica la pagina dell'app (F5) e riprova a creare la prenotazione.
+3. Se l'errore persiste, riavvia il progetto Supabase (Dashboard -> Settings -> Database -> Restart) e riprova dopo che il progetto è tornato online.
+
+Questi passaggi risolvono il problema relativo alla cache del metadata usata da PostgREST che a volte non vede immediatamente le nuove colonne dopo una migrazione.
+
 ## Note importanti
 
 - Queste migration sono **non distruttive**: aggiungono solo nuove colonne senza modificare o eliminare dati esistenti

@@ -80,7 +80,10 @@ export default function Sidebar({ onNav, currentPage }: { onNav?: (page: string)
         </div>
       </div>
 
-      <aside className={`min-h-screen bg-neutral-50 dark:bg-neutral-900 border-r dark:border-neutral-800 p-4 transition-all duration-150 ${collapsed ? 'w-16' : 'w-64'} ${mobileOpen ? 'fixed z-40 left-0 top-0 h-full' : 'md:static'}`}>
+      {/* Backdrop for mobile when menu open */}
+      {mobileOpen && <div onClick={() => setMobileOpen(false)} className="fixed inset-0 bg-black/40 z-30 md:hidden" />}
+
+      <aside className={`min-h-screen bg-neutral-50 dark:bg-neutral-900 border-r dark:border-neutral-800 p-4 transition-all duration-150 ${collapsed ? 'w-16' : 'w-64'} ${mobileOpen ? 'fixed z-40 left-0 top-0 h-full' : 'hidden md:static md:block'}`}>
         <div className="mb-6 flex items-center justify-between">
           <div>
             <h1 className={`text-lg font-bold ${collapsed ? 'sr-only' : ''}`}>Sup Manager</h1>
