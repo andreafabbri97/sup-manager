@@ -95,6 +95,18 @@ export default function Dashboard({ page = 'dashboard' }: { page?: string }) {
     loadStats()
   }, [start, end])
 
+  // Chart styling for light/dark
+  const isDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark')
+  const axisColor = isDark ? '#9CA3AF' : '#374151'
+  const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'
+
+  const lineOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { labels: { color: axisColor } } },
+    scales: { x: { ticks: { color: axisColor }, grid: { color: gridColor } }, y: { ticks: { color: axisColor }, grid: { color: gridColor } } }
+  }
+
   return (
     <div className="max-w-6xl mx-auto p-6">
       <div className="flex items-center justify-between mb-4">
@@ -106,33 +118,35 @@ export default function Dashboard({ page = 'dashboard' }: { page?: string }) {
 
       {page === 'dashboard' && (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-4 mb-6">
-            <StatCard title="Entrate" value={(Number(todaysIncome ?? 0)).toFixed(2) + ' €'} />
-            <StatCard title="Ordini" value={todaysBookings ?? 0} />
-            <StatCard title="Spese" value={(Number(todaysExpenses ?? 0)).toFixed(2) + ' €'} />
-            <StatCard title="IVA" value={( (Number(todaysIncome ?? 0) * ivaPercent/100)).toFixed(2) + ' €'} />
-            <StatCard title="Profitto" value={( (Number(todaysIncome ?? 0) - Number(todaysExpenses ?? 0) - (Number(todaysIncome ?? 0) * ivaPercent/100) ).toFixed(2) + ' €')} />
-            <div />
+          {/* Top metrics: mobile scrollable */}
+          <div className="mb-4">
+            <div className="flex gap-4 overflow-x-auto pb-2 -mx-2 px-2">
+              <StatCard title="Entrate" value={(Number(todaysIncome ?? 0)).toFixed(2) + ' €'} color="accent" />
+              <StatCard title="Ordini" value={todaysBookings ?? 0} color="neutral" />
+              <StatCard title="Spese" value={(Number(todaysExpenses ?? 0)).toFixed(2) + ' €'} color="warning" />
+              <StatCard title="IVA" value={( (Number(todaysIncome ?? 0) * ivaPercent/100)).toFixed(2) + ' €'} color="neutral" />
+              <StatCard title="Profitto" value={( (Number(todaysIncome ?? 0) - Number(todaysExpenses ?? 0) - (Number(todaysIncome ?? 0) * ivaPercent/100) ).toFixed(2) + ' €')} color="success" />
+            </div>
           </div>
 
-          <div className="mb-4 flex items-center gap-2">
+          <div className="mb-4 flex items-center gap-2 flex-wrap">
             <label className="text-sm">Da</label>
             <input type="date" className="border px-2 py-1 rounded" value={start} onChange={(e)=>setStart(e.target.value)} />
             <label className="text-sm">A</label>
             <input type="date" className="border px-2 py-1 rounded" value={end} onChange={(e)=>setEnd(e.target.value)} />
             <div className="flex-1" />
-            <button onClick={()=>{ /* triggers useEffect */ }} className="px-3 py-1 rounded bg-brand-500 text-white">Applica</button>
+            <button onClick={()=>{ /* triggers useEffect */ }} className="px-3 py-1 rounded bg-amber-500 text-white">Applica</button>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
             <div>
               <div className="text-sm text-neutral-500 mb-2">Incassi nel Periodo</div>
-              <div className="h-56 bg-white/5 rounded p-3"><Line data={{ labels: dailyRevenue.map(d=>d.day), datasets:[{ label:'Entrate', data: dailyRevenue.map(d=>Number(d.revenue)), borderColor:'#3b82f6', backgroundColor:'rgba(59,130,246,0.1)' }] }} /></div>
+              <div className="h-56 bg-white/5 rounded p-3"><div className="h-full"><Line data={{ labels: dailyRevenue.map(d=>d.day), datasets:[{ label:'Entrate', data: dailyRevenue.map(d=>Number(d.revenue)), borderColor:'#3b82f6', backgroundColor:'rgba(59,130,246,0.1)' }] }} options={lineOptions} /></div></div>
             </div>
 
             <div>
               <div className="text-sm text-neutral-500 mb-2">Ordini nel Periodo</div>
-              <div className="h-56 bg-white/5 rounded p-3"><Line data={{ labels: dailyOrders.map(d=>d.day), datasets:[{ label:'Ordini', data: dailyOrders.map(d=>Number(d.orders)), borderColor:'#10b981', backgroundColor:'rgba(16,185,129,0.1)' }] }} /></div>
+              <div className="h-56 bg-white/5 rounded p-3"><div className="h-full"><Line data={{ labels: dailyOrders.map(d=>d.day), datasets:[{ label:'Ordini', data: dailyOrders.map(d=>Number(d.orders)), borderColor:'#10b981', backgroundColor:'rgba(16,185,129,0.1)' }] }} options={lineOptions} /></div></div>
             </div>
           </div>
 

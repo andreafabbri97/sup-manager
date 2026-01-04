@@ -126,12 +126,14 @@ export default function Reports() {
     datasets: [{ data: revByEquip.map((r) => Number(r.revenue)), backgroundColor: revByEquip.map((_,i)=>['#60a5fa','#3b82f6','#2563eb','#1e3a8a','#93c5fd'][i%5]) }]
   }
 
-  // Chart options that adapt to light/dark theme
+  // Chart options that adapt to light/dark theme and are responsive
   const isDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark')
   const axisColor = isDark ? '#9CA3AF' : '#374151'
   const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'
 
   const lineOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
     plugins: { legend: { labels: { color: axisColor } } },
     scales: {
       x: { ticks: { color: axisColor }, grid: { color: gridColor } },
@@ -139,7 +141,7 @@ export default function Reports() {
     }
   }
 
-  const pieOptions = { plugins: { legend: { labels: { color: axisColor } } } }
+  const pieOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: axisColor } } } }
 
   return (
     <div className="max-w-6xl mx-auto p-6">
@@ -151,20 +153,22 @@ export default function Reports() {
         </div>
       </div>
 
-      {/* Top metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-4">
-        <StatCard title="Entrate" value={(Number(summary.find(s=>s.metric==='revenue')?.value ?? 0)).toFixed(2) + ' €'} />
-        <StatCard title="Ordini" value={bookingsCount} />
-        <StatCard title="Spese" value={(Number(summary.find(s=>s.metric==='expenses')?.value ?? 0)).toFixed(2) + ' €'} />
-        <StatCard title="IVA" value={( (Number(summary.find(s=>s.metric==='revenue')?.value ?? 0) * ivaPercent/100)).toFixed(2) + ' €'} />
-        <StatCard title="Profitto" value={(() => { const rev=Number(summary.find(s=>s.metric==='revenue')?.value ?? 0); const exp=Number(summary.find(s=>s.metric==='expenses')?.value ?? 0); const iva=(rev*ivaPercent/100); return (rev - exp - iva).toFixed(2)+' €' })()} />
-        <div className="hidden md:block" />
+      {/* Top metrics (mobile scrollable) */}
+      <div className="mb-4">
+        <div className="flex gap-4 overflow-x-auto pb-2 -mx-2 px-2">
+          <StatCard title="Entrate" value={(Number(summary.find(s=>s.metric==='revenue')?.value ?? 0)).toFixed(2) + ' €'} color="accent" />
+          <StatCard title="Ordini" value={bookingsCount} color="neutral" />
+          <StatCard title="Spese" value={(Number(summary.find(s=>s.metric==='expenses')?.value ?? 0)).toFixed(2) + ' €'} color="warning" />
+          <StatCard title="IVA" value={( (Number(summary.find(s=>s.metric==='revenue')?.value ?? 0) * ivaPercent/100)).toFixed(2) + ' €'} color="neutral" />
+          <StatCard title="Profitto" value={(() => { const rev=Number(summary.find(s=>s.metric==='revenue')?.value ?? 0); const exp=Number(summary.find(s=>s.metric==='expenses')?.value ?? 0); const iva=(rev*ivaPercent/100); return (rev - exp - iva).toFixed(2)+' €' })()} color="success" />
+        </div>
       </div>
 
       {tab === 'reports' && (
         <>
           <Card>
-            <div className="flex gap-2 items-center mb-4">
+            <div className="mb-4">
+            <div className="flex gap-2 items-center flex-wrap">
               <label>Da</label>
               <input type="date" value={start} onChange={(e)=>setStart(e.target.value)} className="border px-2 py-1 rounded" />
               <label>A</label>
@@ -172,12 +176,13 @@ export default function Reports() {
               <Button onClick={loadReports}>Aggiorna</Button>
               <Button onClick={()=>downloadCSV(revByEquip,'revenue-by-equipment.csv')}>Export CSV</Button>
             </div>
+          </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="col-span-2">
                 <div className="mb-4">
                   <div className="text-sm text-neutral-500">Entrate giornaliere</div>
-                  <Line data={lineData} options={lineOptions} />
+                  <div className="h-48"><div className="h-full"><Line data={lineData} options={lineOptions} /></div></div>
                 </div>
                 <div>
                   <div className="text-sm text-neutral-500">Entrate per attrezzatura</div>
@@ -197,7 +202,7 @@ export default function Reports() {
               <div>
                 <div className="mb-4">
                   <div className="text-sm text-neutral-500">Ripartizione entrate</div>
-                  <Pie data={pieData} options={pieOptions} />
+                  <div className="h-48"><div className="h-full"><Pie data={pieData} options={pieOptions} /></div></div>
                 </div>
                 <div>
                   <div className="text-sm text-neutral-500">Riepilogo</div>
