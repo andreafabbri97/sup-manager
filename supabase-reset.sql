@@ -134,7 +134,7 @@ INSERT INTO app_setting(key, value)
   WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE key = 'iva_percent');
 
 -- Top products (by bookings)
-CREATE OR REPLACE FUNCTION report_top_products(start_date date, end_date date, limit int DEFAULT 10)
+CREATE OR REPLACE FUNCTION report_top_products(start_date date, end_date date, p_limit int DEFAULT 10)
 RETURNS TABLE(name text, bookings_count int, revenue numeric)
 LANGUAGE sql
 AS $$
@@ -144,7 +144,7 @@ AS $$
   WHERE b.start_time::date BETWEEN start_date AND end_date
   GROUP BY 1
   ORDER BY bookings_count DESC
-  LIMIT limit;
+  LIMIT p_limit;
 $$;
 
 -- Counts (bookings)
