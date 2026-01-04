@@ -13,9 +13,20 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+      - name: Check required secrets
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          if [ -z "$SUPABASE_URL" ]; then echo "SUPABASE_URL is missing"; exit 1; fi
+          if [ -z "$SUPABASE_SERVICE_ROLE_KEY" ]; then echo "SUPABASE_SERVICE_ROLE_KEY is missing"; exit 1; fi
+          echo "Secrets present"
+
       - name: Run removal script
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: |
-          node scripts/remove-auth-data.mjs
+          set -o pipefail
+          node scripts/remove-auth-data.mjs | sed -u 's/.*/[script] &/'
+
