@@ -64,31 +64,76 @@ export default function Sidebar({ onNav, currentPage }: { onNav?: (page: string)
     }
   }
 
+  React.useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMobileOpen(false)
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [])
+
+  React.useEffect(() => {
+    // Lock body scroll when menu open on mobile
+    if (mobileOpen) {
+      document.body.classList.add('overflow-hidden')
+    } else {
+      document.body.classList.remove('overflow-hidden')
+    }
+  }, [mobileOpen])
+
   return (
     <>
-      <div className="lg:hidden flex items-center justify-between p-2 bg-white dark:bg-neutral-900 border-b dark:border-neutral-800">
-        <div className="flex items-center gap-2">
-          <button onClick={() => setMobileOpen((s) => !s)} aria-label="Apri menu" className="p-2 rounded-md hover:bg-neutral-100 dark:hover:bg-neutral-800">
-            <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
-          <div className="font-semibold">Sup Manager</div>
-        </div>
-        <div>
-          <button onClick={() => toggle()} className="px-3 py-1 rounded bg-sky-600 text-white">{theme === 'light' ? 'Chiaro' : 'Scuro'}</button>
-        </div>
+      {/* Fixed hamburger button (always visible on mobile, fixed top-left) */}
+      <button
+        onClick={() => setMobileOpen((s) => !s)}
+        aria-controls="sidebar"
+        aria-expanded={mobileOpen}
+        aria-label={mobileOpen ? 'Chiudi menu' : 'Apri menu'}
+        className="fixed top-3 left-3 z-50 lg:hidden p-2 rounded-md bg-white/90 dark:bg-neutral-900/90 backdrop-blur shadow"
+      >
+        {mobileOpen ? (
+          <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        ) : (
+          <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        )}
+      </button>
+
+      {/* Top-right theme toggle on mobile (optional) */}
+      <div className="fixed top-3 right-3 z-50 lg:hidden">
+        <button onClick={() => toggle()} className="px-3 py-1 rounded bg-sky-600 text-white">{theme === 'light' ? 'Chiaro' : 'Scuro'}</button>
       </div>
 
       {/* Backdrop for mobile when menu open */}
-      {mobileOpen && <div onClick={() => setMobileOpen(false)} className="fixed inset-0 bg-black/40 z-30 lg:hidden" />}
+      <div
+        onClick={() => setMobileOpen(false)}
+        className={`fixed inset-0 bg-black/40 z-40 transition-opacity lg:hidden ${mobileOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+        aria-hidden={!mobileOpen}
+      />
 
-      <aside className={`min-h-screen bg-neutral-50 dark:bg-neutral-900 border-r dark:border-neutral-800 p-4 transition-all duration-150 ${collapsed ? 'w-16' : 'w-64'} ${mobileOpen ? 'fixed z-40 left-0 top-0 h-full' : 'hidden lg:static lg:block'}`}>
+      <aside
+        id="sidebar"
+        className={`fixed z-50 top-0 left-0 h-full w-64 bg-neutral-50 dark:bg-neutral-900 border-r dark:border-neutral-800 p-4 transform transition-transform duration-200 ${mobileOpen ? 'translate-x-0' : '-translate-x-full'} lg:static lg:translate-x-0 lg:block`}
+        aria-hidden={!mobileOpen}
+      >
         <div className="mb-6 flex items-center justify-between">
           <div>
             <h1 className={`text-lg font-bold ${collapsed ? 'sr-only' : ''}`}>Sup Manager</h1>
             {!collapsed && <p className="text-xs text-neutral-500 dark:text-neutral-400">Gestione prenotazioni e contabilità</p>}
           </div>
+
+          {/* Close button visible only on mobile */}
+          <div className="lg:hidden">
+            <button onClick={() => setMobileOpen(false)} aria-label="Chiudi menu" className="p-1 rounded hover:bg-neutral-100 dark:hover:bg-neutral-800">
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
           <div className="hidden lg:flex items-center gap-2">
             <button onClick={() => setCollapsed((s) => !s)} aria-label="Riduci sidebar" className="p-1 rounded hover:bg-neutral-100 dark:hover:bg-neutral-800">
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -120,6 +165,4 @@ export default function Sidebar({ onNav, currentPage }: { onNav?: (page: string)
           </button>
         </div>
       </aside>
-    </>
-  )
 }
