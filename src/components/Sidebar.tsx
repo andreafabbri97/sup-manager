@@ -66,7 +66,7 @@ export default function Sidebar({ onNav, currentPage }: { onNav?: (page: string)
 
   return (
     <>
-      <div className="md:hidden flex items-center justify-between p-2 bg-white dark:bg-neutral-900 border-b dark:border-neutral-800">
+      <div className="lg:hidden flex items-center justify-between p-2 bg-white dark:bg-neutral-900 border-b dark:border-neutral-800">
         <div className="flex items-center gap-2">
           <button onClick={() => setMobileOpen((s) => !s)} aria-label="Apri menu" className="p-2 rounded-md hover:bg-neutral-100 dark:hover:bg-neutral-800">
             <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -81,15 +81,15 @@ export default function Sidebar({ onNav, currentPage }: { onNav?: (page: string)
       </div>
 
       {/* Backdrop for mobile when menu open */}
-      {mobileOpen && <div onClick={() => setMobileOpen(false)} className="fixed inset-0 bg-black/40 z-30 md:hidden" />}
+      {mobileOpen && <div onClick={() => setMobileOpen(false)} className="fixed inset-0 bg-black/40 z-30 lg:hidden" />}
 
-      <aside className={`min-h-screen bg-neutral-50 dark:bg-neutral-900 border-r dark:border-neutral-800 p-4 transition-all duration-150 ${collapsed ? 'w-16' : 'w-64'} ${mobileOpen ? 'fixed z-40 left-0 top-0 h-full' : 'hidden md:static md:block'}`}>
+      <aside className={`min-h-screen bg-neutral-50 dark:bg-neutral-900 border-r dark:border-neutral-800 p-4 transition-all duration-150 ${collapsed ? 'w-16' : 'w-64'} ${mobileOpen ? 'fixed z-40 left-0 top-0 h-full' : 'hidden lg:static lg:block'}`}>
         <div className="mb-6 flex items-center justify-between">
           <div>
             <h1 className={`text-lg font-bold ${collapsed ? 'sr-only' : ''}`}>Sup Manager</h1>
             {!collapsed && <p className="text-xs text-neutral-500 dark:text-neutral-400">Gestione prenotazioni e contabilità</p>}
           </div>
-          <div className="hidden md:flex items-center gap-2">
+          <div className="hidden lg:flex items-center gap-2">
             <button onClick={() => setCollapsed((s) => !s)} aria-label="Riduci sidebar" className="p-1 rounded hover:bg-neutral-100 dark:hover:bg-neutral-800">
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <path strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" d="M20 12H4" />
