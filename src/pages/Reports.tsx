@@ -56,6 +56,10 @@ export default function Reports() {
   const [notes, setNotes] = useState('')
   const [receiptFile, setReceiptFile] = useState<File | null>(null)
   const [showExpenseModal, setShowExpenseModal] = useState(false)
+  const [expenseDate, setExpenseDate] = useState(() => {
+    if (typeof window === 'undefined') return new Date().toISOString().slice(0,10)
+    return new Date().toISOString().slice(0,10)
+  })
 
   useEffect(() => { loadReports()
     const onSettings = () => loadReports()
@@ -130,9 +134,9 @@ export default function Reports() {
       }
     }
 
-    const { error } = await supabase.from('expense').insert([{ amount: Number(amount), category, notes, date: new Date().toISOString().slice(0,10), receipt_url }])
+    const { error } = await supabase.from('expense').insert([{ amount: Number(amount), category, notes, date: expenseDate, receipt_url }])
     if (error) return alert(error.message)
-    setAmount(''); setCategory(''); setNotes(''); setReceiptFile(null)
+    setAmount(''); setCategory(''); setNotes(''); setReceiptFile(null); setExpenseDate(new Date().toISOString().slice(0,10))
     loadExpenses()
   }
 
@@ -323,9 +327,9 @@ export default function Reports() {
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-lg font-medium">Gestione Spese</h3>
             <div className="flex gap-2">
-              <Button onClick={() => { setShowExpenseModal(true) }}>Aggiungi spesa</Button>
-              <Button onClick={loadExpenses} className="bg-gray-600">Ricarica</Button>
-            </div>
+                <Button onClick={() => { setExpenseDate(new Date().toISOString().slice(0,10)); setShowExpenseModal(true) }}>Aggiungi spesa</Button>
+                <Button onClick={loadExpenses} className="bg-gray-600">Ricarica</Button>
+              </div>
           </div>
 
           <div className="mt-2">
@@ -341,7 +345,7 @@ export default function Reports() {
             </table>
           </div>
 
-          <Modal isOpen={showExpenseModal} onClose={() => { setShowExpenseModal(false); setAmount(''); setCategory(''); setNotes(''); setReceiptFile(null) }} title="Aggiungi Spesa">
+          <Modal isOpen={showExpenseModal} onClose={() => { setShowExpenseModal(false); setAmount(''); setCategory(''); setNotes(''); setReceiptFile(null); setExpenseDate(new Date().toISOString().slice(0,10)) }} title="Aggiungi Spesa">
             <form onSubmit={(e)=>{ createExpense(e); setShowExpenseModal(false); }} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-1">Importo</label>
@@ -357,6 +361,10 @@ export default function Reports() {
                 />
               </div>
               <div>
+                <label className="block text-sm font-medium mb-1">Data</label>
+                <input type="date" value={expenseDate} onChange={(e)=>setExpenseDate(e.target.value)} className="w-full border px-2 py-1 rounded" />
+              </div>
+              <div>
                 <label className="block text-sm font-medium mb-1">Categoria</label>
                 <input value={category} onChange={(e)=>setCategory(e.target.value)} placeholder="Categoria" className="w-full border px-2 py-1 rounded" />
               </div>
@@ -370,7 +378,7 @@ export default function Reports() {
               </div>
               <div className="flex gap-2 justify-end">
                 <Button type="submit">Aggiungi spesa</Button>
-                <button type="button" onClick={() => { setShowExpenseModal(false); setAmount(''); setCategory(''); setNotes(''); setReceiptFile(null) }} className="px-3 py-1 rounded border">Annulla</button>
+                <button type="button" onClick={() => { setShowExpenseModal(false); setAmount(''); setCategory(''); setNotes(''); setReceiptFile(null); setExpenseDate(new Date().toISOString().slice(0,10)) }} className="px-3 py-1 rounded border">Annulla</button>
               </div>
             </form>
           </Modal>
