@@ -21,6 +21,8 @@ export default function Bookings() {
   const [detailCustomerName, setDetailCustomerName] = useState<string>('')
   const [detailInvoiceNumber, setDetailInvoiceNumber] = useState<string | null>(null)
   const [detailNotes, setDetailNotes] = useState<string>('')
+  const [detailPaid, setDetailPaid] = useState<boolean>(false)
+  const [detailInvoiced, setDetailInvoiced] = useState<boolean>(false)
   const [viewMode, setViewMode] = useState<ViewMode>('week')
   const [currentDate, setCurrentDate] = useState(new Date())
   
@@ -84,6 +86,8 @@ export default function Bookings() {
     setDetailCustomerName(selectedBooking.customer_name || '')
     setDetailInvoiceNumber(selectedBooking.invoice_number || null)
     setDetailNotes(selectedBooking.notes || '')
+    setDetailPaid(!!selectedBooking.paid)
+    setDetailInvoiced(!!selectedBooking.invoiced)
   }, [selectedBooking])
 
   // recompute detail price when detail inputs change
@@ -880,14 +884,14 @@ export default function Bookings() {
 
             <div>
               <label className="inline-flex items-center gap-2">
-                <input type="checkbox" checked={!!selectedBooking.paid || !!selectedBooking.paid === false ? !!selectedBooking.paid : false} onChange={(e)=>{ setSelectedBooking({...selectedBooking, paid: e.target.checked}); }} />
+                <input type="checkbox" checked={detailPaid} onChange={(e)=>setDetailPaid(e.target.checked)} />
                 Pagata
               </label>
             </div>
 
             <div>
               <label className="inline-flex items-center gap-2">
-                <input type="checkbox" checked={!!selectedBooking.invoiced || !!selectedBooking.invoiced === false ? !!selectedBooking.invoiced : false} onChange={(e)=>{ setSelectedBooking({...selectedBooking, invoiced: e.target.checked}); }} />
+                <input type="checkbox" checked={detailInvoiced} onChange={(e)=>setDetailInvoiced(e.target.checked)} />
                 Fatturata
               </label>
             </div>
@@ -906,8 +910,8 @@ export default function Bookings() {
                   price: detailPrice,
                   package_id: detailSelectedPackage,
                   equipment_items: detailSelectedEquipment,
-                  paid: selectedBooking.paid,
-                  invoiced: selectedBooking.invoiced,
+                  paid: detailPaid,
+                  invoiced: detailInvoiced,
                   invoice_number: detailInvoiceNumber,
                   notes: detailNotes
                 }
