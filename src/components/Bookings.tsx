@@ -323,6 +323,7 @@ export default function Bookings() {
         if (newPaid) payload.paid_at = new Date().toISOString()
         if (newInvoiced !== undefined) payload.invoiced = newInvoiced
         if (newInvoiceNumber) payload.invoice_number = newInvoiceNumber
+        if (newNotes) payload.notes = newNotes
         const { error: upErr } = await supabase.from('booking').update(payload).eq('id', createdId)
         if (upErr) throw upErr
       }
