@@ -105,7 +105,8 @@ export default function Dashboard({ page = 'dashboard' }: { page?: string }) {
     responsive: true,
     maintainAspectRatio: false,
     plugins: { legend: { labels: { color: axisColor }, position: isSmall ? 'bottom' : 'top' } },
-    scales: { x: { ticks: { color: axisColor }, grid: { color: gridColor } }, y: { ticks: { color: axisColor }, grid: { color: gridColor } } }
+    scales: { x: { ticks: { color: axisColor }, grid: { color: gridColor } }, y: { ticks: { color: axisColor }, grid: { color: gridColor } } },
+    animation: { duration: 700, easing: 'easeOutCubic' }
   }
 
   const pageTitle = {

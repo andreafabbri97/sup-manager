@@ -609,7 +609,7 @@ export default function Bookings() {
                       <div className={`text-base font-medium mb-3 ${isToday ? 'text-amber-600 dark:text-amber-400' : ''}`}>{day.getDate()}</div>
                       <div className="space-y-2">
                         {dayBookings.slice(0,3).map(b => (
-                          <button key={b.id} title={bookingTitle(b)} onClick={() => { setSelectedBooking(b); setShowBookingDetails(true) }} className={`w-full text-left text-sm p-2.5 rounded-md bg-amber-100 dark:bg-neutral-800/60 text-neutral-900 dark:text-neutral-100 interactive ${statusClass(b)} min-h-[64px]`}>
+                          <Card as="button" key={b.id} title={bookingTitle(b)} onClick={() => { setSelectedBooking(b); setShowBookingDetails(true) }} className={`w-full text-left text-sm p-2.5 rounded-md bg-amber-100 dark:bg-neutral-800/60 text-neutral-900 dark:text-neutral-100 interactive ${statusClass(b)} min-h-[64px]`}>
                             <div className="flex flex-col gap-1.5">
                               <div className="font-medium">{new Date(b.start_time).toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'})} — {b.customer_name || 'Cliente'}</div>
                               <div className="flex items-center gap-2 text-xs">
@@ -619,7 +619,7 @@ export default function Bookings() {
                                 <button onClick={(e)=>{ e.stopPropagation(); removeBooking(b.id) }} className="text-red-500 hover:text-red-600 focus-ring px-1.5 py-0.5 rounded bg-white/50 dark:bg-neutral-700/50">Elimina</button>
                               </div>
                             </div>
-                          </button>
+                          </Card>
                         ))}
                         {dayBookings.length > 3 && (
                           <button onClick={() => openDayListModal(day)} className="text-xs text-neutral-500 hover:underline">+{dayBookings.length - 3} altre prenotazioni</button>
@@ -645,7 +645,7 @@ export default function Bookings() {
                     <div className="space-y-2">
                       {dayBookings.length === 0 && <div className="text-neutral-500 text-sm">Nessuna prenotazione</div>}
                       {dayBookings.map(b => (
-                        <button key={b.id} onClick={() => { setSelectedBooking(b); setShowBookingDetails(true) }} className="w-full text-left p-3 rounded bg-amber-100 dark:bg-neutral-800/60 flex items-center justify-between interactive">
+                        <Card as="button" key={b.id} onClick={() => { setSelectedBooking(b); setShowBookingDetails(true) }} className="w-full text-left p-3 rounded bg-amber-100 dark:bg-neutral-800/60 flex items-center justify-between interactive">
                           <div>
                             <div className="font-medium text-sm text-neutral-900 dark:text-neutral-100">{b.customer_name || 'Cliente'}</div>
                             <div className="text-xs text-neutral-600 dark:text-neutral-300">{new Date(b.start_time).toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'})} – {new Date(b.end_time).toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'})}</div>
@@ -655,7 +655,7 @@ export default function Bookings() {
                             {!b.paid && <button onClick={(e)=>{ e.stopPropagation(); markPaid(b.id) }} className="text-green-600 ml-3 focus-ring">Registra incasso</button>}
                             <button onClick={(e)=>{ e.stopPropagation(); removeBooking(b.id) }} className="text-red-500 ml-3 focus-ring">Elimina</button>
                           </div>
-                        </button>
+                        </Card>
                       ))}
                     </div>
                   </div>
@@ -684,7 +684,7 @@ export default function Bookings() {
                       <div className={`text-sm font-medium mb-1 ${isToday ? 'text-amber-600 dark:text-amber-400' : ''}`}>{day.getDate()}</div>
                       <div className="space-y-1">
                         {dayBookings.slice(0, 2).map(b => (
-                          <button key={b.id} title={bookingTitle(b)} onClick={() => { setSelectedBooking(b); setShowBookingDetails(true) }} className={`w-full text-left text-xs p-1 rounded bg-amber-100 dark:bg-amber-900/30 truncate ${statusClass(b)}`}>
+                          <Card as="button" key={b.id} title={bookingTitle(b)} onClick={() => { setSelectedBooking(b); setShowBookingDetails(true) }} className={`w-full text-left text-xs p-2 rounded bg-amber-100 dark:bg-amber-900/30 truncate ${statusClass(b)} interactive`}>
                             <div className="flex items-center justify-between">
                               <div className="truncate">{new Date(b.start_time).toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'})} — {b.customer_name || 'Cliente'}</div>
                               <div className="flex items-center gap-2">
@@ -693,7 +693,7 @@ export default function Bookings() {
                               </div>
                             </div>
                             {b.paid && <div className="text-xs text-green-500 font-semibold">Pagato</div>}
-                          </button>
+                          </Card>
                         ))}
                         {dayBookings.length > 2 && (
                           <button onClick={() => openDayListModal(day)} className="text-xs text-neutral-500 hover:underline">+{dayBookings.length - 2} altre prenotazioni</button>

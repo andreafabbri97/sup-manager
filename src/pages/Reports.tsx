@@ -172,8 +172,14 @@ export default function Reports() {
     setLoading(false)
   }
 
-  async function loadExpenses() {
-    const { data } = await supabase.from('expense').select('*').order('date', { ascending: false }).limit(100)
+  const [expenseFilterStart, setExpenseFilterStart] = useState<string>(() => { const d = new Date(); d.setMonth(d.getMonth()-1); return d.toISOString().slice(0,10) })
+  const [expenseFilterEnd, setExpenseFilterEnd] = useState<string>(() => new Date().toISOString().slice(0,10))
+
+  async function loadExpenses(start?: string, end?: string) {
+    let q: any = supabase.from('expense').select('*').order('date', { ascending: false }).limit(500)
+    if (start) q = q.gte('date', start)
+    if (end) q = q.lte('date', end)
+    const { data } = await q
     setExpenses(data ?? [])
   }
 
@@ -283,6 +289,7 @@ export default function Reports() {
         }
       }
     },
+    animation: { duration: 700, easing: 'easeOutCubic' },
     elements: { point: { radius: 3 } },
     scales: {
       x: { ticks: { color: axisColor }, grid: { color: gridColor } },
@@ -306,6 +313,7 @@ export default function Reports() {
         }
       }
     },
+    animation: { duration: 700, easing: 'easeOutCubic' },
     elements: { point: { radius: 3 } },
     scales: {
       x: { ticks: { color: axisColor }, grid: { color: gridColor } },
@@ -369,11 +377,11 @@ export default function Reports() {
               <div className="col-span-2">
                 <div className="mb-4 sm:mb-6">
                   <div className="text-sm text-neutral-500 mb-2">Ordini giornalieri</div>
-                  <div className="h-64 sm:h-72 lg:h-80"><div className="h-full"><Line data={ordersData} options={ordersOptions} /></div></div>
+                  <div className="h-64 sm:h-72 lg:h-80 animate-fade-up"><div className="h-full"><Line data={ordersData} options={ordersOptions} /></div></div>
                 </div>
                 <div className="mb-4 sm:mb-6">
                   <div className="text-sm text-neutral-500 mb-2">Entrate giornaliere</div>
-                  <div className="h-64 sm:h-72 lg:h-80"><div className="h-full"><Line data={revenueData} options={revenueOptions} /></div></div>
+                  <div className="h-64 sm:h-72 lg:h-80 animate-fade-up"><div className="h-full"><Line data={revenueData} options={revenueOptions} /></div></div>
                 </div>
                 <div>
                   <div className="text-sm text-neutral-500">Entrate per attrezzatura</div>
@@ -488,8 +496,20 @@ export default function Reports() {
             <h3 className="text-lg font-medium">Gestione Spese</h3>
             <div className="flex gap-2">
                 <Button onClick={() => { setEditExpense(null); setExpenseDate(new Date().toISOString().slice(0,10)); setShowExpenseModal(true) }}>Aggiungi spesa</Button>
-                <Button onClick={loadExpenses} className="bg-gray-600">Ricarica</Button>
+                <Button onClick={() => loadExpenses(expenseFilterStart, expenseFilterEnd)} className="bg-gray-600">Applica filtro</Button>
+                <Button onClick={() => { setExpenseFilterStart(new Date(new Date().setMonth(new Date().getMonth()-1)).toISOString().slice(0,10)); setExpenseFilterEnd(new Date().toISOString().slice(0,10)); loadExpenses(); }} className="bg-gray-600">Reset</Button>
               </div>
+          </div>
+
+          <div className="mb-3 flex items-center gap-2">
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-neutral-500">Da</label>
+              <input type="date" value={expenseFilterStart} onChange={(e)=>setExpenseFilterStart(e.target.value)} className="border px-2 py-1 rounded" />
+            </div>
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-neutral-500">A</label>
+              <input type="date" value={expenseFilterEnd} onChange={(e)=>setExpenseFilterEnd(e.target.value)} className="border px-2 py-1 rounded" />
+            </div>
           </div>
 
           <div className="mt-2">

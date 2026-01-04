@@ -1,8 +1,8 @@
 import React from 'react'
 
 export default function Button({ children, onClick, className = '', disabled = false, type = 'button' }: { children: React.ReactNode; onClick?: () => void; className?: string, disabled?: boolean, type?: 'button'|'submit'|'reset' }) {
-  const base = 'inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition transform will-change-transform focus:outline-none focus:ring-2 focus:ring-offset-2'
-  const active = disabled ? 'opacity-60 cursor-not-allowed' : 'hover:shadow-sm active:scale-95'
+  const base = 'inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all duration-180 will-change-transform focus:outline-none focus:ring-2 focus:ring-offset-2'
+  const active = disabled ? 'opacity-60 cursor-not-allowed' : 'hover:-translate-y-0.5 hover:shadow-md active:scale-95'
   const color = 'bg-amber-500 hover:bg-amber-600 text-white dark:bg-amber-600 dark:hover:bg-amber-700 focus:ring-amber-300'
   return (
     <button type={type} onClick={onClick} disabled={disabled} className={`${base} ${color} ${active} ${className}`}>
