@@ -145,6 +145,7 @@ export default function Archive() {
             </div>
           </div>
         </div>
+      </Card>
 
       <Modal isOpen={showDetail} onClose={() => { setShowDetail(false); setDetail(null) }} title={detail ? `Prenotazione ${detail.id}` : 'Dettaglio'}>
         {detail && (
