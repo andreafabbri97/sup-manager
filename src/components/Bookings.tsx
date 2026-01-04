@@ -20,6 +20,7 @@ export default function Bookings() {
   const [detailEndTime, setDetailEndTime] = useState<string | null>(null)
   const [detailCustomerName, setDetailCustomerName] = useState<string>('')
   const [detailInvoiceNumber, setDetailInvoiceNumber] = useState<string | null>(null)
+  const [detailNotes, setDetailNotes] = useState<string>('')
   const [viewMode, setViewMode] = useState<ViewMode>('week')
   const [currentDate, setCurrentDate] = useState(new Date())
   
@@ -35,6 +36,7 @@ export default function Bookings() {
   const [newPaid, setNewPaid] = useState<boolean>(false)
   const [newInvoiced, setNewInvoiced] = useState<boolean>(false)
   const [newInvoiceNumber, setNewInvoiceNumber] = useState<string | null>(null)
+  const [newNotes, setNewNotes] = useState<string>('')
 
   async function load() {
     const { data: eq } = await supabase.from('equipment').select('*').order('name')
@@ -81,6 +83,7 @@ export default function Bookings() {
     setDetailPrice(selectedBooking.price ?? null)
     setDetailCustomerName(selectedBooking.customer_name || '')
     setDetailInvoiceNumber(selectedBooking.invoice_number || null)
+    setDetailNotes(selectedBooking.notes || '')
   }, [selectedBooking])
 
   // recompute detail price when detail inputs change
@@ -340,6 +343,7 @@ export default function Bookings() {
     setNewPaid(false)
     setNewInvoiced(false)
     setNewInvoiceNumber(null)
+    setNewNotes('')
     load()
   }
 
@@ -351,8 +355,8 @@ export default function Bookings() {
   }
 
   async function saveBookingChanges(updated: any) {
-    const { id, customer_name, start_time, end_time, price, package_id, equipment_items, paid, invoiced, invoice_number } = updated
-    const updatePayload: any = { customer_name, start_time, end_time, price, package_id, equipment_items }
+    const { id, customer_name, start_time, end_time, price, package_id, equipment_items, paid, invoiced, invoice_number, notes } = updated
+    const updatePayload: any = { customer_name, start_time, end_time, price, package_id, equipment_items, notes }
     if (paid !== undefined) updatePayload.paid = paid
     if (invoiced !== undefined) updatePayload.invoiced = invoiced
     if (invoice_number !== undefined) updatePayload.invoice_number = invoice_number
@@ -765,6 +769,9 @@ export default function Bookings() {
               <div className="text-xl font-bold">{computedPrice !== null ? computedPrice.toFixed(2) + ' €' : '-'} </div>
             </div>
             <div className="flex-1">
+              <label className="block text-sm font-medium mb-1">Note (opzionale)</label>
+              <textarea value={newNotes} onChange={(e)=>setNewNotes(e.target.value)} className="w-full border px-2 py-2 rounded" rows={2} />
+            </div>
               <label className="inline-flex items-center gap-2">
                 <input type="checkbox" checked={newPaid} onChange={(e)=>setNewPaid(e.target.checked)} /> Pagata
               </label>
@@ -866,6 +873,11 @@ export default function Bookings() {
             </div>
 
             <div>
+              <label className="block text-sm font-medium mb-1">Note (opzionale)</label>
+              <textarea value={detailNotes} onChange={(e)=>setDetailNotes(e.target.value)} className="w-full border px-3 py-2 rounded" rows={3} />
+            </div>
+
+            <div>
               <label className="inline-flex items-center gap-2">
                 <input type="checkbox" checked={!!selectedBooking.paid || !!selectedBooking.paid === false ? !!selectedBooking.paid : false} onChange={(e)=>{ setSelectedBooking({...selectedBooking, paid: e.target.checked}); }} />
                 Pagata
@@ -895,7 +907,8 @@ export default function Bookings() {
                   equipment_items: detailSelectedEquipment,
                   paid: selectedBooking.paid,
                   invoiced: selectedBooking.invoiced,
-                  invoice_number: detailInvoiceNumber
+                  invoice_number: detailInvoiceNumber,
+                  notes: detailNotes
                 }
                 saveBookingChanges(updated)
               }} className="bg-amber-500 text-white px-4 py-2 rounded">Salva</button>
