@@ -52,6 +52,23 @@ export default function Archive() {
     load()
   }
 
+  const [page, setPage] = useState<number>(1)
+  const [perPage, setPerPage] = useState<number>(20)
+  const total = bookings.length
+  const totalPages = Math.max(1, Math.ceil(total / perPage))
+  const startIdx = (page - 1) * perPage
+  const paginated = bookings.slice(startIdx, startIdx + perPage)
+
+  function exportInvoicesCSV() {
+    const rows = bookings.filter(b => b.invoice_number).map(b => ({ date: b.start_time, customer: b.customer_name, invoice: b.invoice_number, price: b.price }))
+    if (rows.length === 0) return alert('Nessuna fattura trovata per il filtro')
+    const csv = [Object.keys(rows[0]||{}).join(','), ...rows.map(r => Object.values(r).map(v=>`"${String(v).replace(/"/g,'""')}"`).join(','))].join('\n')
+    const blob = new Blob([csv], { type: 'text/csv' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url; a.download = `invoices-${start}-${end}.csv`; a.click(); URL.revokeObjectURL(url)
+  }
+
   return (
     <section>
       <div className="mb-4 flex items-center justify-between">
@@ -61,6 +78,7 @@ export default function Archive() {
         </div>
         <div className="flex gap-2">
           <Button onClick={exportCSV}>Esporta CSV</Button>
+          <Button onClick={exportInvoicesCSV} className="bg-amber-600">Esporta fatture</Button>
           <Button onClick={load} className="bg-gray-600">Applica</Button>
         </div>
       </div>
@@ -93,7 +111,7 @@ export default function Archive() {
               <tr className="text-left text-neutral-500"><th>Data</th><th>Cliente</th><th>Fattura</th><th>Prezzo</th><th>Pagato</th><th>Azioni</th></tr>
             </thead>
             <tbody>
-              {bookings.map(b => (
+              {paginated.map(b => (
                 <tr key={b.id} className="border-t border-neutral-100 dark:border-neutral-800">
                   <td className="py-2">{new Date(b.start_time).toLocaleString('it-IT', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
                   <td>{b.customer_name}</td>
@@ -111,7 +129,22 @@ export default function Archive() {
             </tbody>
           </table>
         </div>
-      </Card>
+
+        <div className="mt-3 flex items-center justify-between">
+          <div className="text-sm text-neutral-500">Mostrando {startIdx+1}–{Math.min(startIdx+perPage, total)} di {total}</div>
+          <div className="flex items-center gap-2">
+            <select value={perPage} onChange={(e)=>{ setPerPage(Number(e.target.value)); setPage(1); }} className="border px-2 py-1 rounded">
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+            </select>
+            <div className="flex items-center gap-1">
+              <button onClick={()=>setPage(p => Math.max(1, p-1))} className="px-2 py-1 rounded border">Prev</button>
+              <div className="px-2">{page}/{totalPages}</div>
+              <button onClick={()=>setPage(p => Math.min(totalPages, p+1))} className="px-2 py-1 rounded border">Next</button>
+            </div>
+          </div>
+        </div>
 
       <Modal isOpen={showDetail} onClose={() => { setShowDetail(false); setDetail(null) }} title={detail ? `Prenotazione ${detail.id}` : 'Dettaglio'}>
         {detail && (
