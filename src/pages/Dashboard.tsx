@@ -5,7 +5,6 @@ import Bookings from '../components/Bookings'
 import Expenses from '../components/Expenses'
 import Equipment from '../components/Equipment'
 import StatCard from '../components/ui/StatCard'
-import WeatherWidget from '../components/WeatherWidget'
 import { supabase } from '../lib/supabaseClient'
 import { Line } from 'react-chartjs-2'
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend } from 'chart.js'
@@ -150,16 +149,10 @@ export default function Dashboard({ page = 'dashboard' }: { page?: string }) {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
             <div>
-              <WeatherWidget />
-            </div>
-            
-            <div>
               <div className="text-sm text-neutral-500 mb-2">Incassi nel Periodo</div>
               <div className="h-56 bg-white/5 rounded p-3"><div className="h-full"><Line data={{ labels: dailyRevenue.map(d=>d.day), datasets:[{ label:'Entrate', data: dailyRevenue.map(d=>Number(d.revenue)), borderColor:'#3b82f6', backgroundColor:'rgba(59,130,246,0.1)' }] }} options={lineOptions} /></div></div>
             </div>
-          </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
             <div>
               <div className="text-sm text-neutral-500 mb-2">Ordini nel Periodo</div>
               <div className="h-56 bg-white/5 rounded p-3"><div className="h-full"><Line data={{ labels: dailyOrders.map(d=>d.day), datasets:[{ label:'Ordini', data: dailyOrders.map(d=>Number(d.orders)), borderColor:'#10b981', backgroundColor:'rgba(16,185,129,0.1)' }] }} options={lineOptions} /></div></div>
