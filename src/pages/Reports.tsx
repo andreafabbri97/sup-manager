@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import Button from '../components/ui/Button'
+import Modal from '../components/ui/Modal'
 import Card from '../components/ui/Card'
 import { Line, Pie } from 'react-chartjs-2'
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, ArcElement, Tooltip, Legend } from 'chart.js'
@@ -40,6 +41,7 @@ export default function Reports() {
   const [category, setCategory] = useState('')
   const [notes, setNotes] = useState('')
   const [receiptFile, setReceiptFile] = useState<File | null>(null)
+  const [showExpenseModal, setShowExpenseModal] = useState(false)
 
   useEffect(() => { loadReports()
     const onSettings = () => loadReports()
@@ -288,19 +290,15 @@ export default function Reports() {
 
       {tab === 'admin' && (
         <Card>
-          <h3 className="text-lg font-medium mb-3">Gestione Spese</h3>
-          <form onSubmit={createExpense} className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <input value={amount} onChange={(e)=>setAmount(e.target.value)} placeholder="Importo" className="border px-2 py-1 rounded" />
-            <input value={category} onChange={(e)=>setCategory(e.target.value)} placeholder="Categoria" className="border px-2 py-1 rounded" />
-            <input value={notes} onChange={(e)=>setNotes(e.target.value)} placeholder="Note" className="border px-2 py-1 rounded" />
-            <input type="file" onChange={(e:any)=>setReceiptFile(e.target.files?.[0]??null)} className="col-span-1 md:col-span-3" />
-            <div className="md:col-span-3 flex gap-2">
-              <Button> Aggiungi spesa </Button>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-lg font-medium">Gestione Spese</h3>
+            <div className="flex gap-2">
+              <Button onClick={() => { setShowExpenseModal(true) }}>Aggiungi spesa</Button>
               <Button onClick={loadExpenses} className="bg-gray-600">Ricarica</Button>
             </div>
-          </form>
+          </div>
 
-          <div className="mt-4">
+          <div className="mt-2">
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-neutral-500"><th>Data</th><th>Categoria</th><th>Importo</th><th>Ricevuta</th></tr>
@@ -312,6 +310,31 @@ export default function Reports() {
               </tbody>
             </table>
           </div>
+
+          <Modal isOpen={showExpenseModal} onClose={() => { setShowExpenseModal(false); setAmount(''); setCategory(''); setNotes(''); setReceiptFile(null) }} title="Aggiungi Spesa">
+            <form onSubmit={(e)=>{ createExpense(e); setShowExpenseModal(false); }} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Importo</label>
+                <input value={amount} onChange={(e)=>setAmount(e.target.value)} placeholder="Importo" className="w-full border px-2 py-1 rounded" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Categoria</label>
+                <input value={category} onChange={(e)=>setCategory(e.target.value)} placeholder="Categoria" className="w-full border px-2 py-1 rounded" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Note</label>
+                <input value={notes} onChange={(e)=>setNotes(e.target.value)} placeholder="Note" className="w-full border px-2 py-1 rounded" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Ricevuta (opzionale)</label>
+                <input type="file" onChange={(e:any)=>setReceiptFile(e.target.files?.[0]??null)} />
+              </div>
+              <div className="flex gap-2 justify-end">
+                <Button type="submit">Aggiungi spesa</Button>
+                <button type="button" onClick={() => { setShowExpenseModal(false); setAmount(''); setCategory(''); setNotes(''); setReceiptFile(null) }} className="px-3 py-1 rounded border">Annulla</button>
+              </div>
+            </form>
+          </Modal>
         </Card>
       )}
     </div>
