@@ -122,13 +122,13 @@ export default function Equipment() {
 
   return (
     <div className="mt-6">
-      <Card>
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-lg font-medium">Attrezzatura</h3>
-          <div className="flex gap-2">
-            <Button onClick={openAdd}>Aggiungi attrezzatura</Button>
-          </div>
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-lg font-medium">Attrezzatura</h3>
+        <div className="flex gap-2">
+          <Button onClick={openAdd}>Aggiungi attrezzatura</Button>
         </div>
+      </div>
+      <Card>
 
         {items.length === 0 && <p className="text-sm text-neutral-500">Nessun elemento</p>}
 

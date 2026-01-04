@@ -162,7 +162,7 @@ export default function Reports() {
           </div>
           <label className="flex items-center gap-2 text-sm">
             <input type="checkbox" checked={includeIva} onChange={(e)=>setIncludeIva(e.target.checked)} className="border rounded" />
-            Includi IVA nei calcoli del profitto
+            Escludi IVA
           </label>
         </div>
       </div>
