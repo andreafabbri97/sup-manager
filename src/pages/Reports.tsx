@@ -19,7 +19,11 @@ function toCSV(rows: any[], headers: string[]) {
 }
 
 export default function Reports() {
-  const [tab, setTab] = useState<'reports'|'admin'>('reports')
+  const [tab, setTab] = useState<'reports'|'admin'>(() => {
+    if (typeof window === 'undefined') return 'reports'
+    const v = window.localStorage.getItem('reports_tab')
+    return v === 'admin' ? 'admin' : 'reports'
+  })
   const [includeIva, setIncludeIva] = useState(true)
   const [start, setStart] = useState(() => { const d=new Date(); d.setDate(d.getDate()-30); return d.toISOString().slice(0,10) })
   const [end, setEnd] = useState(() => new Date().toISOString().slice(0,10))
@@ -48,6 +52,11 @@ export default function Reports() {
     window.addEventListener('settings:changed', onSettings as any)
     return () => window.removeEventListener('settings:changed', onSettings as any)
   }, [])
+
+  // Persist selected tab across page reloads
+  useEffect(() => {
+    try { window.localStorage.setItem('reports_tab', tab) } catch (e) {}
+  }, [tab])
 
   async function loadReports() {
     setLoading(true)
@@ -83,6 +92,12 @@ export default function Reports() {
     const { data } = await supabase.from('expense').select('*').order('date', { ascending: false }).limit(100)
     setExpenses(data ?? [])
   }
+
+  // If tab restored as 'admin' on load, ensure expenses are fetched
+  useEffect(() => {
+    if (tab === 'admin') loadExpenses()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   async function createExpense(e: React.FormEvent) {
     e.preventDefault()
