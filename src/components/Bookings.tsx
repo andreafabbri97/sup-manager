@@ -281,8 +281,11 @@ export default function Bookings() {
   // Calendar utilities
   function getWeekDays(date: Date) {
     const start = new Date(date)
-    start.setDate(start.getDate() - start.getDay() + 1) // Monday
-    return Array.from({length: 7}, (_, i) => {
+    // compute Monday of the week that contains `date` (Monday-first week)
+    // JS getDay(): 0 = Sunday, 1 = Monday, ...
+    const dayIndex = (start.getDay() + 6) % 7 // 0 = Monday, 6 = Sunday
+    start.setDate(start.getDate() - dayIndex)
+    return Array.from({ length: 7 }, (_, i) => {
       const d = new Date(start)
       d.setDate(start.getDate() + i)
       return d
