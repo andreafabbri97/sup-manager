@@ -52,6 +52,7 @@ export default function Reports() {
   const [ordersChangePct, setOrdersChangePct] = useState<number>(0)
   const [avgBookingsPerDay, setAvgBookingsPerDay] = useState<number>(0)
   const [avgRevenuePerDay, setAvgRevenuePerDay] = useState<number>(0)
+  const [avgBookingValue, setAvgBookingValue] = useState<number>(0)
 
   // Metrics
   const [ivaPercent, setIvaPercent] = useState<number>(22)
@@ -145,6 +146,7 @@ export default function Reports() {
 
     setAvgBookingsPerDay(days > 0 ? currentOrders / days : 0)
     setAvgRevenuePerDay(days > 0 ? currentRevenue / days : 0)
+    setAvgBookingValue(currentOrders > 0 ? currentRevenue / currentOrders : 0)
     const { data: s } = await supabase.rpc('report_margin', { start_date: start, end_date: end })
     setSummary(s ?? [])
 
@@ -415,7 +417,7 @@ export default function Reports() {
                   <div className="mt-2 space-y-2">
                     <div className="p-2 rounded bg-white/5 dark:bg-slate-800">
                       <div className="text-xs text-neutral-400">Valore medio prenotazione</div>
-                      <div className="font-medium text-lg">{avgRevenuePerDay.toFixed(2)} €</div>
+                      <div className="font-medium text-lg">{avgBookingValue.toFixed(2)} €</div>
                     </div>
                     <div className="p-2 rounded bg-white/5 dark:bg-slate-800">
                       <div className="text-xs text-neutral-400">Giorno migliore (ricavi)</div>
