@@ -1,7 +1,7 @@
 import React from 'react'
 import { useTheme } from '../lib/theme'
 
-export default function Sidebar({ onNav }: { onNav?: (page: string) => void }) {
+export default function Sidebar({ onNav, currentPage }: { onNav?: (page: string) => void; currentPage?: string }) {
   const { theme, toggle } = useTheme()
 
   const items = [
@@ -9,7 +9,8 @@ export default function Sidebar({ onNav }: { onNav?: (page: string) => void }) {
     { id: 'equipment', label: 'Attrezzatura' },
     { id: 'bookings', label: 'Prenotazioni' },
     { id: 'packages', label: 'Pacchetti' },
-    { id: 'expenses', label: 'Spese' }
+    { id: 'expenses', label: 'Spese' },
+    { id: 'reports', label: 'Reports' }
   ]
 
   return (
@@ -23,7 +24,7 @@ export default function Sidebar({ onNav }: { onNav?: (page: string) => void }) {
         {items.map((it) => (
           <button
             key={it.id}
-            className="w-full text-left px-3 py-2 rounded hover:bg-slate-100 dark:hover:bg-slate-800"
+            className={`w-full text-left px-3 py-2 rounded transition-colors ${currentPage===it.id ? 'bg-brand-500 text-white' : 'hover:bg-slate-100 dark:hover:bg-slate-800'}`}
             onClick={() => onNav?.(it.id)}
           >
             {it.label}
