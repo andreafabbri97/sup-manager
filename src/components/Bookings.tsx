@@ -776,13 +776,14 @@ export default function Bookings() {
             <div className="flex-1">
               <label className="block text-sm font-medium mb-1">Note (opzionale)</label>
               <textarea value={newNotes} onChange={(e)=>setNewNotes(e.target.value)} className="w-full border px-2 py-2 rounded" rows={2} />
-            </div>
-              <label className="inline-flex items-center gap-2">
-                <input type="checkbox" checked={newPaid} onChange={(e)=>setNewPaid(e.target.checked)} /> Pagata
-              </label>
-              <label className="inline-flex items-center gap-2 ml-4">
-                <input type="checkbox" checked={newInvoiced} onChange={(e)=>setNewInvoiced(e.target.checked)} /> Fatturata
-              </label>
+              <div className="mt-3 flex items-center gap-4">
+                <label className="inline-flex items-center gap-2">
+                  <input type="checkbox" checked={newPaid} onChange={(e)=>setNewPaid(e.target.checked)} /> Pagata
+                </label>
+                <label className="inline-flex items-center gap-2">
+                  <input type="checkbox" checked={newInvoiced} onChange={(e)=>setNewInvoiced(e.target.checked)} /> Fatturata
+                </label>
+              </div>
               {newInvoiced && (
                 <input value={newInvoiceNumber ?? ''} onChange={(e)=>setNewInvoiceNumber(e.target.value||null)} placeholder="Numero fattura (opzionale)" className="w-full border px-2 py-2 rounded mt-2" />
               )}
