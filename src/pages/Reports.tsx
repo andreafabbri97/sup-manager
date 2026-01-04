@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import Button from '../components/ui/Button'
 import Modal from '../components/ui/Modal'
@@ -60,6 +60,15 @@ export default function Reports() {
     if (typeof window === 'undefined') return new Date().toISOString().slice(0,10)
     return new Date().toISOString().slice(0,10)
   })
+
+  const handleCloseExpenseModal = useCallback(() => {
+    setShowExpenseModal(false)
+    setAmount('')
+    setCategory('')
+    setNotes('')
+    setReceiptFile(null)
+    setExpenseDate(new Date().toISOString().slice(0,10))
+  }, [])
 
   useEffect(() => { loadReports()
     const onSettings = () => loadReports()
@@ -348,7 +357,7 @@ export default function Reports() {
             </table>
           </div>
 
-          <Modal isOpen={showExpenseModal} onClose={() => { setShowExpenseModal(false); setAmount(''); setCategory(''); setNotes(''); setReceiptFile(null); setExpenseDate(new Date().toISOString().slice(0,10)) }} title="Aggiungi Spesa">
+          <Modal isOpen={showExpenseModal} onClose={handleCloseExpenseModal} title="Aggiungi Spesa">
             <form onSubmit={(e)=>{ createExpense(e); setShowExpenseModal(false); }} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-1">Importo</label>
