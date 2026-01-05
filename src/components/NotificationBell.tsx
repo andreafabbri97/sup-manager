@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import Card from './ui/Card'
+import Modal from './ui/Modal'
 
 type Notification = {
   id: string
