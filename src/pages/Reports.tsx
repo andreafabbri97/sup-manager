@@ -59,6 +59,7 @@ export default function Reports() {
   const [summary, setSummary] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
+  const [usedFallbackAggregation, setUsedFallbackAggregation] = useState(false)
 
   // advanced metrics
   const [prevRevenueSum, setPrevRevenueSum] = useState<number>(0)
@@ -120,6 +121,7 @@ export default function Reports() {
 
   async function loadReports() {
     setLoading(true)
+    setUsedFallbackAggregation(false)
     const { data: rev } = await supabase.rpc('report_revenue_by_equipment', { start_date: start, end_date: end })
     setRevByEquip(rev ?? [])
     const { data: d } = await supabase.rpc('report_daily_revenue', { start_date: start, end_date: end })
@@ -192,6 +194,71 @@ export default function Reports() {
       if ((!rev || (Array.isArray(rev) && rev.length === 0)) && topArr.length > 0) {
         const mapped = topArr.map((t:any) => ({ equipment: t.name, bookings_count: t.bookings_count, revenue: t.revenue }))
         setRevByEquip(mapped)
+      }
+
+      // Additional fallback: if both rev and top products are empty but there are bookings,
+      // aggregate from the bookings table as a best-effort fallback so users still see stats.
+      if ((!rev || (Array.isArray(rev) && rev.length === 0)) && topArr.length === 0) {
+        try {
+          const { data: bookings } = await supabase
+            .from('booking')
+            .select('id, price, package_id, package(name), equipment_items')
+            .gte('start_time', start)
+            .lte('start_time', end)
+
+          if (bookings && bookings.length > 0) {
+            // collect equipment ids referenced in bookings
+            const equipIds = new Set<any>()
+            bookings.forEach((b:any) => {
+              if (Array.isArray(b.equipment_items)) b.equipment_items.forEach((it:any) => equipIds.add(it.id))
+            })
+
+            // fetch equipment names for mapping
+            const equipmentMap: Record<string,string> = {}
+            if (equipIds.size > 0) {
+              const { data: equips } = await supabase.from('equipment').select('id, name').in('id', Array.from(equipIds))
+              (equips || []).forEach((e:any) => { equipmentMap[String(e.id)] = e.name })
+            }
+
+            // aggregate counts and revenue (distribute booking price across referenced items)
+            const prodMap: Record<string, { bookings_count: number, revenue: number }> = {}
+            for (const b of bookings) {
+              const price = Number(b.price ?? 0)
+              const pkgName = b.package?.name
+              const equipItems = Array.isArray(b.equipment_items) ? b.equipment_items : []
+
+              const itemsCount = (pkgName ? 1 : 0) + equipItems.reduce((s:any, it:any) => s + Number(it.quantity || 1), 0) || 1
+              const share = itemsCount > 0 ? price / itemsCount : 0
+
+              if (pkgName) {
+                const name = pkgName || 'Pacchetto'
+                prodMap[name] = prodMap[name] || { bookings_count: 0, revenue: 0 }
+                prodMap[name].bookings_count += 1
+                prodMap[name].revenue += share
+              }
+
+              // count each equipment as one booking occurrence (not multiplied by quantity) but revenue by qty
+              const seenEquip = new Set<any>()
+              for (const it of equipItems) {
+                const id = it.id
+                const qty = Number(it.quantity || 1)
+                const name = equipmentMap[String(id)] || `Attrezzatura ${id}`
+                prodMap[name] = prodMap[name] || { bookings_count: 0, revenue: 0 }
+                if (!seenEquip.has(id)) { prodMap[name].bookings_count += 1; seenEquip.add(id) }
+                prodMap[name].revenue += share * qty
+              }
+            }
+
+            const topFromBookings = Object.entries(prodMap).map(([name, v]) => ({ name, bookings_count: v.bookings_count, revenue: Number(v.revenue.toFixed(2)) }))
+            // set both topProducts and revByEquip so UI shows meaningful data
+            setTopProducts(topFromBookings.sort((a:any,b:any)=>b.revenue - a.revenue))
+            setRevByEquip(topFromBookings.map((t:any)=>({ equipment: t.name, bookings_count: t.bookings_count, revenue: t.revenue })))
+            setUsedFallbackAggregation(true)
+          }
+        } catch (err) {
+          // ignore and keep arrays empty
+          console.warn('Fallback aggregation from bookings failed', err)
+        }
       }
     } catch (e) { setTopProducts([]) }
 
@@ -407,6 +474,9 @@ export default function Reports() {
 
       {/* Top metrics (mobile scrollable) */}
       <div className="mb-4 sm:mb-6">
+          {usedFallbackAggregation && (
+            <div className="mb-2 text-sm text-amber-400">Dati derivati da aggregazione locale (fallback): alcuni report server non hanno restituito dati completi.</div>
+          )}
           <div className="flex flex-wrap gap-3 sm:gap-4 pb-2">
           <StatCard title="Entrate" value={revenueSum.toFixed(2) + ' €'} color="accent" />
           <StatCard title="Incasso/giorno" value={avgRevenuePerDay.toFixed(2) + ' €'} color="accent" />
