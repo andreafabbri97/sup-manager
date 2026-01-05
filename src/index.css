@@ -50,6 +50,10 @@
   @keyframes modalOpen { from { opacity: 0; transform: translateY(8px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
   .animate-modal-open { animation: modalOpen calc(var(--motion-duration) * 1.2) var(--motion-ease) both; }
 
+  /* slide up for mobile bottom-sheet (stronger motion) */
+  @keyframes slideUpSheet { from { opacity: 0; transform: translateY(100%); } to { opacity: 1; transform: translateY(0); } }
+  .animate-slide-up { animation: slideUpSheet calc(var(--motion-duration) * 1.8) var(--motion-ease) both; }
+
   /* reduced motion */
   @media (prefers-reduced-motion: reduce) {
     .animate-fade-up, .animate-modal-open, .card, .btn, .interactive { animation: none; transition: none; transform: none !important; }
