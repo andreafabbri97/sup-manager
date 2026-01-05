@@ -8,7 +8,7 @@ type Notification = {
   type: 'payment' | 'booking' | 'maintenance'
   message: string
   priority: 'high' | 'medium' | 'low'
-  date?: Date
+  date?: string | Date
   relatedId?: string
 }
 
@@ -160,7 +160,7 @@ export default function NotificationBell() {
       // 2. Pagamenti in sospeso
       const { data: unpaidBookings } = await supabase
         .from('booking')
-        .select('id, customer_name, price')
+        .select('id, customer_name, price, start_time')
         .eq('paid', false)
         .gte('start_time', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()) // ultimi 7 giorni
 
