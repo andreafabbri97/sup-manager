@@ -276,6 +276,8 @@ export default function NotificationBell() {
                     window.dispatchEvent(new CustomEvent('navigate:booking', { detail: { date: notif.date } }))
                   }
                   setShowPopup(false)
+                  setShowDetail(false)
+                  setSelected(null)
                 }}
                 title="Apri prenotazione"
                 className="p-2 rounded border bg-white/50 dark:bg-neutral-700/50 flex items-center justify-center"
