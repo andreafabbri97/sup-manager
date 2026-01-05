@@ -79,6 +79,8 @@ export default function Equipment() {
     setEditLastMaintenance((it as any).last_maintenance ? new Date((it as any).last_maintenance).toISOString().slice(0,10) : '')
     setEditNextMaintenance((it as any).next_maintenance ? new Date((it as any).next_maintenance).toISOString().slice(0,10) : '')
     setEditMaintenanceNotes((it as any).maintenance_notes || '')
+    // open the modal-based editor
+    setIsEditOpen(true)
   }
 
   async function saveEdit(){
@@ -133,10 +135,13 @@ export default function Equipment() {
   }
 
   const [isAddOpen, setIsAddOpen] = useState(false)
+  const [isEditOpen, setIsEditOpen] = useState(false)
 
-  // move creation form into modal; keep edit inline in cards
+  // move creation form into modal; open edit in modal (instead of inline)
   const openAdd = useCallback(() => { setIsAddOpen(true) }, [])
   const closeAdd = useCallback(() => { setIsAddOpen(false); setName(''); setQuantity(1); setType('SUP'); setPricePerHour('') }, [])
+  const openEdit = useCallback(() => setIsEditOpen(true), [])
+  const closeEdit = useCallback(() => { setIsEditOpen(false); setEditingId(null) }, [])
 
   return (
     <div className="mt-6">
@@ -153,34 +158,6 @@ export default function Equipment() {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           {items.map(it => (
             <Card key={it.id} className="flex flex-col justify-between hover:shadow-lg transition-shadow">
-              {editingId === it.id ? (
-                <div>
-                  <div className="mb-2">
-                    <input className="w-full border px-2 py-1 rounded mb-2 dark:bg-neutral-800" value={editName} onChange={(e)=>setEditName(e.target.value)} />
-                    <Listbox options={[{value:'SUP',label:'SUP'},{value:'Barca',label:'Barca'},{value:'Remo',label:'Remo'},{value:'Salvagente',label:'Salvagente'},{value:'Altro',label:'Altro'}]} value={editType} onChange={(v)=>setEditType(v ?? 'SUP')} />
-                    <input type="number" min={1} className="w-24 border px-2 py-1 rounded mb-2" value={editQuantity} onChange={(e)=>setEditQuantity(Number(e.target.value))} />
-                    <input type="number" step="0.01" className="w-36 border px-2 py-1 rounded mb-2" placeholder="Prezzo / ora (€)" value={editPricePerHour} onChange={(e)=>setEditPricePerHour(e.target.value)} />
-                    <Listbox options={[{value:'available',label:'available'},{value:'maintenance',label:'maintenance'},{value:'retired',label:'retired'}]} value={editStatus} onChange={(v)=>setEditStatus(v ?? 'available')} />
-                    <textarea className="w-full border px-2 py-1 rounded mb-2" rows={2} placeholder="Note" value={editNotes} onChange={(e)=>setEditNotes(e.target.value)} />
-                    
-                    <div className="border-t pt-2 mt-2">
-                      <label className="block text-xs font-medium mb-1">Ultima manutenzione</label>
-                      <input type="date" className="w-full border px-2 py-1 rounded mb-2 dark:bg-neutral-800" value={editLastMaintenance} onChange={(e)=>setEditLastMaintenance(e.target.value)} />
-                      
-                      <label className="block text-xs font-medium mb-1">Prossima manutenzione</label>
-                      <input type="date" className="w-full border px-2 py-1 rounded mb-2 dark:bg-neutral-800" value={editNextMaintenance} onChange={(e)=>setEditNextMaintenance(e.target.value)} />
-                      
-                      <label className="block text-xs font-medium mb-1">Note manutenzione</label>
-                      <textarea className="w-full border px-2 py-1 rounded" rows={2} placeholder="Dettagli manutenzione..." value={editMaintenanceNotes} onChange={(e)=>setEditMaintenanceNotes(e.target.value)} />
-                    </div>
-                  </div>
-
-                  <div className="flex gap-2 mt-3">
-                    <Button onClick={saveEdit} className="bg-green-600">Salva</Button>
-                    <button onClick={cancelEdit} type="button" className="px-3 py-1 rounded border">Annulla</button>
-                  </div>
-                </div>
-              ) : (
                 <>
                   <div>
                     <div className="font-medium text-lg">{it.name}</div>
@@ -209,7 +186,6 @@ export default function Equipment() {
                     <button onClick={()=>deleteItem(it.id)} className="px-3 py-1 rounded text-red-600 hover:bg-red-50 dark:hover:bg-red-900">Elimina</button>
                   </div>
                 </>
-              )}
             </Card>
           ))}
         </div>
@@ -223,6 +199,62 @@ export default function Equipment() {
           <input type="number" step="0.01" className="w-36 border px-2 py-1 rounded" placeholder="Prezzo / ora (€)" value={pricePerHour} onChange={(e)=>setPricePerHour(e.target.value)} />
           <Button> Aggiungi </Button>
         </form>
+      </Modal>
+
+      {/* Edit modal: move the inline edit into a modal for better UX */}
+      <Modal isOpen={isEditOpen} onClose={closeEdit} title={editingId ? 'Modifica Attrezzatura' : 'Modifica Attrezzatura'}>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">Nome</label>
+            <input className="w-full border px-2 py-1 rounded dark:bg-neutral-800" value={editName} onChange={(e)=>setEditName(e.target.value)} />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label className="block text-sm font-medium mb-1">Tipo</label>
+              <Listbox options={[{value:'SUP',label:'SUP'},{value:'Barca',label:'Barca'},{value:'Remo',label:'Remo'},{value:'Salvagente',label:'Salvagente'},{value:'Altro',label:'Altro'}]} value={editType} onChange={(v)=>setEditType(v ?? 'SUP')} />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Quantità</label>
+              <input type="number" min={1} className="w-full border px-2 py-1 rounded" value={editQuantity} onChange={(e)=>setEditQuantity(Number(e.target.value))} />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Prezzo / ora (€)</label>
+              <input type="number" step="0.01" className="w-full border px-2 py-1 rounded" value={editPricePerHour} onChange={(e)=>setEditPricePerHour(e.target.value)} />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Status</label>
+            <Listbox options={[{value:'available',label:'available'},{value:'maintenance',label:'maintenance'},{value:'retired',label:'retired'}]} value={editStatus} onChange={(v)=>setEditStatus(v ?? 'available')} />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Note</label>
+            <textarea className="w-full border px-2 py-1 rounded" rows={3} placeholder="Note" value={editNotes} onChange={(e)=>setEditNotes(e.target.value)} />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium mb-1">Ultima manutenzione</label>
+              <input type="date" className="w-full border px-2 py-1 rounded dark:bg-neutral-800" value={editLastMaintenance} onChange={(e)=>setEditLastMaintenance(e.target.value)} />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Prossima manutenzione</label>
+              <input type="date" className="w-full border px-2 py-1 rounded dark:bg-neutral-800" value={editNextMaintenance} onChange={(e)=>setEditNextMaintenance(e.target.value)} />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Note manutenzione</label>
+            <textarea className="w-full border px-2 py-1 rounded" rows={3} placeholder="Dettagli manutenzione..." value={editMaintenanceNotes} onChange={(e)=>setEditMaintenanceNotes(e.target.value)} />
+          </div>
+
+          <div className="flex gap-2 mt-3">
+            <Button onClick={() => { saveEdit(); closeEdit(); }} className="bg-green-600">Salva</Button>
+            <button onClick={() => { closeEdit(); }} type="button" className="px-3 py-1 rounded border">Annulla</button>
+          </div>
+        </div>
       </Modal>
     </div>
   )
