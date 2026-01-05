@@ -205,7 +205,7 @@ export default function Packages() {
                         onClick={() => handleEquipmentChange(eq.id, (selected?.quantity || 0) - 1)}
                         disabled={(selected?.quantity || 0) <= 0}
                         aria-disabled={(selected?.quantity || 0) <= 0}
-                        className={`w-8 h-8 rounded ${ (selected?.quantity || 0) <= 0 ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed' : 'bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600'}` }}
+                        className={(selected?.quantity || 0) <= 0 ? 'w-8 h-8 rounded bg-neutral-100 text-neutral-400 cursor-not-allowed' : 'w-8 h-8 rounded bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600'}
                       >
                         -
                       </button>
@@ -214,7 +214,7 @@ export default function Packages() {
                         onClick={() => handleEquipmentChange(eq.id, (selected?.quantity || 0) + 1)}
                         disabled={(selected?.quantity || 0) >= (eq.quantity ?? 1)}
                         aria-disabled={(selected?.quantity || 0) >= (eq.quantity ?? 1)}
-                        className={`w-8 h-8 rounded ${ (selected?.quantity || 0) >= (eq.quantity ?? 1) ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed' : 'bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600'}` }}
+                        className={(selected?.quantity || 0) >= (eq.quantity ?? 1) ? 'w-8 h-8 rounded bg-neutral-100 text-neutral-400 cursor-not-allowed' : 'w-8 h-8 rounded bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600'}
                       >
                         +
                       </button>
