@@ -14,9 +14,13 @@ interface ModalProps {
    * When true, on mobile the modal will appear as a dropdown below the trigger instead of a bottom-sheet.
    */
   mobileDropdown?: boolean
+  /**
+   * When true, on mobile the modal will use full screen height instead of 60vh.
+   */
+  fullScreenMobile?: boolean
 }
 
-export default function Modal({ isOpen, onClose, title, children, autoFocus = true, mobileDropdown = false }: ModalProps) {
+export default function Modal({ isOpen, onClose, title, children, autoFocus = true, mobileDropdown = false, fullScreenMobile = false }: ModalProps) {
   const dialogRef = useRef<HTMLDivElement | null>(null)
   const [isMobile, setIsMobile] = useState(false)
 
@@ -116,7 +120,7 @@ export default function Modal({ isOpen, onClose, title, children, autoFocus = tr
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className="bg-white dark:bg-slate-800 rounded-t-3xl sm:rounded-lg shadow-2xl w-full sm:max-w-2xl overflow-y-auto transform transition-transform duration-300 ease-out scale-100 sm:animate-modal-open animate-slide-up max-h-[60vh] sm:max-h-[calc(100svh-20px)] touch-manipulation"
+        className={`bg-white dark:bg-slate-800 rounded-t-3xl sm:rounded-lg shadow-2xl w-full sm:max-w-2xl overflow-y-auto transform transition-transform duration-300 ease-out scale-100 sm:animate-modal-open animate-slide-up ${isMobile && fullScreenMobile ? 'max-h-[100vh]' : 'max-h-[60vh]'} sm:max-h-[calc(100svh-20px)] touch-manipulation`}
         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
         onClick={(e) => e.stopPropagation()}
       >

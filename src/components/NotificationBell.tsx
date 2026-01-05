@@ -391,7 +391,7 @@ export default function NotificationBell() {
       )}
 
       {/* Notification detail modal */}
-      <Modal isOpen={showDetail} onClose={() => { setShowDetail(false); setSelected(null); }} title={selected ? 'Dettaglio notifica' : 'Dettaglio'}>
+      <Modal isOpen={showDetail} onClose={() => { setShowDetail(false); setSelected(null); }} title={selected ? 'Dettaglio notifica' : 'Dettaglio'} fullScreenMobile={true}>
         {selected && (
           <div className="space-y-4">
             <div className="text-sm text-neutral-700 dark:text-neutral-300">{selected.message}</div>
