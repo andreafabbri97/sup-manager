@@ -376,7 +376,16 @@ export default function Reports() {
           <input type="date" value={start} onChange={(e)=>setStart(e.target.value)} className="border px-2 py-1 rounded" />
           <label>A</label>
           <input type="date" value={end} onChange={(e)=>setEnd(e.target.value)} className="border px-2 py-1 rounded" />
-          <Button onClick={() => { if (tab === 'reports') loadReports(); else loadExpenses(start, end); }}>Aggiorna</Button>
+          <button
+            onClick={() => { if (tab === 'reports') loadReports(); else loadExpenses(start, end); }}
+            title="Aggiorna"
+            aria-label="Aggiorna"
+            className="ml-2 p-2 rounded hover:bg-neutral-100 dark:hover:bg-neutral-800 focus-ring"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v6h6M20 20v-6h-6M20 8a8 8 0 10-8 8" />
+            </svg>
+          </button>
         </div>
       </div>
 
