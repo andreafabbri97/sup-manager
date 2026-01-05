@@ -19,13 +19,26 @@ export default function NotificationBell() {
   const [readIds, setReadIds] = useState<string[]>(() => JSON.parse(localStorage.getItem('notifs:read') || '[]'))
   const [selected, setSelected] = useState<Notification | null>(null)
   const [showDetail, setShowDetail] = useState(false)
-  const [isMobile, setIsMobile] = useState<boolean>(typeof window !== 'undefined' ? window.innerWidth < 640 : false)
+  const [isMobile, setIsMobile] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false
+    try {
+      const mq = window.matchMedia('(max-width: 767.98px)')
+      return mq.matches || (navigator && (navigator.maxTouchPoints || ('ontouchstart' in window)))
+    } catch { return window.innerWidth < 768 }
+  })
 
   useEffect(() => {
     loadNotifications()
     // Ricarica ogni 5 minuti
     const interval = setInterval(loadNotifications, 300000)
-    const onResize = () => setIsMobile(window.innerWidth < 640)
+    const onResize = () => {
+      try {
+        const mq = window.matchMedia('(max-width: 767.98px)')
+        setIsMobile(mq.matches || (navigator && (navigator.maxTouchPoints || ('ontouchstart' in window))))
+      } catch {
+        setIsMobile(window.innerWidth < 768)
+      }
+    }
     window.addEventListener('resize', onResize)
     // initial set
     onResize()
@@ -318,7 +331,17 @@ export default function NotificationBell() {
   return (
     <div className="relative">
       <button
-        onClick={() => { const mobile = typeof window !== 'undefined' ? window.innerWidth < 640 : false; setIsMobile(mobile); setShowPopup(s => !s) }}
+        onClick={() => {
+            let mobile = false
+            try {
+              const mq = window.matchMedia('(max-width: 767.98px)')
+              mobile = mq.matches || (navigator && (navigator.maxTouchPoints || ('ontouchstart' in window)))
+            } catch {
+              mobile = typeof window !== 'undefined' ? window.innerWidth < 768 : false
+            }
+            setIsMobile(mobile)
+            setShowPopup(s => !s)
+          } }
         className="relative p-2 rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-800 transition"
         aria-label="Notifiche"
       >
