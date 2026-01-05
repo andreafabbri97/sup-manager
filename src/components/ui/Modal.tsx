@@ -125,10 +125,26 @@ export default function Modal({ isOpen, onClose, title, children, autoFocus = tr
     }
   }, [isOpen, fullScreenMobile, userExpanded])
 
+  const [isClosing, setIsClosing] = useState(false)
+  const closeAnimationDuration = 260
+
+  const requestClose = () => {
+    if (isClosing) return
+    // stop any drag/expanded state
+    setIsDragging(false)
+    setUserExpanded(false)
+    setIsClosing(true)
+    // allow the slide-down animation to play before invoking parent's onClose
+    setTimeout(() => {
+      setIsClosing(false)
+      onClose()
+    }, closeAnimationDuration)
+  }
+
   useEffect(() => {
     if (!isOpen) return
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
+      if (e.key === 'Escape') requestClose()
     }
     document.addEventListener('keydown', onKey)
     if (autoFocus) {
@@ -190,12 +206,12 @@ export default function Modal({ isOpen, onClose, title, children, autoFocus = tr
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className="absolute top-full right-0 mt-2 w-80 max-w-[95vw] bg-white dark:bg-slate-800 rounded-lg shadow-2xl z-50 overflow-y-auto max-h-[60vh] transform transition-transform duration-300 ease-out animate-fade-up transition-max-h animate-snap-pop"
+        className={`absolute top-full right-0 mt-2 w-80 max-w-[95vw] bg-white dark:bg-slate-800 rounded-lg shadow-2xl z-50 overflow-y-auto max-h-[60vh] transform transition-transform duration-300 ease-out animate-fade-up transition-max-h ${isClosing ? 'animate-slide-down' : 'animate-snap-pop'}`}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="sticky top-0 bg-white dark:bg-slate-800 border-b border-neutral-200 dark:border-neutral-700 px-4 py-3 flex items-center justify-between">
           <h3 className="text-lg font-semibold">{title}</h3>
-          <button onClick={onClose} aria-label="Chiudi" className="text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200 p-2 rounded focus:ring-2 focus:ring-amber-300">
+          <button onClick={requestClose} aria-label="Chiudi" className="text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200 p-2 rounded focus:ring-2 focus:ring-amber-300">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -207,13 +223,13 @@ export default function Modal({ isOpen, onClose, title, children, autoFocus = tr
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 sm:bg-black/40 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 sm:bg-black/40 backdrop-blur-sm" onClick={requestClose}>
       <div
         ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className={`bg-white dark:bg-slate-800 rounded-t-3xl sm:rounded-lg shadow-2xl w-full sm:max-w-2xl overflow-y-auto transform transition-transform duration-300 ease-out scale-100 sm:animate-modal-open animate-slide-up ${isMobile && fullScreenMobile ? 'max-h-[100vh]' : 'max-h-[60vh]'} sm:max-h-[calc(100svh-20px)] touch-manipulation`}
+        className={`bg-white dark:bg-slate-800 rounded-t-3xl sm:rounded-lg shadow-2xl w-full sm:max-w-2xl overflow-y-auto transform transition-transform duration-300 ease-out scale-100 sm:animate-modal-open ${isClosing ? 'animate-slide-down' : 'animate-slide-up'} ${isMobile && fullScreenMobile ? 'max-h-[100vh]' : 'max-h-[60vh]'} sm:max-h-[calc(100svh-20px)] touch-manipulation`}
         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -230,7 +246,7 @@ export default function Modal({ isOpen, onClose, title, children, autoFocus = tr
         </div>
 
         <div className="sticky top-0 bg-white dark:bg-slate-800 border-b border-neutral-200 dark:border-neutral-700 px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">          <h3 className="text-lg sm:text-xl font-semibold">{title}</h3>
-          <button onClick={onClose} aria-label="Chiudi" className="text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200 p-2 rounded focus:ring-2 focus:ring-amber-300">
+          <button onClick={requestClose} aria-label="Chiudi" className="text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200 p-2 rounded focus:ring-2 focus:ring-amber-300">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>

@@ -53,6 +53,9 @@
   /* slide up for mobile bottom-sheet (stronger motion) */
   @keyframes slideUpSheet { from { opacity: 0; transform: translateY(100%); } to { opacity: 1; transform: translateY(0); } }
   .animate-slide-up { animation: slideUpSheet calc(var(--motion-duration) * 1.8) var(--motion-ease) both; }
+  /* slide down to close */
+  @keyframes slideDownSheet { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(100%); } }
+  .animate-slide-down { animation: slideDownSheet calc(var(--motion-duration) * 1.2) var(--motion-ease) both; }
 
   /* snap transition for max-height (used when expanding/collapsing modals and dropdowns) */
   .transition-max-h { transition: max-height calc(var(--motion-duration) * 1.4) var(--motion-ease); }
