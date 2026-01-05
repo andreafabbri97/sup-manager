@@ -89,6 +89,8 @@ export default function Packages() {
     }
   }
 
+  const [expandedPackage, setExpandedPackage] = useState<string | null>(null)
+
   return (
     <section className="mt-6">
       <div className="flex items-center justify-between mb-4">
@@ -103,29 +105,48 @@ export default function Packages() {
         {packages.map((p) => (
           <div key={p.id} className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-neutral-200 dark:border-neutral-700 p-4 hover:shadow-lg transition-shadow">
             <div className="flex items-start justify-between mb-2">
-              <div className="font-semibold text-lg">{p.name}</div>
+              <div className="font-semibold text-lg truncate max-w-[60%]">{p.name}</div>
               <div className="flex items-center gap-2">
-                <button onClick={() => { setEditPackage(p); setName(p.name || ''); setPrice(String(p.price ?? '')); setDuration(String(p.duration ?? '60')); setSelectedEquipment((p.equipment_items || []).map((it:any)=>({id: it.id, quantity: it.quantity || 1}))); setShowModal(true) }} className="text-sm px-2 py-1 rounded border">Modifica</button>
-                <button onClick={() => remove(p.id)} className="text-red-500 hover:text-red-600 text-sm">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                </button>
+                <div className="text-2xl font-bold text-amber-500">€ {Number(p.price).toFixed(2)}</div>
               </div>
             </div>
-            <div className="text-2xl font-bold text-amber-500 mb-2">€ {Number(p.price).toFixed(2)}</div>
-            {p.duration && <div className="text-sm text-neutral-500 dark:text-neutral-400">Durata: {p.duration} min</div>}
-            {p.equipment_items && Array.isArray(p.equipment_items) && p.equipment_items.length > 0 && (
-              <div className="mt-3 text-sm">
-                <div className="font-medium text-neutral-600 dark:text-neutral-300 mb-1">Include:</div>
-                <ul className="space-y-1">
-                  {p.equipment_items.slice(0,3).map((item: any, idx: number) => {
-                    const eq = equipment.find(e => e.id === item.id)
-                    return <li key={idx} className="text-neutral-500 dark:text-neutral-400">• {item.quantity}x {eq?.name || 'Attrezzatura'}</li>
-                  })}
-                  {p.equipment_items.length > 3 && <li className="text-neutral-400">… e {p.equipment_items.length - 3} altri</li>}
-                </ul>
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-sm text-neutral-500 dark:text-neutral-400">{p.duration ? `${p.duration} min` : ''}</div>
+              <div className="flex items-center gap-2">
+                <button onClick={() => { setEditPackage(p); setName(p.name || ''); setPrice(String(p.price ?? '')); setDuration(String(p.duration ?? '60')); setSelectedEquipment((p.equipment_items || []).map((it:any)=>({id: it.id, quantity: it.quantity || 1}))); setShowModal(true) }} className="text-sm px-2 py-1 rounded border">Modifica</button>
+                <button onClick={() => remove(p.id)} className="text-red-500 hover:text-red-600 text-sm">Elimina</button>
               </div>
+            </div>
+
+            {/* include list: hidden on small screens, show summary + toggle */}
+            {p.equipment_items && Array.isArray(p.equipment_items) && p.equipment_items.length > 0 && (
+              <>
+                <div className="hidden sm:block mt-3 text-sm">
+                  <div className="font-medium text-neutral-600 dark:text-neutral-300 mb-1">Include:</div>
+                  <ul className="space-y-1">
+                    {p.equipment_items.slice(0,3).map((item: any, idx: number) => {
+                      const eq = equipment.find(e => e.id === item.id)
+                      return <li key={idx} className="text-neutral-500 dark:text-neutral-400">• {item.quantity}x {eq?.name || 'Attrezzatura'}</li>
+                    })}
+                    {p.equipment_items.length > 3 && <li className="text-neutral-400">… e {p.equipment_items.length - 3} altri</li>}
+                  </ul>
+                </div>
+
+                <div className="sm:hidden mt-3">
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm text-neutral-500">Include: {p.equipment_items.length} elementi</div>
+                    <button onClick={() => setExpandedPackage(expandedPackage === p.id ? null : p.id)} className="text-sm px-2 py-1 rounded border">{expandedPackage === p.id ? 'Nascondi' : 'Mostra'}</button>
+                  </div>
+                  {expandedPackage === p.id && (
+                    <ul className="mt-2 space-y-1 text-sm">
+                      {p.equipment_items.map((item: any, idx: number) => {
+                        const eq = equipment.find(e => e.id === item.id)
+                        return <li key={idx} className="text-neutral-500 dark:text-neutral-400">• {item.quantity}x {eq?.name || 'Attrezzatura'}</li>
+                      })}
+                    </ul>
+                  )}
+                </div>
+              </>
             )}
           </div>
         ))}
@@ -184,7 +205,7 @@ export default function Packages() {
                         onClick={() => handleEquipmentChange(eq.id, (selected?.quantity || 0) - 1)}
                         disabled={(selected?.quantity || 0) <= 0}
                         aria-disabled={(selected?.quantity || 0) <= 0}
-                        className={`w-6 h-6 rounded ${ (selected?.quantity || 0) <= 0 ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed' : 'bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600'}`}
+                        className={`w-8 h-8 rounded ${ (selected?.quantity || 0) <= 0 ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed' : 'bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600'}` }}
                       >
                         -
                       </button>
@@ -193,7 +214,7 @@ export default function Packages() {
                         onClick={() => handleEquipmentChange(eq.id, (selected?.quantity || 0) + 1)}
                         disabled={(selected?.quantity || 0) >= (eq.quantity ?? 1)}
                         aria-disabled={(selected?.quantity || 0) >= (eq.quantity ?? 1)}
-                        className={`w-6 h-6 rounded ${ (selected?.quantity || 0) >= (eq.quantity ?? 1) ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed' : 'bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600'}`}
+                        className={`w-8 h-8 rounded ${ (selected?.quantity || 0) >= (eq.quantity ?? 1) ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed' : 'bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600'}` }}
                       >
                         +
                       </button>

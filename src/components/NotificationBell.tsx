@@ -15,6 +15,9 @@ export default function NotificationBell() {
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [showPopup, setShowPopup] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [readIds, setReadIds] = useState<string[]>(() => JSON.parse(localStorage.getItem('notifs:read') || '[]'))
+  const [selected, setSelected] = useState<Notification | null>(null)
+  const [showDetail, setShowDetail] = useState(false)
 
   useEffect(() => {
     loadNotifications()
@@ -22,6 +25,100 @@ export default function NotificationBell() {
     const interval = setInterval(loadNotifications, 300000)
     return () => clearInterval(interval)
   }, [])
+
+  // --- Details components ---
+  function BookingDetails() {
+    const [items, setItems] = useState<any[] | null>(null)
+    useEffect(() => {
+      let cancelled = false
+      async function load() {
+        const today = new Date()
+        today.setHours(0,0,0,0)
+        const tomorrow = new Date(today)
+        tomorrow.setDate(tomorrow.getDate() + 1)
+        const { data } = await supabase.from('booking').select('*').gte('start_time', today.toISOString()).lt('start_time', tomorrow.toISOString())
+        if (cancelled) return
+        setItems(data || [])
+      }
+      load()
+      return () => { cancelled = true }
+    }, [])
+    if (!items) return <div>Caricamento dettagli...</div>
+    if (items.length === 0) return <div>Nessuna prenotazione trovata per oggi.</div>
+    return (
+      <div className="space-y-2">
+        {items.map(it => (
+          <div key={it.id} className="p-2 border rounded">
+            <div className="font-medium">{it.customer_name || 'Cliente'}</div>
+            <div className="text-xs text-neutral-500">{new Date(it.start_time).toLocaleString('it-IT')} — {it.invoice_number ? `#${it.invoice_number}` : ''}</div>
+            <div className="mt-2 flex gap-2">
+              <button onClick={() => { navigator.clipboard.writeText(it.id); alert('ID prenotazione copiato') }} className="px-2 py-1 rounded border text-sm">Copia ID</button>
+            </div>
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  function PaymentDetails() {
+    const [items, setItems] = useState<any[] | null>(null)
+    useEffect(() => {
+      let cancelled = false
+      async function load() {
+        const { data } = await supabase.from('booking').select('*').eq('paid', false).gte('start_time', new Date(Date.now() - 7*24*60*60*1000).toISOString())
+        if (cancelled) return
+        setItems(data || [])
+      }
+      load()
+      return () => { cancelled = true }
+    }, [])
+    if (!items) return <div>Caricamento dettagli...</div>
+    if (items.length === 0) return <div>Nessun pagamento in sospeso.</div>
+    return (
+      <div className="space-y-2">
+        {items.map(it => (
+          <div key={it.id} className="p-2 border rounded">
+            <div className="font-medium">{it.customer_name || 'Cliente'}</div>
+            <div className="text-xs text-neutral-500">€ {Number(it.price || 0).toFixed(2)} — {new Date(it.start_time).toLocaleDateString('it-IT')}</div>
+            <div className="mt-2 flex gap-2">
+              <button onClick={async ()=>{ const { error } = await supabase.from('booking').update({ paid: true, paid_at: new Date().toISOString() }).eq('id', it.id); if (error) alert(error.message); else { alert('Segnata come pagata'); loadNotifications() } }} className="px-2 py-1 rounded border text-sm">Segna pagata</button>
+            </div>
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  function MaintenanceDetails() {
+    const [items, setItems] = useState<any[] | null>(null)
+    useEffect(() => {
+      let cancelled = false
+      async function load() {
+        const nextWeek = new Date()
+        nextWeek.setDate(nextWeek.getDate() + 7)
+        const { data } = await supabase.from('equipment').select('*').not('next_maintenance','is',null).lte('next_maintenance', nextWeek.toISOString())
+        if (cancelled) return
+        setItems(data || [])
+      }
+      load()
+      return () => { cancelled = true }
+    }, [])
+    if (!items) return <div>Caricamento dettagli...</div>
+    if (items.length === 0) return <div>Nessuna attrezzatura da manutenere.</div>
+    return (
+      <div className="space-y-2">
+        {items.map(it => (
+          <div key={it.id} className="p-2 border rounded">
+            <div className="font-medium">{it.name}</div>
+            <div className="text-xs text-neutral-500">Prossima manutenzione: {it.next_maintenance ? new Date(it.next_maintenance).toLocaleDateString('it-IT') : '—'}</div>
+            <div className="mt-2 flex gap-2">
+              <button onClick={async ()=>{ const { error } = await supabase.from('equipment').update({ next_maintenance: null }).eq('id', it.id); if (error) alert(error.message); else { alert('Segnata manutenzione come completata'); loadNotifications() } }} className="px-2 py-1 rounded border text-sm">Segna completata</button>
+            </div>
+          </div>
+        ))}
+      </div>
+    )
+  }
 
   async function loadNotifications() {
     setLoading(true)
@@ -92,7 +189,7 @@ export default function NotificationBell() {
     setLoading(false)
   }
 
-  const highPriorityCount = notifications.filter((n) => n.priority === 'high').length
+  const unreadCount = notifications.filter((n) => !readIds.includes(n.id)).length
 
   return (
     <div className="relative">
@@ -109,9 +206,9 @@ export default function NotificationBell() {
             d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
           />
         </svg>
-        {notifications.length > 0 && (
+        {unreadCount > 0 && (
           <span className="absolute top-0 right-0 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white font-bold">
-            {notifications.length > 9 ? '9+' : notifications.length}
+            {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
       </button>
@@ -178,6 +275,11 @@ export default function NotificationBell() {
                       </span>
                     )}
                   </div>
+                  <div className="flex items-center gap-2 ml-2">
+                    <button onClick={() => { setSelected(notif); setShowDetail(true); }} className="text-sm px-2 py-1 rounded border">Dettagli</button>
+                    <button onClick={() => { const ids = readIds.includes(notif.id) ? readIds.filter(i => i !== notif.id) : [...readIds, notif.id]; setReadIds(ids); localStorage.setItem('notifs:read', JSON.stringify(ids)); }} className="text-sm px-2 py-1 rounded border">{readIds.includes(notif.id) ? 'Segna non letto' : 'Segna come letto'}</button>
+                    <button onClick={() => { setNotifications(ns => ns.filter(n => n.id !== notif.id)); if (readIds.includes(notif.id)) { const ids = readIds.filter(i => i !== notif.id); setReadIds(ids); localStorage.setItem('notifs:read', JSON.stringify(ids)); } }} className="text-sm px-2 py-1 rounded text-red-600">Elimina</button>
+                  </div>
                 </div>
               </div>
             ))}
@@ -193,6 +295,30 @@ export default function NotificationBell() {
           </div>
         </Card>
       )}
+
+      {/* Notification detail modal */}
+      <Modal isOpen={showDetail} onClose={() => { setShowDetail(false); setSelected(null); }} title={selected ? 'Dettaglio notifica' : 'Dettaglio'}>
+        {selected && (
+          <div className="space-y-4">
+            <div className="text-sm text-neutral-700 dark:text-neutral-300">{selected.message}</div>
+            <div>
+              {selected.type === 'booking' && (
+                <BookingDetails />
+              )}
+              {selected.type === 'payment' && (
+                <PaymentDetails />
+              )}
+              {selected.type === 'maintenance' && (
+                <MaintenanceDetails />
+              )}
+            </div>
+            <div className="flex gap-2">
+              <button onClick={() => { const ids = [...readIds.filter(i => i !== selected.id), selected.id]; setReadIds(ids); localStorage.setItem('notifs:read', JSON.stringify(ids)); }} className="px-3 py-1 rounded border">Segna come letto</button>
+              <button onClick={() => { setNotifications(ns => ns.filter(n => n.id !== selected.id)); setShowDetail(false); setSelected(null); }} className="px-3 py-1 rounded text-red-600">Elimina</button>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   )
 }
