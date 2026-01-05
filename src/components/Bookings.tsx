@@ -578,28 +578,30 @@ export default function Bookings() {
                       </div>
                       <div className="mt-1 text-sm text-neutral-600 dark:text-neutral-300">{b.notes ? (b.notes.length > 100 ? b.notes.slice(0,100) + '…' : b.notes) : ''}</div>
                       <div className="mt-1 flex items-center gap-2 text-sm">
-                        {b.price && <div className="text-amber-600 dark:text-amber-300 font-semibold">€ {Number(b.price).toFixed(2)}</div>}
                         <div className="text-neutral-500">{equipmentLabel(b)}</div>
                         <div className="text-neutral-500">Durata: {Math.round((new Date(b.end_time).getTime() - new Date(b.start_time).getTime())/60000)}m</div>
                         {b.invoice_number && <div className="px-2 py-0.5 bg-neutral-100 dark:bg-neutral-700 rounded text-xs">#{b.invoice_number}</div>}
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      {!b.paid && (
-                        <button onClick={(e)=>{ e.stopPropagation(); markPaid(b.id) }} className="text-green-600 hover:text-green-700 p-1 focus-ring" title="Registra incasso">
+                    <div className="flex flex-col items-end gap-2">
+                      {b.price && <div className="text-amber-500 dark:text-amber-300 font-bold text-lg whitespace-nowrap">€ {Number(b.price).toFixed(2)}</div>}
+                      <div className="flex items-center gap-2">
+                        {!b.paid && (
+                          <button onClick={(e)=>{ e.stopPropagation(); markPaid(b.id) }} className="text-green-600 hover:text-green-700 p-1 focus-ring" title="Registra incasso">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                          </button>
+                        )}
+                        {b.paid && <div className="text-sm text-green-600 font-semibold">Pagato</div>}
+                        {b.invoiced && <div className="text-sm text-blue-600 font-semibold">Fatturato</div>}
+                        <button onClick={(e)=>{ e.stopPropagation(); removeBooking(b.id) }} className="text-red-500 hover:text-red-600 p-1 focus-ring" title="Elimina">
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                           </svg>
                         </button>
-                      )}
-                      {b.paid && <div className="text-sm text-green-600 font-semibold">Pagato</div>}
-                      {b.invoiced && <div className="text-sm text-blue-600 font-semibold">Fatturato</div>}
-                      <button onClick={(e)=>{ e.stopPropagation(); removeBooking(b.id) }} className="text-red-500 hover:text-red-600 p-1 focus-ring" title="Elimina">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                      </button>
+                      </div>
                     </div>
                   </div>
                 </button>
