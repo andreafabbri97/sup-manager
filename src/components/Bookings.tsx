@@ -636,7 +636,7 @@ export default function Bookings() {
                 <button key={b.id} title={bookingTitle(b)} onClick={() => { setSelectedBooking(b); setShowBookingDetails(true) }} className={`w-full text-left p-4 rounded-md border border-neutral-200 dark:border-neutral-700 bg-amber-50/70 dark:bg-neutral-800/60 interactive ${statusClass(b)} min-h-[56px] sm:min-h-[48px]`}>
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-start justify-between">
                         <div className="font-medium truncate text-neutral-900 dark:text-neutral-100 text-lg sm:text-base">{b.customer_name || 'Cliente'}</div>
                         <div className="text-sm text-neutral-500">{formatTimeRange(b)}</div>
                       </div>
@@ -770,7 +770,7 @@ export default function Bookings() {
                       <div className="space-y-1">
                         {dayBookings.slice(0, 2).map(b => (
                           <Card as="button" key={b.id} title={bookingTitle(b)} onClick={() => { setSelectedBooking(b); setShowBookingDetails(true) }} className={`w-full text-left text-xs p-2 rounded bg-amber-100 dark:bg-amber-900/30 truncate ${statusClass(b)} interactive`}>
-                            <div className="flex items-center justify-between">
+                            <div className="flex items-start justify-between">
                               <div className="truncate">{new Date(b.start_time).toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'})} — {b.customer_name || 'Cliente'}</div>
                               <div className="flex items-center gap-2">
                                 <div className="text-amber-600 text-xs">{b.price ? `€ ${Number(b.price).toFixed(2)}` : ''}</div>
