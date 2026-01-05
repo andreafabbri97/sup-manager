@@ -186,7 +186,13 @@ export default function Reports() {
     // top products
     try {
       const { data: top } = await supabase.rpc('report_top_products', { start_date: start, end_date: end, p_limit: 10 })
-      setTopProducts(top ?? [])
+      const topArr = top ?? []
+      setTopProducts(topArr)
+      // Fallback: if revenue-by-equipment returned no rows, use top products data (merge equipment + packages)
+      if ((!rev || (Array.isArray(rev) && rev.length === 0)) && topArr.length > 0) {
+        const mapped = topArr.map((t:any) => ({ equipment: t.name, bookings_count: t.bookings_count, revenue: t.revenue }))
+        setRevByEquip(mapped)
+      }
     } catch (e) { setTopProducts([]) }
 
     setLoading(false)
