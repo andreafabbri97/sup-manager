@@ -73,7 +73,7 @@ export default function Bookings() {
       const qty = Number(it.quantity || 1)
       return qty > 1 ? `${qty}x ${name}` : name
     }
-    return items.map(it => {
+    return items.map((it: any) => {
       const eq = equipment.find(e => e.id === it.id)
       const name = eq?.name || 'Attrezzatura'
       const qty = Number(it.quantity || 1)
