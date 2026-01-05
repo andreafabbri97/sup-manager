@@ -205,9 +205,9 @@ export default function Reports() {
   // If tab restored as 'admin' on load, ensure expenses are fetched
 
   useEffect(() => {
-    if (tab === 'admin') { loadExpenses() }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+    // when switching to admin (or when date filters change) load expenses for the selected period
+    if (tab === 'admin') { loadExpenses(start, end) }
+  }, [tab, start, end])
 
 
 
@@ -369,18 +369,16 @@ export default function Reports() {
         </div>
       </div>
 
-      {tab === 'reports' && (
-        <div className="mb-4">
-          <div className="flex gap-2 items-center flex-wrap">
-            <label>Da</label>
-            <input type="date" value={start} onChange={(e)=>setStart(e.target.value)} className="border px-2 py-1 rounded" />
-            <label>A</label>
-            <input type="date" value={end} onChange={(e)=>setEnd(e.target.value)} className="border px-2 py-1 rounded" />
-            <Button onClick={loadReports}>Aggiorna</Button>
-            <Button onClick={()=>downloadCSV(revByEquip,'revenue-by-equipment.csv')}>Export CSV</Button>
-          </div>
+      {/* Date filters (applied to both Reports and Admin) */}
+      <div className="mb-4">
+        <div className="flex gap-2 items-center flex-wrap">
+          <label>Da</label>
+          <input type="date" value={start} onChange={(e)=>setStart(e.target.value)} className="border px-2 py-1 rounded" />
+          <label>A</label>
+          <input type="date" value={end} onChange={(e)=>setEnd(e.target.value)} className="border px-2 py-1 rounded" />
+          <Button onClick={() => { if (tab === 'reports') loadReports(); else loadExpenses(start, end); }}>Aggiorna</Button>
         </div>
-      )}
+      </div>
 
       {/* Top metrics (mobile scrollable) */}
       <div className="mb-4 sm:mb-6">
