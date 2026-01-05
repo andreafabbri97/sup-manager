@@ -95,25 +95,38 @@ export default function Archive() {
       </div>
 
       <Card>
-        <div className={`flex gap-2 items-center mb-3 flex-wrap ${!showFiltersMobile ? 'hidden sm:flex' : ''}`}>
-          <div className="flex items-center gap-2"><label className="text-sm">Da</label><input type="date" value={start} onChange={(e)=>setStart(e.target.value)} className="border px-2 py-1 rounded w-32"/></div>
-          <div className="flex items-center gap-2"><label className="text-sm">A</label><input type="date" value={end} onChange={(e)=>setEnd(e.target.value)} className="border px-2 py-1 rounded w-32"/></div>
-          <div>
-            <select value={invoicedFilter} onChange={(e)=>setInvoicedFilter(e.target.value as any)} className="border px-2 py-1 rounded w-36">
-              <option value="all">Tutte</option>
-              <option value="yes">Fatturate</option>
-              <option value="no">Non fatturate</option>
-            </select>
+        <div className={`${!showFiltersMobile ? 'hidden sm:block' : ''} mb-3`}>
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center sm:gap-3">
+            <div className="flex items-center gap-2">
+              <label className="text-sm">Da</label>
+              <input type="date" value={start} onChange={(e)=>setStart(e.target.value)} className="border px-2 py-1 rounded w-full max-w-[220px]"/>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <label className="text-sm">A</label>
+              <input type="date" value={end} onChange={(e)=>setEnd(e.target.value)} className="border px-2 py-1 rounded w-full max-w-[220px]"/>
+            </div>
+
+            <div className="col-span-2 sm:col-auto">
+              <div className="grid grid-cols-2 gap-2 sm:flex sm:gap-2">
+                <select value={invoicedFilter} onChange={(e)=>setInvoicedFilter(e.target.value as any)} className="w-full border px-2 py-1 rounded">
+                  <option value="all">Tutte</option>
+                  <option value="yes">Fatturate</option>
+                  <option value="no">Non fatturate</option>
+                </select>
+                <select value={paidFilter} onChange={(e)=>setPaidFilter(e.target.value as any)} className="w-full border px-2 py-1 rounded">
+                  <option value="all">Tutti</option>
+                  <option value="yes">Pagati</option>
+                  <option value="no">Non pagati</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="col-span-2 grid grid-cols-2 gap-2">
+              <input placeholder="Cliente..." value={qCustomer} onChange={(e)=>setQCustomer(e.target.value)} className="border px-2 py-1 rounded w-full" />
+              <input placeholder="Nr fattura" value={qInvoice} onChange={(e)=>setQInvoice(e.target.value)} className="border px-2 py-1 rounded w-full" />
+            </div>
           </div>
-          <div>
-            <select value={paidFilter} onChange={(e)=>setPaidFilter(e.target.value as any)} className="border px-2 py-1 rounded w-36">
-              <option value="all">Tutti</option>
-              <option value="yes">Pagati</option>
-              <option value="no">Non pagati</option>
-            </select>
-          </div>
-          <input placeholder="Cliente..." value={qCustomer} onChange={(e)=>setQCustomer(e.target.value)} className="border px-2 py-1 rounded flex-1 min-w-0" />
-          <input placeholder="Nr fattura" value={qInvoice} onChange={(e)=>setQInvoice(e.target.value)} className="border px-2 py-1 rounded w-36" />
         </div>
 
         {/* Mobile stacked list */}
