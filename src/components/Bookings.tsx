@@ -578,8 +578,7 @@ export default function Bookings() {
                       </div>
                       <div className="mt-1 text-sm text-neutral-600 dark:text-neutral-300">{b.notes ? (b.notes.length > 100 ? b.notes.slice(0,100) + '…' : b.notes) : ''}</div>
                       <div className="mt-1 flex items-center gap-2 text-sm">
-                        <div className="text-neutral-500">{equipmentLabel(b)}</div>
-                        <div className="text-neutral-500">Durata: {Math.round((new Date(b.end_time).getTime() - new Date(b.start_time).getTime())/60000)}m</div>
+                        <div className="px-2 py-0.5 bg-neutral-100 dark:bg-neutral-700 rounded text-sm font-medium text-neutral-700 dark:text-neutral-200">{equipmentLabel(b)}</div>
                         {b.invoice_number && <div className="px-2 py-0.5 bg-neutral-100 dark:bg-neutral-700 rounded text-xs">#{b.invoice_number}</div>}
                       </div>
                     </div>
