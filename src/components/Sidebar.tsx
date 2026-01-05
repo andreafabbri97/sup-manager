@@ -156,7 +156,7 @@ export default function Sidebar({ onNav, currentPage }: { onNav?: (page: string)
       <aside
         id="sidebar"
         ref={(el) => (sidebarRef.current = el)}
-        className={`fixed z-50 top-0 left-0 h-full ${collapsed ? 'w-20' : 'w-64'} bg-neutral-50 dark:bg-neutral-900 border-r dark:border-neutral-800 p-4 transform transition-all duration-200 ${mobileOpen ? 'translate-x-0' : '-translate-x-full'} lg:sticky lg:top-0 lg:h-screen lg:translate-x-0 lg:block overflow-hidden`}
+        className={`fixed z-50 top-0 left-0 h-full ${collapsed ? 'w-20' : 'w-64'} bg-neutral-50 dark:bg-neutral-900 border-r dark:border-neutral-800 p-4 transform transition-all duration-200 ${mobileOpen ? 'translate-x-0' : '-translate-x-full'} lg:sticky lg:top-0 lg:h-screen lg:translate-x-0 lg:block overflow-hidden flex flex-col`}
         aria-hidden={!mobileOpen}
       >
         <div className={`mb-6 flex items-center ${collapsed ? 'justify-center' : 'justify-between'}`}>
@@ -183,7 +183,7 @@ export default function Sidebar({ onNav, currentPage }: { onNav?: (page: string)
           </div>
         </div>
 
-        <nav className="space-y-1" aria-label="Main navigation">
+        <nav className="space-y-1 flex-1 overflow-auto" aria-label="Main navigation">
           {items.map((it) => {
             const active = currentPage === it.id
             return (
@@ -199,7 +199,7 @@ export default function Sidebar({ onNav, currentPage }: { onNav?: (page: string)
           })}
         </nav>
 
-        <div className={`mt-6 ${collapsed ? 'text-center' : ''}`}>
+        <div className={`mt-auto ${collapsed ? 'text-center' : ''}`}>
           <button onClick={() => toggle()} className={`px-3 py-2 bg-sky-600 text-white rounded ${collapsed ? 'w-10 mx-auto' : 'w-full'}`}>
             {collapsed ? (theme === 'light' ? 'C' : 'S') : `Tema: ${theme === 'light' ? 'Chiaro' : 'Scuro'}`}
           </button>
