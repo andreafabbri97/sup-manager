@@ -156,7 +156,7 @@ export default function Sidebar({ onNav, currentPage }: { onNav?: (page: string)
       <aside
         id="sidebar"
         ref={(el) => (sidebarRef.current = el)}
-        className={`fixed z-50 top-0 left-0 h-full ${collapsed ? 'w-20' : 'w-64'} bg-neutral-50 dark:bg-neutral-900 border-r dark:border-neutral-800 p-4 transform transition-all duration-200 ${mobileOpen ? 'translate-x-0' : '-translate-x-full'} lg:sticky lg:top-0 lg:h-screen lg:translate-x-0 lg:block overflow-hidden flex flex-col`}
+        className={`fixed z-50 top-0 left-0 h-full ${collapsed ? 'w-20' : 'w-64'} bg-neutral-50 dark:bg-neutral-900 border-r dark:border-neutral-800 p-4 transform transition-all duration-200 ${mobileOpen ? 'translate-x-0' : '-translate-x-full'} lg:sticky lg:top-0 lg:h-screen lg:translate-x-0 overflow-hidden flex flex-col lg:flex lg:flex-col`}
         aria-hidden={!mobileOpen}
       >
         <div className={`mb-6 flex items-center ${collapsed ? 'justify-center' : 'justify-between'}`}>
