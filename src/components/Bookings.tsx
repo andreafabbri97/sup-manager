@@ -225,6 +225,11 @@ export default function Bookings() {
 
     const map: Record<string, number> = {}
     for (const eq of equipment) {
+      // If equipment status is not 'available', consider availability 0
+      if (eq?.status && eq.status !== 'available') {
+        map[eq.id] = 0
+        continue
+      }
       const total = Number(eq.quantity ?? 1)
       let booked = 0
       for (const b of bookings) {
@@ -355,6 +360,9 @@ export default function Bookings() {
 
     for (const item of itemsToCheck) {
       const eq = equipment.find(e => e.id === item.id)
+      // block if equipment status is not available
+      if (eq?.status && eq.status !== 'available') return alert(`Attenzione: ${eq?.name || 'attrezzatura'} non è disponibile per le prenotazioni (status: ${eq.status}).`)
+
       const totalQty = eq?.quantity != null ? Number(eq.quantity) : 1
       let bookedQty = 0
 
@@ -821,27 +829,32 @@ export default function Bookings() {
             <div className="space-y-2 max-h-64 overflow-y-auto border border-neutral-200 dark:border-neutral-700 rounded p-3">
               {equipment.map((eq) => {
                 const selected = selectedEquipment.find(e => e.id === eq.id)
+                const isAvailable = !(eq?.status && eq.status !== 'available')
+                const availCount = isAvailable ? (availabilityMap[eq.id] ?? (eq.quantity ?? 1)) : 0
                 return (
-                  <div key={eq.id} className="flex items-center justify-between">
-                    <div>
-                      <div className="text-sm font-medium">{eq.name}</div>
-                      <div className="text-xs text-neutral-400">€ {eq.price_per_hour ?? 0} / ora — <span className="text-neutral-500">Disponibili: {availabilityMap[eq.id] ?? (eq.quantity ?? 1)}</span></div>
+                  <div key={eq.id} className="flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <div className="text-sm font-medium truncate">{eq.name}</div>
+                        <div className={`inline-block px-2 py-0.5 text-xs rounded ${isAvailable ? 'bg-green-100 text-green-800' : eq.status === 'maintenance' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>{isAvailable ? 'Disponibile' : (eq.status === 'maintenance' ? 'Manutenzione' : 'Ritirata')}</div>
+                      </div>
+                      <div className="text-xs text-neutral-400">€ {eq.price_per_hour ?? 0} / ora — <span className="text-neutral-500">Disponibili: {availCount}</span></div>
                     </div>
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleEquipmentChange(eq.id, (selected?.quantity || 0) - 1)}
-                        disabled={(selected?.quantity || 0) <= 0}
-                        aria-disabled={(selected?.quantity || 0) <= 0}
-                        className={`w-6 h-6 rounded ${ (selected?.quantity || 0) <= 0 ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed' : 'bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600'}`}
+                        disabled={(selected?.quantity || 0) <= 0 || !isAvailable}
+                        aria-disabled={(selected?.quantity || 0) <= 0 || !isAvailable}
+                        className={`w-8 h-8 rounded ${ (!isAvailable || (selected?.quantity || 0) <= 0) ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed' : 'bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600'}`}
                       >
                         -
                       </button>
-                      <span className="w-8 text-center text-sm font-medium">{selected?.quantity || 0}</span>
+                      <span className="w-10 text-center text-sm font-medium">{selected?.quantity || 0}</span>
                       <button
                         onClick={() => handleEquipmentChange(eq.id, (selected?.quantity || 0) + 1)}
-                        disabled={(availabilityMap[eq.id] ?? (eq.quantity ?? 1)) <= (selected?.quantity || 0)}
-                        aria-disabled={(availabilityMap[eq.id] ?? (eq.quantity ?? 1)) <= (selected?.quantity || 0)}
-                        className={`w-6 h-6 rounded ${ (availabilityMap[eq.id] ?? (eq.quantity ?? 1)) <= (selected?.quantity || 0) ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed' : 'bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600'}`}
+                        disabled={!isAvailable || availCount <= (selected?.quantity || 0)}
+                        aria-disabled={!isAvailable || availCount <= (selected?.quantity || 0)}
+                        className={`w-8 h-8 rounded ${ (!isAvailable || availCount <= (selected?.quantity || 0)) ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed' : 'bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600'}`}
                       >
                         +
                       </button>
