@@ -80,8 +80,8 @@ export default function Modal({ isOpen, onClose, title, children, autoFocus = tr
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className="bg-white dark:bg-slate-800 rounded-t-3xl sm:rounded-lg shadow-2xl w-full sm:max-w-2xl overflow-y-auto transform transition-transform duration-200 ease-out scale-100 animate-modal-open"
-        style={{ maxHeight: 'calc(100svh - 20px)', paddingBottom: 'env(safe-area-inset-bottom)' }}
+        className="bg-white dark:bg-slate-800 rounded-t-3xl sm:rounded-lg shadow-2xl w-full sm:max-w-2xl overflow-y-auto transform transition-transform duration-200 ease-out scale-100 animate-modal-open max-h-[60vh] sm:max-h-[calc(100svh-20px)]"
+        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Mobile handle */}

@@ -318,7 +318,7 @@ export default function NotificationBell() {
   return (
     <div className="relative">
       <button
-        onClick={() => setShowPopup(!showPopup)}
+        onClick={() => { const mobile = typeof window !== 'undefined' ? window.innerWidth < 640 : false; setIsMobile(mobile); setShowPopup(s => !s) }}
         className="relative p-2 rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-800 transition"
         aria-label="Notifiche"
       >
