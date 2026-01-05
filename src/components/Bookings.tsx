@@ -17,6 +17,7 @@ export default function Bookings() {
   const [detailSelectedEquipment, setDetailSelectedEquipment] = useState<{id: string, quantity: number}[]>([])
   const [detailSelectedPackage, setDetailSelectedPackage] = useState<string | null>(null)
   const [detailDurationMinutes, setDetailDurationMinutes] = useState<number>(60)
+  const [detailDurationInput, setDetailDurationInput] = useState<string>(String(60))
   const [detailPrice, setDetailPrice] = useState<number | null>(null)
   const [detailStartTime, setDetailStartTime] = useState<string | null>(null)
   const [detailEndTime, setDetailEndTime] = useState<string | null>(null)
@@ -35,6 +36,7 @@ export default function Bookings() {
   const [customerName, setCustomerName] = useState('')
   const [startTime, setStartTime] = useState('')
   const [durationMinutes, setDurationMinutes] = useState(60) // default duration in minutes
+  const [durationInput, setDurationInput] = useState<string>(String(60)) // string state for editing the duration input
   const [computedPrice, setComputedPrice] = useState<number | null>(null)
   const [availabilityMap, setAvailabilityMap] = useState<Record<string, number>>({})
   const [newPaid, setNewPaid] = useState<boolean>(false)
@@ -141,6 +143,7 @@ export default function Bookings() {
     setDetailSelectedEquipment(Array.isArray(selectedBooking.equipment_items) ? selectedBooking.equipment_items.map((it: any) => ({ id: it.id, quantity: Number(it.quantity || 1) })) : [])
     setDetailSelectedPackage(selectedBooking.package_id || null)
     setDetailDurationMinutes(dMin)
+    setDetailDurationInput(String(dMin))
     setDetailStartTime(selectedBooking.start_time ? new Date(selectedBooking.start_time).toISOString().slice(0,16) : null)
     setDetailEndTime(selectedBooking.end_time ? new Date(selectedBooking.end_time).toISOString().slice(0,16) : null)
     setDetailPrice(selectedBooking.price ?? null)
@@ -245,6 +248,7 @@ export default function Bookings() {
     setCustomerName('')
     setStartTime('')
     setDurationMinutes(60)
+    setDurationInput('60')
     setComputedPrice(null)
   }
 
@@ -788,7 +792,14 @@ export default function Bookings() {
 
           <div>
             <label className="block text-sm font-medium mb-2">Durata (minuti)</label>
-            <input type="number" value={durationMinutes} onChange={(e)=>{ setDurationMinutes(Number(e.target.value)); }} className="w-full border px-2 py-2 rounded" />
+            <input
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              value={durationInput}
+              onChange={(e)=>{ const v = e.target.value; if (/^\d*$/.test(v)) setDurationInput(v); }}
+              onBlur={()=>{ const v = durationInput.trim(); const n = v === '' ? 60 : Number(v); setDurationMinutes(n); setDurationInput(String(n)); }}
+              className="w-full border px-2 py-2 rounded" />
           </div>
 
           <div>
@@ -955,7 +966,14 @@ export default function Bookings() {
 
             <div>
               <label className="block text-sm font-medium mb-2">Durata (minuti)</label>
-              <input type="number" value={detailDurationMinutes} onChange={(e)=>{ setDetailDurationMinutes(Number(e.target.value)); const s = detailStartTime ? new Date(detailStartTime) : null; if (s) { const end = new Date(s); end.setMinutes(end.getMinutes() + Number(e.target.value)); setDetailEndTime(end.toISOString().slice(0,16)) } }} className="w-full border px-2 py-2 rounded" />
+              <input
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                value={detailDurationInput}
+                onChange={(e)=>{ const v = e.target.value; if (/^\d*$/.test(v)) setDetailDurationInput(v); }}
+                onBlur={()=>{ const v = detailDurationInput.trim(); const n = v === '' ? 60 : Number(v); setDetailDurationMinutes(n); const s = detailStartTime ? new Date(detailStartTime) : null; if (s) { const end = new Date(s); end.setMinutes(end.getMinutes() + n); setDetailEndTime(end.toISOString().slice(0,16)) } setDetailDurationInput(String(n)); }}
+                className="w-full border px-2 py-2 rounded" />
             </div>
 
             <div>
