@@ -369,6 +369,19 @@ export default function Reports() {
         </div>
       </div>
 
+      {tab === 'reports' && (
+        <div className="mb-4">
+          <div className="flex gap-2 items-center flex-wrap">
+            <label>Da</label>
+            <input type="date" value={start} onChange={(e)=>setStart(e.target.value)} className="border px-2 py-1 rounded" />
+            <label>A</label>
+            <input type="date" value={end} onChange={(e)=>setEnd(e.target.value)} className="border px-2 py-1 rounded" />
+            <Button onClick={loadReports}>Aggiorna</Button>
+            <Button onClick={()=>downloadCSV(revByEquip,'revenue-by-equipment.csv')}>Export CSV</Button>
+          </div>
+        </div>
+      )}
+
       {/* Top metrics (mobile scrollable) */}
       <div className="mb-4 sm:mb-6">
           <div className="flex flex-wrap gap-3 sm:gap-4 pb-2">
@@ -385,16 +398,6 @@ export default function Reports() {
       {tab === 'reports' && (
         <>
           <Card>
-            <div className="mb-4">
-            <div className="flex gap-2 items-center flex-wrap">
-              <label>Da</label>
-              <input type="date" value={start} onChange={(e)=>setStart(e.target.value)} className="border px-2 py-1 rounded" />
-              <label>A</label>
-              <input type="date" value={end} onChange={(e)=>setEnd(e.target.value)} className="border px-2 py-1 rounded" />
-              <Button onClick={loadReports}>Aggiorna</Button>
-              <Button onClick={()=>downloadCSV(revByEquip,'revenue-by-equipment.csv')}>Export CSV</Button>
-            </div>
-          </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="col-span-2">
