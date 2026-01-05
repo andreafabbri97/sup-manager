@@ -173,12 +173,14 @@ export default function Reports() {
     const ivaVal = setting?.value ? Number(setting.value) : 22
     setIvaPercent(Number.isFinite(ivaVal) ? ivaVal : 22)
 
-    // bookings count
+    // bookings count - prefer server-side counts but fall back to computed daily orders if server returns 0
     try {
       const { data: counts } = await supabase.rpc('report_counts', { start_date: start, end_date: end })
-      const bc = counts?.find((c:any)=>c.metric==='bookings')?.value ?? 0
-      setBookingsCount(Number(bc))
-    } catch (e) { setBookingsCount(0) }
+      const bcRpc = counts?.find((c:any)=>c.metric==='bookings')?.value ?? 0
+      // if RPC returns 0 (or undefined), fallback to summing daily orders we already fetched
+      const finalBc = (Number(bcRpc) > 0) ? Number(bcRpc) : currentOrders
+      setBookingsCount(Number(finalBc))
+    } catch (e) { setBookingsCount(Number(currentOrders)) }
 
     // top products
     try {
