@@ -83,6 +83,19 @@ export default function Bookings() {
     }).join(', ')
   }
 
+  // helper: format Date to string suitable for <input type="datetime-local"> (local time)
+  function formatToDatetimeLocal(d: string | Date | null) {
+    if (!d) return null
+    const date = typeof d === 'string' ? new Date(d) : d
+    const pad = (n: number) => n.toString().padStart(2, '0')
+    const YYYY = date.getFullYear()
+    const MM = pad(date.getMonth() + 1)
+    const DD = pad(date.getDate())
+    const hh = pad(date.getHours())
+    const mm = pad(date.getMinutes())
+    return `${YYYY}-${MM}-${DD}T${hh}:${mm}`
+  }
+
   function bookingTitle(b: any) {
     const parts = []
     parts.push(formatTimeRange(b))
@@ -183,8 +196,8 @@ export default function Bookings() {
     setDetailSelectedPackage(selectedBooking.package_id || null)
     setDetailDurationMinutes(dMin)
     setDetailDurationInput(String(dMin))
-    setDetailStartTime(selectedBooking.start_time ? new Date(selectedBooking.start_time).toISOString().slice(0,16) : null)
-    setDetailEndTime(selectedBooking.end_time ? new Date(selectedBooking.end_time).toISOString().slice(0,16) : null)
+    setDetailStartTime(formatToDatetimeLocal(selectedBooking.start_time || null))
+    setDetailEndTime(formatToDatetimeLocal(selectedBooking.end_time || null))
     setDetailPrice(selectedBooking.price ?? null)
     setDetailCustomerName(selectedBooking.customer_name || '')
     setDetailInvoiceNumber(selectedBooking.invoice_number || null)
@@ -1024,13 +1037,13 @@ export default function Bookings() {
                 pattern="[0-9]*"
                 value={detailDurationInput}
                 onChange={(e)=>{ const v = e.target.value; if (/^\d*$/.test(v)) setDetailDurationInput(v); }}
-                onBlur={()=>{ const v = detailDurationInput.trim(); const n = v === '' ? 60 : Number(v); setDetailDurationMinutes(n); const s = detailStartTime ? new Date(detailStartTime) : null; if (s) { const end = new Date(s); end.setMinutes(end.getMinutes() + n); setDetailEndTime(end.toISOString().slice(0,16)) } setDetailDurationInput(String(n)); }}
+                onBlur={()=>{ const v = detailDurationInput.trim(); const n = v === '' ? 60 : Number(v); setDetailDurationMinutes(n); const s = detailStartTime ? new Date(detailStartTime) : null; if (s) { const end = new Date(s); end.setMinutes(end.getMinutes() + n); setDetailEndTime(formatToDatetimeLocal(end)) } setDetailDurationInput(String(n)); }}
                 className="w-full border px-2 py-2 rounded" />
             </div>
 
             <div>
               <label className="block text-sm font-medium mb-1">Data e Ora Inizio</label>
-              <input type="datetime-local" value={detailStartTime ?? ''} onChange={(e)=>{ const v = e.target.value; setDetailStartTime(v); if (v) { const s = new Date(v); const end = new Date(s); end.setMinutes(end.getMinutes() + detailDurationMinutes); setDetailEndTime(end.toISOString().slice(0,16)) } }} className="w-full border px-3 py-2 rounded" />
+              <input type="datetime-local" value={detailStartTime ?? ''} onChange={(e)=>{ const v = e.target.value; setDetailStartTime(v); if (v) { const s = new Date(v); const end = new Date(s); end.setMinutes(end.getMinutes() + detailDurationMinutes); setDetailEndTime(formatToDatetimeLocal(end)) } }} className="w-full border px-3 py-2 rounded" />
             </div>
 
             <div>
