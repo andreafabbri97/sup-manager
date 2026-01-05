@@ -1,6 +1,6 @@
 import React from 'react'
 import { useTheme } from '../lib/theme'
-import NotificationBell from './NotificationBell'
+
 
 export default function Sidebar({ onNav, currentPage }: { onNav?: (page: string) => void; currentPage?: string }) {
   const { theme, toggle } = useTheme()
@@ -175,7 +175,6 @@ export default function Sidebar({ onNav, currentPage }: { onNav?: (page: string)
           </div>
 
           <div className="hidden lg:flex items-center gap-2">
-            <NotificationBell />
             <button onClick={() => setCollapsed((s) => !s)} aria-label="Riduci sidebar" className="p-1 rounded hover:bg-neutral-100 dark:hover:bg-neutral-800">
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <path strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" d="M20 12H4" />
