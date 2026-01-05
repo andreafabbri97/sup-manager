@@ -32,6 +32,79 @@ export default function Modal({ isOpen, onClose, title, children, autoFocus = tr
     return () => mq.removeEventListener('change', onChange)
   }, [])
 
+  // Drag-to-resize state for mobile bottom-sheet
+  const handleRef = React.useRef<HTMLDivElement | null>(null)
+  const [isDragging, setIsDragging] = useState(false)
+  const [userExpanded, setUserExpanded] = useState(false)
+  const dragState = React.useRef({ startY: 0, startHeight: 0 })
+
+  const onPointerMove = (ev: PointerEvent) => {
+    ev.preventDefault()
+    if (!dialogRef.current) return
+    const delta = (dragState.current.startY || 0) - (ev.clientY || 0)
+    const max = Math.max(120, window.innerHeight - 20)
+    const min = Math.max(120, Math.round(window.innerHeight * 0.25))
+    let newHeight = (dragState.current.startHeight || 0) + delta
+    newHeight = Math.max(min, Math.min(max, newHeight))
+    dialogRef.current.style.maxHeight = `${newHeight}px`
+  }
+
+  const endDrag = () => {
+    setIsDragging(false)
+    window.removeEventListener('pointermove', onPointerMove)
+    window.removeEventListener('pointerup', endDrag)
+    document.body.style.userSelect = ''
+    if (!dialogRef.current) return
+    const finalHeight = dialogRef.current.getBoundingClientRect().height
+    if (finalHeight > window.innerHeight * 0.8) {
+      dialogRef.current.style.maxHeight = '100vh'
+      setUserExpanded(true)
+    } else {
+      // snap back to default
+      dialogRef.current.style.maxHeight = fullScreenMobile ? '60vh' : ''
+      setUserExpanded(false)
+    }
+  }
+
+  const onPointerDown = (e: React.PointerEvent) => {
+    if (!dialogRef.current) return
+    if ((e.target as Element).closest('.no-drag')) return
+    (e.target as Element).setPointerCapture?.(e.pointerId)
+    setIsDragging(true)
+    dragState.current.startY = e.clientY
+    dragState.current.startHeight = dialogRef.current.getBoundingClientRect().height
+    document.body.style.userSelect = 'none'
+    window.addEventListener('pointermove', onPointerMove)
+    window.addEventListener('pointerup', endDrag)
+  }
+
+  const onHandleClick = (e?: React.MouseEvent) => {
+    // toggle expanded on tap
+    if (!dialogRef.current) return
+    if (userExpanded) {
+      dialogRef.current.style.maxHeight = fullScreenMobile ? '60vh' : ''
+      setUserExpanded(false)
+    } else {
+      dialogRef.current.style.maxHeight = '100vh'
+      setUserExpanded(true)
+    }
+  }
+
+  useEffect(() => {
+    // reset any inline styles when modal closes or opens
+    if (!isOpen) {
+      if (dialogRef.current) {
+        dialogRef.current.style.maxHeight = ''
+      }
+      setIsDragging(false)
+      setUserExpanded(false)
+    } else {
+      if (dialogRef.current && !userExpanded) {
+        dialogRef.current.style.maxHeight = fullScreenMobile ? '60vh' : ''
+      }
+    }
+  }, [isOpen, fullScreenMobile, userExpanded])
+
   useEffect(() => {
     if (!isOpen) return
     const onKey = (e: KeyboardEvent) => {
@@ -124,9 +197,16 @@ export default function Modal({ isOpen, onClose, title, children, autoFocus = tr
         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Mobile handle */}
+        {/* Mobile handle (draggable/tap to expand) */}
         <div className="sm:hidden flex justify-center pt-4">
-          <div className="w-16 h-1.5 bg-neutral-200 dark:bg-neutral-700 rounded-full" />
+          <div
+            ref={handleRef}
+            onPointerDown={onPointerDown}
+            onClick={onHandleClick}
+            aria-hidden="true"
+            className={`w-16 h-2 bg-neutral-200 dark:bg-neutral-700 rounded-full touch-none ${isDragging ? 'opacity-80' : 'opacity-100'}`}
+            style={{ touchAction: 'none', cursor: 'grab' }}
+          />
         </div>
 
         <div className="sticky top-0 bg-white dark:bg-slate-800 border-b border-neutral-200 dark:border-neutral-700 px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">          <h3 className="text-lg sm:text-xl font-semibold">{title}</h3>
