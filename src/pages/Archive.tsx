@@ -14,6 +14,7 @@ export default function Archive() {
   const [paidFilter, setPaidFilter] = useState<'all'|'yes'|'no'>('all')
   const [qCustomer, setQCustomer] = useState('')
   const [qInvoice, setQInvoice] = useState('')
+  const [showFiltersMobile, setShowFiltersMobile] = useState<boolean>(false)
 
   const [detail, setDetail] = useState<any|null>(null)
   const [showDetail, setShowDetail] = useState(false)
@@ -84,26 +85,35 @@ export default function Archive() {
         </div>
       </div>
 
+      {/* Mobile filters toggle */}
+      <div className="sm:hidden mb-3 flex items-center justify-between">
+        <div className="text-sm font-medium">Filtri</div>
+        <div className="flex items-center gap-2">
+          <button onClick={() => setShowFiltersMobile(s => !s)} className="px-3 py-1 rounded border text-sm">{showFiltersMobile ? 'Nascondi' : 'Mostra filtri'}</button>
+          <button onClick={load} className="px-3 py-1 rounded border bg-gray-600 text-white text-sm">Applica</button>
+        </div>
+      </div>
+
       <Card>
-        <div className="flex gap-2 items-center mb-3 flex-wrap">
-          <div className="flex items-center gap-2"><label className="text-sm">Da</label><input type="date" value={start} onChange={(e)=>setStart(e.target.value)} className="border px-2 py-1 rounded"/></div>
-          <div className="flex items-center gap-2"><label className="text-sm">A</label><input type="date" value={end} onChange={(e)=>setEnd(e.target.value)} className="border px-2 py-1 rounded"/></div>
+        <div className={`flex gap-2 items-center mb-3 flex-wrap ${!showFiltersMobile ? 'hidden sm:flex' : ''}`}>
+          <div className="flex items-center gap-2"><label className="text-sm">Da</label><input type="date" value={start} onChange={(e)=>setStart(e.target.value)} className="border px-2 py-1 rounded w-32"/></div>
+          <div className="flex items-center gap-2"><label className="text-sm">A</label><input type="date" value={end} onChange={(e)=>setEnd(e.target.value)} className="border px-2 py-1 rounded w-32"/></div>
           <div>
-            <select value={invoicedFilter} onChange={(e)=>setInvoicedFilter(e.target.value as any)} className="border px-2 py-1 rounded">
+            <select value={invoicedFilter} onChange={(e)=>setInvoicedFilter(e.target.value as any)} className="border px-2 py-1 rounded w-36">
               <option value="all">Tutte</option>
               <option value="yes">Fatturate</option>
               <option value="no">Non fatturate</option>
             </select>
           </div>
           <div>
-            <select value={paidFilter} onChange={(e)=>setPaidFilter(e.target.value as any)} className="border px-2 py-1 rounded">
+            <select value={paidFilter} onChange={(e)=>setPaidFilter(e.target.value as any)} className="border px-2 py-1 rounded w-36">
               <option value="all">Tutti</option>
               <option value="yes">Pagati</option>
               <option value="no">Non pagati</option>
             </select>
           </div>
-          <input placeholder="Cliente..." value={qCustomer} onChange={(e)=>setQCustomer(e.target.value)} className="border px-2 py-1 rounded" />
-          <input placeholder="Nr fattura" value={qInvoice} onChange={(e)=>setQInvoice(e.target.value)} className="border px-2 py-1 rounded" />
+          <input placeholder="Cliente..." value={qCustomer} onChange={(e)=>setQCustomer(e.target.value)} className="border px-2 py-1 rounded flex-1 min-w-0" />
+          <input placeholder="Nr fattura" value={qInvoice} onChange={(e)=>setQInvoice(e.target.value)} className="border px-2 py-1 rounded w-36" />
         </div>
 
         {/* Mobile stacked list */}

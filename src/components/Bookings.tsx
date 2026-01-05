@@ -63,12 +63,30 @@ export default function Bookings() {
     return items.reduce((s: number, it: any) => s + (Number(it.quantity || 1)), 0)
   }
 
+  function equipmentLabel(b: any) {
+    const items = b.equipment_items || []
+    if (!items || items.length === 0) return ''
+    if (items.length === 1) {
+      const it = items[0]
+      const eq = equipment.find(e => e.id === it.id)
+      const name = eq?.name || 'Attrezzatura'
+      const qty = Number(it.quantity || 1)
+      return qty > 1 ? `${qty}x ${name}` : name
+    }
+    return items.map(it => {
+      const eq = equipment.find(e => e.id === it.id)
+      const name = eq?.name || 'Attrezzatura'
+      const qty = Number(it.quantity || 1)
+      return qty > 1 ? `${qty}x ${name}` : name
+    }).join(', ')
+  }
+
   function bookingTitle(b: any) {
     const parts = []
     parts.push(formatTimeRange(b))
     if (b.customer_name) parts.push(b.customer_name)
-    const eq = equipmentCount(b)
-    if (eq) parts.push(`${eq} attrezzatura${eq > 1 ? 'e' : ''}`)
+    const eqLabel = equipmentLabel(b)
+    if (eqLabel) parts.push(eqLabel)
     if (b.price) parts.push(`€ ${Number(b.price).toFixed(2)}`)
     if (b.paid) parts.push('Pagato')
     if (b.invoiced) parts.push('Fatturato')
@@ -561,7 +579,7 @@ export default function Bookings() {
                       <div className="mt-1 text-sm text-neutral-600 dark:text-neutral-300">{b.notes ? (b.notes.length > 100 ? b.notes.slice(0,100) + '…' : b.notes) : ''}</div>
                       <div className="mt-2 flex items-center gap-3 text-sm">
                         {b.price && <div className="text-amber-600 dark:text-amber-300 font-semibold">€ {Number(b.price).toFixed(2)}</div>}
-                        <div className="text-neutral-500">{equipmentCount(b)} attrezzatura{equipmentCount(b) > 1 ? 'e' : ''}</div>
+                        <div className="text-neutral-500">{equipmentLabel(b)}</div>
                         <div className="text-neutral-500">Durata: {Math.round((new Date(b.end_time).getTime() - new Date(b.start_time).getTime())/60000)}m</div>
                         {b.invoice_number && <div className="px-2 py-0.5 bg-neutral-100 dark:bg-neutral-700 rounded text-xs">#{b.invoice_number}</div>}
                       </div>
