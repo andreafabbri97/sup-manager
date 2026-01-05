@@ -223,7 +223,7 @@ export default function Modal({ isOpen, onClose, title, children, autoFocus = tr
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 sm:bg-black/40 backdrop-blur-sm" onClick={requestClose}>
+    <div className={`fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 sm:bg-black/40 backdrop-blur-sm ${isClosing ? 'opacity-0' : 'opacity-100'} transition-opacity duration-200`} onClick={requestClose}>
       <div
         ref={dialogRef}
         role="dialog"

@@ -163,7 +163,7 @@ export default function NotificationBell() {
         notifs.push({
           id: 'bookings-today',
           type: 'booking',
-          message: `${todayBookings.length} prenotazione${todayBookings.length > 1 ? 'i' : ''} oggi`,
+          message: `${todayBookings.length} ${todayBookings.length > 1 ? 'prenotazioni' : 'prenotazione'} oggi`,
           priority: 'high',
           relatedId: todayBookings[0]?.id,
           date: today.toISOString()
@@ -182,7 +182,7 @@ export default function NotificationBell() {
         notifs.push({
           id: 'unpaid-bookings',
           type: 'payment',
-          message: `${unpaidBookings.length} pagamento${unpaidBookings.length > 1 ? 'i' : ''} in sospeso (€${total.toFixed(2)})`,
+          message: `${unpaidBookings.length} ${unpaidBookings.length > 1 ? 'pagamenti' : 'pagamento'} in sospeso (€${total.toFixed(2)})`,
           priority: 'medium',
           relatedId: unpaidBookings[0]?.id,
           date: unpaidBookings[0]?.start_time
@@ -203,7 +203,7 @@ export default function NotificationBell() {
         notifs.push({
           id: 'maintenance-due',
           type: 'maintenance',
-          message: `${maintenanceDue.length} attrezzatura${maintenanceDue.length > 1 ? 'e' : ''} necessita manutenzione`,
+          message: `${maintenanceDue.length} ${maintenanceDue.length > 1 ? 'attrezzature necessitano manutenzione' : 'attrezzatura necessita manutenzione'}`,
           priority: 'medium',
         })
       }
@@ -236,7 +236,7 @@ export default function NotificationBell() {
       {!loading && notifications.map((notif) => (
         <div
           key={notif.id}
-          className={`p-3 border-b border-neutral-100 dark:border-neutral-700 last:border-b-0 ${notif.priority === 'high' ? 'bg-red-50 dark:bg-red-900/10' : ''}`}
+          className={`py-3 px-3 border-b border-neutral-100 dark:border-neutral-700 last:border-b-0 ${notif.priority === 'high' ? 'bg-red-50 dark:bg-red-900/10' : ''}`}
         >
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-start gap-3 flex-1 min-w-0">
@@ -259,7 +259,7 @@ export default function NotificationBell() {
                 )}
               </div>
               <div className="min-w-0">
-                <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100 truncate">{notif.message}</p>
+                <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100 whitespace-normal break-words">{notif.message}</p>
                 {notif.priority === 'high' && (
                   <span className="inline-block mt-1 px-2 py-0.5 text-xs bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded">Urgente</span>
                 )}
@@ -280,7 +280,7 @@ export default function NotificationBell() {
                   setSelected(null)
                 }}
                 title="Apri prenotazione"
-                className="p-2 rounded border bg-white/50 dark:bg-neutral-700/50 flex items-center justify-center"
+                className="w-9 h-9 flex items-center justify-center rounded border bg-white/50 dark:bg-neutral-700/50"
               >
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" d="M15 10l4 4-4 4M19 14H9"/></svg>
               </button>
@@ -288,7 +288,7 @@ export default function NotificationBell() {
               <button
                 onClick={() => { const ids = readIds.includes(notif.id) ? readIds.filter(i => i !== notif.id) : [...readIds, notif.id]; setReadIds(ids); localStorage.setItem('notifs:read', JSON.stringify(ids)); }}
                 title={readIds.includes(notif.id) ? 'Segna non letto' : 'Segna come letto'}
-                className="p-2 rounded border flex items-center justify-center"
+                className="w-9 h-9 flex items-center justify-center rounded border"
               >
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
               </button>
@@ -296,7 +296,7 @@ export default function NotificationBell() {
               <button
                 onClick={() => { setNotifications(ns => ns.filter(n => n.id !== notif.id)); if (readIds.includes(notif.id)) { const ids = readIds.filter(i => i !== notif.id); setReadIds(ids); localStorage.setItem('notifs:read', JSON.stringify(ids)); } }}
                 title="Elimina"
-                className="p-2 rounded text-red-600 flex items-center justify-center"
+                className="w-9 h-9 flex items-center justify-center rounded text-red-600 border"
               >
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" d="M3 6h18M8 6v12a2 2 0 002 2h4a2 2 0 002-2V6M10 6V4a2 2 0 012-2h0a2 2 0 012 2v2"/></svg>
               </button>
