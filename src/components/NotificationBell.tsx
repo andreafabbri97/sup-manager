@@ -152,6 +152,8 @@ export default function NotificationBell() {
           type: 'booking',
           message: `${todayBookings.length} prenotazione${todayBookings.length > 1 ? 'i' : ''} oggi`,
           priority: 'high',
+          relatedId: todayBookings[0]?.id,
+          date: today.toISOString()
         })
       }
 
@@ -169,6 +171,8 @@ export default function NotificationBell() {
           type: 'payment',
           message: `${unpaidBookings.length} pagamento${unpaidBookings.length > 1 ? 'i' : ''} in sospeso (€${total.toFixed(2)})`,
           priority: 'medium',
+          relatedId: unpaidBookings[0]?.id,
+          date: unpaidBookings[0]?.start_time
         })
       }
 
@@ -259,10 +263,37 @@ export default function NotificationBell() {
                   <span className="inline-block mt-1 px-2 py-0.5 text-xs bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded">Urgente</span>
                 )}
 
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <button onClick={() => { setSelected(notif); setShowDetail(true); }} className="text-sm px-2 py-1 rounded border">Dettagli</button>
-                  <button onClick={() => { const ids = readIds.includes(notif.id) ? readIds.filter(i => i !== notif.id) : [...readIds, notif.id]; setReadIds(ids); localStorage.setItem('notifs:read', JSON.stringify(ids)); }} className="text-sm px-2 py-1 rounded border">{readIds.includes(notif.id) ? 'Segna non letto' : 'Segna come letto'}</button>
-                  <button onClick={() => { setNotifications(ns => ns.filter(n => n.id !== notif.id)); if (readIds.includes(notif.id)) { const ids = readIds.filter(i => i !== notif.id); setReadIds(ids); localStorage.setItem('notifs:read', JSON.stringify(ids)); } }} className="text-sm px-2 py-1 rounded text-red-600">Elimina</button>
+                <div className="mt-3 flex items-center gap-2">
+                  <button
+                    onClick={() => {
+                      // navigate: if notification has relatedId, open that booking; otherwise open day view
+                      if (notif.relatedId) {
+                        window.dispatchEvent(new CustomEvent('navigate:booking', { detail: { bookingId: notif.relatedId } }))
+                      } else if (notif.date) {
+                        window.dispatchEvent(new CustomEvent('navigate:booking', { detail: { date: notif.date } }))
+                      }
+                      setShowPopup(false)
+                    }}
+                    title="Apri prenotazione"
+                    className="p-2 rounded border bg-white/50 dark:bg-neutral-700/50"
+                  >
+                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" d="M15 10l4 4-4 4M19 14H9"/></svg>
+                  </button>
+
+                  <button
+                    onClick={() => { const ids = readIds.includes(notif.id) ? readIds.filter(i => i !== notif.id) : [...readIds, notif.id]; setReadIds(ids); localStorage.setItem('notifs:read', JSON.stringify(ids)); }}
+                    title={readIds.includes(notif.id) ? 'Segna non letto' : 'Segna come letto'}
+                    className="p-2 rounded border"
+                  >
+                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
+                  </button>
+
+                  <button
+                    onClick={() => { setNotifications(ns => ns.filter(n => n.id !== notif.id)); if (readIds.includes(notif.id)) { const ids = readIds.filter(i => i !== notif.id); setReadIds(ids); localStorage.setItem('notifs:read', JSON.stringify(ids)); } }}
+                    title="Elimina" className="p-2 rounded text-red-600"
+                  >
+                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                  </button>
                 </div>
               </div>
             </div>

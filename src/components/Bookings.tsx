@@ -117,7 +117,46 @@ export default function Bookings() {
 
     const handler = () => load()
     window.addEventListener('sups:changed', handler)
-    return () => window.removeEventListener('sups:changed', handler)
+
+    // Listen for navigation requests from other components (e.g. NotificationBell)
+    const onNavigate = async (ev: any) => {
+      try {
+        const detail = ev?.detail || {}
+        if (detail.bookingId) {
+          // try to find booking in memory
+          const b = bookings.find((x: any) => x.id === detail.bookingId)
+          if (b) {
+            setViewMode('day')
+            setCurrentDate(new Date(b.start_time))
+            setSelectedBooking(b)
+            setShowBookingDetails(true)
+            return
+          }
+          // fallback: fetch booking then open
+          const { data } = await supabase.from('booking').select('*').eq('id', detail.bookingId).single()
+          if (data) {
+            setViewMode('day')
+            setCurrentDate(new Date(data.start_time))
+            setSelectedBooking(data)
+            setShowBookingDetails(true)
+            return
+          }
+        }
+        if (detail.date) {
+          setViewMode('day')
+          setCurrentDate(new Date(detail.date))
+        }
+      } catch (err) {
+        console.error('Errore navigazione prenotazione:', err)
+      }
+    }
+
+    window.addEventListener('navigate:booking', onNavigate)
+
+    return () => {
+      window.removeEventListener('sups:changed', handler)
+      window.removeEventListener('navigate:booking', onNavigate)
+    }
   }, [])
 
   // recompute price preview when inputs change
