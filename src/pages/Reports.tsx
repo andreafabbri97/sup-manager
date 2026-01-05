@@ -279,9 +279,9 @@ export default function Reports() {
   // If tab restored as 'admin' on load, ensure expenses are fetched
 
   useEffect(() => {
-    // when switching to admin (or when date filters change) load expenses for the selected period
-    if (tab === 'admin') { loadExpenses(start, end) }
-  }, [tab, start, end])
+    // when switching to admin, load expenses using the Admin card filters (expenseFilterStart/end)
+    if (tab === 'admin') { loadExpenses(expenseFilterStart, expenseFilterEnd) }
+  }, [tab, expenseFilterStart, expenseFilterEnd])
 
 
 
@@ -434,7 +434,7 @@ export default function Reports() {
         <div className="flex items-center gap-4">
           <div role="tablist" aria-label="Sezioni report" className="inline-flex rounded bg-neutral-100 dark:bg-neutral-800 p-1">
             <button role="tab" aria-selected={tab==='reports'} onClick={()=>setTab('reports')} className={`px-3 py-1 rounded ${tab==='reports' ? 'bg-white dark:bg-neutral-700 shadow' : ''}`}>Reports</button>
-            <button role="tab" aria-selected={tab==='admin'} onClick={()=>{ setTab('admin'); loadExpenses() }} className={`px-3 py-1 rounded ${tab==='admin' ? 'bg-white dark:bg-neutral-700 shadow' : ''}`}>Amministrazione</button>
+            <button role="tab" aria-selected={tab==='admin'} onClick={()=>{ setTab('admin'); loadExpenses(expenseFilterStart, expenseFilterEnd) }} className={`px-3 py-1 rounded ${tab==='admin' ? 'bg-white dark:bg-neutral-700 shadow' : ''}`}>Amministrazione</button>
           </div>
           <label className="flex items-center gap-2 text-sm">
             <input type="checkbox" checked={excludeIva} onChange={(e)=>setExcludeIva(e.target.checked)} className="border rounded" />
@@ -676,7 +676,7 @@ export default function Reports() {
           </div>
 
           <div className="mt-6">
-            <Archive />
+            <Archive start={expenseFilterStart} end={expenseFilterEnd} />
           </div>
 
           <Modal isOpen={showExpenseModal} onClose={handleCloseExpenseModal} title={editExpense ? 'Modifica Spesa' : 'Aggiungi Spesa'}>

@@ -156,10 +156,10 @@ export default function Sidebar({ onNav, currentPage }: { onNav?: (page: string)
       <aside
         id="sidebar"
         ref={(el) => (sidebarRef.current = el)}
-        className={`fixed z-50 top-0 left-0 h-full w-64 bg-neutral-50 dark:bg-neutral-900 border-r dark:border-neutral-800 p-4 transform transition-transform duration-200 ${mobileOpen ? 'translate-x-0' : '-translate-x-full'} lg:sticky lg:top-0 lg:h-screen lg:translate-x-0 lg:block`}
+        className={`fixed z-50 top-0 left-0 h-full ${collapsed ? 'w-20' : 'w-64'} bg-neutral-50 dark:bg-neutral-900 border-r dark:border-neutral-800 p-4 transform transition-all duration-200 ${mobileOpen ? 'translate-x-0' : '-translate-x-full'} lg:sticky lg:top-0 lg:h-screen lg:translate-x-0 lg:block overflow-hidden`}
         aria-hidden={!mobileOpen}
       >
-        <div className="mb-6 flex items-center justify-between">
+        <div className={`mb-6 flex items-center ${collapsed ? 'justify-center' : 'justify-between'}`}>
           <div>
             <h1 className={`text-lg font-bold ${collapsed ? 'sr-only' : ''}`}>Sup Manager</h1>
             {!collapsed && <p className="text-xs text-neutral-500 dark:text-neutral-400">Gestione prenotazioni e contabilità</p>}
@@ -191,7 +191,7 @@ export default function Sidebar({ onNav, currentPage }: { onNav?: (page: string)
                 key={it.id}
                 onClick={() => { onNav?.(it.id); setMobileOpen(false) }}
                 aria-current={active ? 'page' : undefined}
-                className={`w-full flex items-center gap-3 px-3 py-2 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-amber-300 ${active ? 'bg-amber-500 text-white shadow' : 'hover:bg-neutral-100 dark:hover:bg-neutral-800'}`}>
+                className={`w-full flex items-center ${collapsed ? 'justify-center gap-0 px-0' : 'gap-3 px-3'} py-2 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-amber-300 ${active ? 'bg-amber-500 text-white shadow' : 'hover:bg-neutral-100 dark:hover:bg-neutral-800'}`}>
                 <span className="flex-shrink-0 text-current" aria-hidden><Icon name={it.id} /></span>
                 <span title={it.label} className={`${collapsed ? 'hidden' : 'block truncate'}`}>{it.label}</span>
               </button>
@@ -200,7 +200,7 @@ export default function Sidebar({ onNav, currentPage }: { onNav?: (page: string)
         </nav>
 
         <div className={`mt-6 ${collapsed ? 'text-center' : ''}`}>
-          <button onClick={() => toggle()} className="px-3 py-2 bg-sky-600 text-white rounded w-full">
+          <button onClick={() => toggle()} className={`px-3 py-2 bg-sky-600 text-white rounded ${collapsed ? 'w-10 mx-auto' : 'w-full'}`}>
             {collapsed ? (theme === 'light' ? 'C' : 'S') : `Tema: ${theme === 'light' ? 'Chiaro' : 'Scuro'}`}
           </button>
         </div>

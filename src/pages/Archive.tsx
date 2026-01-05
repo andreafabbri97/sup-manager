@@ -5,11 +5,13 @@ import PageTitle from '../components/ui/PageTitle'
 import Modal from '../components/ui/Modal'
 import Button from '../components/ui/Button'
 
-export default function Archive() {
+export default function Archive({ start: propStart, end: propEnd }: { start?: string, end?: string } = {}) {
   const [bookings, setBookings] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
-  const [start, setStart] = useState<string>(() => { const d = new Date(); d.setMonth(d.getMonth()-3); return d.toISOString().slice(0,10) })
-  const [end, setEnd] = useState<string>(() => new Date().toISOString().slice(0,10))
+  const defaultStart = (() => { const d = new Date(); d.setMonth(d.getMonth()-3); return d.toISOString().slice(0,10) })()
+  const defaultEnd = new Date().toISOString().slice(0,10)
+  const [start, setStart] = useState<string>(() => propStart ?? defaultStart)
+  const [end, setEnd] = useState<string>(() => propEnd ?? defaultEnd)
   const [invoicedFilter, setInvoicedFilter] = useState<'all'|'yes'|'no'>('all')
   const [paidFilter, setPaidFilter] = useState<'all'|'yes'|'no'>('all')
   const [qCustomer, setQCustomer] = useState('')
@@ -19,7 +21,12 @@ export default function Archive() {
   const [detail, setDetail] = useState<any|null>(null)
   const [showDetail, setShowDetail] = useState(false)
 
-  useEffect(() => { load(); }, [])
+  // load on mount and whenever start/end change
+  useEffect(() => { load(); }, [start, end])
+
+  // Sync parent-provided filter props into the local state so Archive reflects Admin filters
+  useEffect(() => { if (propStart !== undefined && propStart !== start) setStart(propStart) }, [propStart])
+  useEffect(() => { if (propEnd !== undefined && propEnd !== end) setEnd(propEnd) }, [propEnd])
 
   async function load() {
     setLoading(true)
