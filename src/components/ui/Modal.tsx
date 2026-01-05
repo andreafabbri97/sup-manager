@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 
 interface ModalProps {
   isOpen: boolean
@@ -10,10 +10,23 @@ interface ModalProps {
    * Set to false for read-only/detail modals to avoid opening the keyboard on mobile.
    */
   autoFocus?: boolean
+  /**
+   * When true, on mobile the modal will appear as a dropdown below the trigger instead of a bottom-sheet.
+   */
+  mobileDropdown?: boolean
 }
 
-export default function Modal({ isOpen, onClose, title, children, autoFocus = true }: ModalProps) {
+export default function Modal({ isOpen, onClose, title, children, autoFocus = true, mobileDropdown = false }: ModalProps) {
   const dialogRef = useRef<HTMLDivElement | null>(null)
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767.98px)')
+    setIsMobile(mq.matches)
+    const onChange = () => setIsMobile(mq.matches)
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
+  }, [])
 
   useEffect(() => {
     if (!isOpen) return
@@ -72,6 +85,29 @@ export default function Modal({ isOpen, onClose, title, children, autoFocus = tr
   }, [isOpen, onClose])
 
   if (!isOpen) return null
+
+  if (isMobile && mobileDropdown) {
+    return (
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        className="absolute top-full right-0 mt-2 w-80 max-w-[95vw] bg-white dark:bg-slate-800 rounded-lg shadow-2xl z-50 overflow-y-auto max-h-[60vh] transform transition-transform duration-300 ease-out animate-fade-up"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="sticky top-0 bg-white dark:bg-slate-800 border-b border-neutral-200 dark:border-neutral-700 px-4 py-3 flex items-center justify-between">
+          <h3 className="text-lg font-semibold">{title}</h3>
+          <button onClick={onClose} aria-label="Chiudi" className="text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200 p-2 rounded focus:ring-2 focus:ring-amber-300">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div className="p-4">{children}</div>
+      </div>
+    )
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 sm:bg-black/40 backdrop-blur-sm" onClick={onClose}>

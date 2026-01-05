@@ -23,7 +23,7 @@ export default function NotificationBell() {
     if (typeof window === 'undefined') return false
     try {
       const mq = window.matchMedia('(max-width: 767.98px)')
-      return mq.matches || (navigator && (navigator.maxTouchPoints || ('ontouchstart' in window)))
+      return mq.matches || Boolean(navigator?.maxTouchPoints) || ('ontouchstart' in window)
     } catch { return window.innerWidth < 768 }
   })
 
@@ -34,7 +34,7 @@ export default function NotificationBell() {
     const onResize = () => {
       try {
         const mq = window.matchMedia('(max-width: 767.98px)')
-        setIsMobile(mq.matches || (navigator && (navigator.maxTouchPoints || ('ontouchstart' in window))))
+        setIsMobile(mq.matches || Boolean(navigator?.maxTouchPoints) || ('ontouchstart' in window))
       } catch {
         setIsMobile(window.innerWidth < 768)
       }
@@ -343,7 +343,7 @@ export default function NotificationBell() {
             let mobile = false
             try {
               const mq = window.matchMedia('(max-width: 767.98px)')
-              mobile = mq.matches || (navigator && (navigator.maxTouchPoints || ('ontouchstart' in window)))
+              mobile = mq.matches || Boolean(navigator?.maxTouchPoints) || ('ontouchstart' in window)
             } catch {
               mobile = typeof window !== 'undefined' ? window.innerWidth < 768 : false
             }
@@ -370,7 +370,7 @@ export default function NotificationBell() {
 
       {showPopup && (
         isMobile ? (
-          <Modal isOpen={true} onClose={() => setShowPopup(false)} title="Notifiche" autoFocus={false}>
+          <Modal isOpen={true} onClose={() => setShowPopup(false)} title="Notifiche" autoFocus={false} mobileDropdown={true}>
             <div className="space-y-0">
               {notificationItems}
               <div className="pt-3 border-t border-neutral-200 dark:border-neutral-700">
