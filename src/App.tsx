@@ -25,12 +25,20 @@ export default function App() {
   React.useEffect(() => {
     const onNavigateReq = (ev: any) => {
       const detail = ev?.detail || {}
-      // always switch to bookings page, then re-dispatch the event shortly after
+      // Prevent redispatch loops: if this event was already forwarded, do not forward again
+      if (detail.__forwarded) {
+        setPage('bookings')
+        try { window.localStorage.setItem('app_page', 'bookings') } catch (e) {}
+        return
+      }
+
+      // Switch to bookings page and re-dispatch once with a forwarded flag so the Bookings component
+      // (which may mount after the page change) receives the request only once.
       setPage('bookings')
       try { window.localStorage.setItem('app_page', 'bookings') } catch (e) {}
-      // re-dispatch so Bookings component (mounted after page change) can handle it
+
       setTimeout(() => {
-        window.dispatchEvent(new CustomEvent('navigate:booking', { detail }))
+        window.dispatchEvent(new CustomEvent('navigate:booking', { detail: { ...detail, __forwarded: true } }))
       }, 240)
     }
     window.addEventListener('navigate:booking', onNavigateReq)
