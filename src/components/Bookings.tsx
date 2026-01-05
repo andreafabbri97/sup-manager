@@ -646,7 +646,7 @@ export default function Bookings() {
                         {b.invoice_number && <div className="px-2 py-0.5 bg-neutral-100 dark:bg-neutral-700 rounded text-xs">#{b.invoice_number}</div>}
                       </div>
                     </div>
-                    <div className="flex flex-col items-end gap-2">
+                    <div className="flex flex-col items-end justify-between gap-2 min-h-[44px]">
                       {b.price && <div className="text-amber-500 dark:text-amber-300 font-bold text-lg whitespace-nowrap">€ {Number(b.price).toFixed(2)}</div>}
                       <div className="flex items-center gap-2">
                         {!b.paid && (
@@ -736,9 +736,11 @@ export default function Bookings() {
                             <div className="text-xs text-neutral-600 dark:text-neutral-300">{new Date(b.start_time).toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'})} – {new Date(b.end_time).toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'})}</div>
                             {b.paid && <div className="text-xs text-green-500 dark:text-green-300 font-semibold">Pagato</div>}
                           </div>
-                          <div className="flex items-center gap-2">
-                            {!b.paid && <button onClick={(e)=>{ e.stopPropagation(); markPaid(b.id) }} className="text-green-600 ml-3 focus-ring">Registra incasso</button>}
-                            <button onClick={(e)=>{ e.stopPropagation(); removeBooking(b.id) }} className="text-red-500 ml-3 focus-ring">Elimina</button>
+                          <div className="flex flex-col items-end justify-between gap-2 min-h-[44px]">
+                            <div className="flex items-center gap-2">
+                              {!b.paid && <button onClick={(e)=>{ e.stopPropagation(); markPaid(b.id) }} className="text-green-600 ml-3 focus-ring">Registra incasso</button>}
+                              <button onClick={(e)=>{ e.stopPropagation(); removeBooking(b.id) }} className="text-red-500 ml-3 focus-ring">Elimina</button>
+                            </div>
                           </div>
                         </Card>
                       ))}
