@@ -378,11 +378,11 @@ export default function Reports() {
 
       {/* Date filters (applied to both Reports and Admin) */}
       <div className="mb-4">
-        <div className="flex gap-2 items-center flex-wrap">
-          <label>Da</label>
-          <input type="date" value={start} onChange={(e)=>setStart(e.target.value)} className="border px-2 py-1 rounded" />
-          <label>A</label>
-          <input type="date" value={end} onChange={(e)=>setEnd(e.target.value)} className="border px-2 py-1 rounded" />
+        <div className="flex gap-2 items-center flex-nowrap overflow-x-auto">
+          <label className="whitespace-nowrap">Da</label>
+          <input type="date" value={start} onChange={(e)=>setStart(e.target.value)} className="border px-2 py-1 rounded w-36 sm:w-auto flex-shrink-0" />
+          <label className="whitespace-nowrap">A</label>
+          <input type="date" value={end} onChange={(e)=>setEnd(e.target.value)} className="border px-2 py-1 rounded w-36 sm:w-auto flex-shrink-0" />
           <button
             onClick={async () => {
               setIsRefreshing(true)
@@ -395,7 +395,7 @@ export default function Reports() {
             }}
             title={isRefreshing ? 'Aggiornamento...' : 'Aggiorna'}
             aria-label={isRefreshing ? 'Aggiornamento in corso' : 'Aggiorna'}
-            className="ml-2 p-2 rounded hover:bg-neutral-100 dark:hover:bg-neutral-800 focus-ring disabled:opacity-60"
+            className="ml-2 p-2 rounded bg-amber-500 text-white hover:bg-amber-600 focus-ring disabled:opacity-60 flex-shrink-0"
             disabled={isRefreshing}
           >
             <svg className={`w-5 h-5 ${isRefreshing ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
