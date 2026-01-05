@@ -54,6 +54,12 @@
   @keyframes slideUpSheet { from { opacity: 0; transform: translateY(100%); } to { opacity: 1; transform: translateY(0); } }
   .animate-slide-up { animation: slideUpSheet calc(var(--motion-duration) * 1.8) var(--motion-ease) both; }
 
+  /* snap transition for max-height (used when expanding/collapsing modals and dropdowns) */
+  .transition-max-h { transition: max-height calc(var(--motion-duration) * 1.4) var(--motion-ease); }
+  /* subtle pop for dropdowns */
+  @keyframes snapPop { from { transform: translateY(6px) scale(0.995); opacity: 0.0 } to { transform: translateY(0) scale(1); opacity: 1 } }
+  .animate-snap-pop { animation: snapPop calc(var(--motion-duration) * 1.2) var(--motion-ease) both; }
+
   /* reduced motion */
   @media (prefers-reduced-motion: reduce) {
     .animate-fade-up, .animate-modal-open, .card, .btn, .interactive { animation: none; transition: none; transform: none !important; }
