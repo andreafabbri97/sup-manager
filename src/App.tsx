@@ -21,6 +21,22 @@ export default function App() {
     try { window.localStorage.setItem('app_page', p) } catch (e) {}
   }, [])
 
+  // Listen to global navigate events (e.g. from NotificationBell)
+  React.useEffect(() => {
+    const onNavigateReq = (ev: any) => {
+      const detail = ev?.detail || {}
+      // always switch to bookings page, then re-dispatch the event shortly after
+      setPage('bookings')
+      try { window.localStorage.setItem('app_page', 'bookings') } catch (e) {}
+      // re-dispatch so Bookings component (mounted after page change) can handle it
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('navigate:booking', { detail }))
+      }, 240)
+    }
+    window.addEventListener('navigate:booking', onNavigateReq)
+    return () => window.removeEventListener('navigate:booking', onNavigateReq)
+  }, [])
+
   return (
     <div className="min-h-screen bg-sky-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 flex">
       <Sidebar onNav={handleNav} currentPage={page} />
