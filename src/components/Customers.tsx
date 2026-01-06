@@ -233,7 +233,7 @@ export default function Customers() {
           )}
 
           {sortedCustomers.map((customer) => (
-            <Card key={customer.id} className="flex items-start justify-between interactive bg-white dark:bg-neutral-700 border border-neutral-200 dark:border-neutral-600">
+            <Card key={customer.id} className="flex items-start justify-between interactive">
               <div className="flex-1">
                 <div className="flex items-center gap-2">
                   <div className="font-medium text-neutral-900 dark:text-neutral-100">

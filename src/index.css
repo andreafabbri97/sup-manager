@@ -22,7 +22,7 @@
   .btn:focus-visible { @apply outline-none ring-2 ring-amber-400; }
 
   /* Card subtle elevation and app card standards */
-  .card { @apply bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl p-4 shadow-sm; }
+  .card { @apply bg-white dark:bg-slate-800 border border-neutral-200 dark:border-neutral-700 rounded-xl p-4 shadow-sm; }
   .app-card { @apply card; box-shadow: 0 6px 18px rgba(2,6,23,0.06); }
   .card-title { @apply text-sm font-semibold mb-1; }
   .card-sub { @apply text-sm text-neutral-500 dark:text-neutral-400; }
