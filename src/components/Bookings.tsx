@@ -619,7 +619,6 @@ export default function Bookings() {
             </svg>
           </button>
           <div className="text-sm font-medium min-w-[120px] sm:min-w-[200px] text-center">
-            {viewMode === 'day' && <div className="text-xs text-neutral-500 mb-0.5">{currentDate.toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric' })}</div>}
             <div>{getDateRangeLabel()}</div>
           </div>
           <button onClick={() => navigateDate('next')} className="p-2 rounded hover:bg-neutral-100 dark:hover:bg-neutral-800">
