@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import Card from './ui/Card'
 import Modal from './ui/Modal'
@@ -26,6 +26,27 @@ export default function NotificationBell() {
       return mq.matches || Boolean(navigator?.maxTouchPoints) || ('ontouchstart' in window)
     } catch { return window.innerWidth < 768 }
   })
+
+  // Ref for the popup element so we can detect outside clicks/touches
+  const popupRef = useRef<HTMLDivElement | null>(null)
+
+  // Close popup when pointerdown / touchstart happens outside the popup (desktop only)
+  useEffect(() => {
+    if (!showPopup || isMobile) return
+    const onOutside = (ev: PointerEvent | TouchEvent) => {
+      const target = ev.target as Node | null
+      if (!popupRef.current) return
+      if (!popupRef.current.contains(target)) {
+        setShowPopup(false)
+      }
+    }
+    document.addEventListener('pointerdown', onOutside)
+    document.addEventListener('touchstart', onOutside)
+    return () => {
+      document.removeEventListener('pointerdown', onOutside)
+      document.removeEventListener('touchstart', onOutside)
+    }
+  }, [showPopup, isMobile])
 
   useEffect(() => {
     loadNotifications()
@@ -406,7 +427,7 @@ export default function NotificationBell() {
         ) : (
           <div className="fixed inset-0 z-50 flex justify-end">
             <div className="fixed inset-0 z-40 bg-transparent" onClick={() => setShowPopup(false)} onPointerDown={() => setShowPopup(false)} aria-hidden />
-            <div className="relative z-50 mt-2 w-80 max-w-[95vw] p-0" onPointerDown={(e) => e.stopPropagation()}>
+            <div ref={popupRef} className="relative z-50 mt-2 w-80 max-w-[95vw] p-0" onPointerDown={(e) => e.stopPropagation()}>
               <Card as="div" className="p-0">
                 {notificationsContent}
               </Card>
