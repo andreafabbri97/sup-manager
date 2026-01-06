@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 
-export default function InstallButton() {
+export default function InstallButton({ inline = false }: { inline?: boolean }) {
   const [deferredPrompt, setDeferredPrompt] = useState<any | null>(null)
   const [isInstalled, setIsInstalled] = useState(false)
   const [visible, setVisible] = useState(false)
@@ -46,6 +46,26 @@ export default function InstallButton() {
     } catch (err) {
       console.error('PWA prompt failed', err)
     }
+  }
+
+  // Inline mode: show a regular button inside layout (disabled if not available)
+  if (inline) {
+    return (
+      <div>
+        <button
+          aria-label="Installa app"
+          onClick={handleClick}
+          title={deferredPrompt ? 'Installa Sup Manager' : 'Installazione non disponibile in questo browser'}
+          disabled={!deferredPrompt || isInstalled}
+          className={`px-3 py-2 rounded ${(!deferredPrompt || isInstalled) ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed' : 'bg-amber-500 text-white hover:bg-amber-600'}`}
+        >
+          {isInstalled ? 'App installata' : 'Installa Sup Manager'}
+        </button>
+        {!deferredPrompt && !isInstalled && (
+          <div className="text-xs text-neutral-500 mt-2">Installazione disponibile solo su browser che supportano PWA (Chrome, Edge, Android WebView).</div>
+        )}
+      </div>
+    )
   }
 
   if (isInstalled || !visible) return null

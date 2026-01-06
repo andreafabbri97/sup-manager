@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
 import PageTitle from '../components/ui/PageTitle'
+import InstallButton from '../components/InstallButton'
 import { supabase } from '../lib/supabaseClient'
 
 export default function Settings() {
@@ -45,6 +46,14 @@ export default function Settings() {
           </div>
         </form>
       </Card>
+
+      <div className="mt-4">
+        <Card>
+          <h3 className="font-semibold mb-2">Installa l'app (PWA)</h3>
+          <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-3">Se stai usando il sito via browser, puoi installare l'app sul tuo dispositivo per un accesso più rapido e notifiche migliori.</p>
+          <InstallButton inline />
+        </Card>
+      </div>
     </div>
   )
 }
