@@ -8,8 +8,12 @@ function getStoredToken() {
 }
 
 export async function login(username: string, password: string) {
-  const { data, error } = await supabase.rpc('authenticate_user', { p_username: username, p_password: password })
-  if (error) throw error
+  // some Supabase clients match RPC by parameter order; provide p_password first to be safe
+  const { data, error } = await supabase.rpc('authenticate_user', { p_password: password, p_username: username })
+  if (error) {
+    // surface server error message for UX
+    throw new Error(error.message || 'Invalid credentials')
+  }
   const token = (data as any) ?? null
   if (!token) throw new Error('Login failed')
   try { window.localStorage.setItem('app_session_token', token) } catch (e) {}
