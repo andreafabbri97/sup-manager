@@ -793,8 +793,8 @@ export default function Bookings() {
                               </svg>
                             </a>
                           )}
+                        <div className="text-sm text-neutral-500 ml-3 whitespace-nowrap">{formatTimeRange(b)}</div>
                         </div>
-                        <div className="text-sm text-neutral-500">{formatTimeRange(b)}</div>
                       </div>
                       <div className="mt-1 text-sm text-neutral-600 dark:text-neutral-300">{b.notes ? (b.notes.length > 100 ? b.notes.slice(0,100) + '…' : b.notes) : ''}</div>
                       <div className="mt-1 flex items-center gap-2 text-sm">
