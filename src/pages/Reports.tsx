@@ -362,7 +362,8 @@ export default function Reports() {
       <div className="flex items-center justify-between mb-3 sm:mb-4 flex-wrap gap-3">
         <PageTitle className="m-0">Amministrazione e Report</PageTitle>
         <div className="flex items-center gap-4">
-          <div role="tablist" aria-label="Sezioni report" className="inline-flex rounded bg-neutral-100 dark:bg-neutral-800 p-1">
+          {/* small screens keep tablist on right - hidden on md+ */}
+          <div className="inline-flex rounded bg-neutral-100 dark:bg-neutral-800 p-1 md:hidden" role="tablist" aria-label="Sezioni report">
             <button role="tab" aria-selected={tab==='reports'} onClick={()=>setTab('reports')} className={`px-3 py-1 rounded ${tab==='reports' ? 'bg-white dark:bg-neutral-700 shadow' : ''}`}>Reports</button>
             <button role="tab" aria-selected={tab==='admin'} onClick={()=>{ setTab('admin'); loadExpenses(expenseFilterStart, expenseFilterEnd) }} className={`px-3 py-1 rounded ${tab==='admin' ? 'bg-white dark:bg-neutral-700 shadow' : ''}`}>Amministrazione</button>
           </div>
@@ -370,6 +371,14 @@ export default function Reports() {
             <input type="checkbox" checked={excludeIva} onChange={(e)=>setExcludeIva(e.target.checked)} className="border rounded" />
             Escludi IVA
           </label>
+        </div>
+      </div>
+
+      {/* Desktop: tabs under title */}
+      <div className="hidden md:flex items-center gap-4 mb-4">
+        <div role="tablist" aria-label="Sezioni report" className="inline-flex rounded bg-neutral-100 dark:bg-neutral-800 p-1">
+          <button role="tab" aria-selected={tab==='reports'} onClick={()=>setTab('reports')} className={`px-3 py-1 rounded ${tab==='reports' ? 'bg-white dark:bg-neutral-700 shadow' : ''}`}>Reports</button>
+          <button role="tab" aria-selected={tab==='admin'} onClick={()=>{ setTab('admin'); loadExpenses(expenseFilterStart, expenseFilterEnd) }} className={`px-3 py-1 rounded ${tab==='admin' ? 'bg-white dark:bg-neutral-700 shadow' : ''}`}>Amministrazione</button>
         </div>
       </div>
 
@@ -426,24 +435,28 @@ export default function Reports() {
               <div className="col-span-2">
                 <div className="mb-4 sm:mb-6">
                   <div className="text-lg font-medium text-white mb-2">Ordini giornalieri</div>
-                  <div className="h-64 sm:h-72 lg:h-80 animate-fade-up"><div className="h-full"><Line data={ordersData} options={ordersOptions} /></div></div>
+                  <div className="h-72 sm:h-80 lg:h-96 xl:h-[520px] animate-fade-up"><div className="h-full"><Line data={ordersData} options={ordersOptions} /></div></div>
                 </div>
                 <div className="mb-4 sm:mb-6">
                   <div className="text-lg font-medium text-white mb-2">Entrate giornaliere</div>
-                  <div className="h-64 sm:h-72 lg:h-80 animate-fade-up"><div className="h-full"><Line data={revenueData} options={revenueOptions} /></div></div>
+                  <div className="h-72 sm:h-80 lg:h-96 xl:h-[520px] animate-fade-up"><div className="h-full"><Line data={revenueData} options={revenueOptions} /></div></div>
                 </div>
-                <div>
-                  <div className="text-lg font-medium text-white">Statistiche rapide</div>
-                  <div className="mt-2 space-y-2">
-                    <Card className="p-2">
+              </div>
+
+              {/* Desktop: Quick stats on right column */}
+              <div className="hidden md:block">
+                <div className="mb-2">
+                  <div className="text-lg font-medium text-white mb-2">Statistiche rapide</div>
+                  <div className="mt-2 space-y-3">
+                    <Card className="p-3">
                       <div className="text-xs text-neutral-400">Valore medio prenotazione</div>
                       <div className="font-medium text-lg">{avgBookingValue.toFixed(2)} €</div>
                     </Card>
-                    <div className="p-2 rounded bg-white/5 dark:bg-slate-800">
+                    <div className="p-3 rounded bg-white/5 dark:bg-slate-800">
                       <div className="text-xs text-neutral-400">Giorno migliore (ricavi)</div>
                       <div className="font-medium text-lg">{bestDayLabel}</div>
                     </div>
-                    <div className="p-2 rounded bg-white/5 dark:bg-slate-800">
+                    <div className="p-3 rounded bg-white/5 dark:bg-slate-800">
                       <div className="text-xs text-neutral-400">Giorno con più ordini</div>
                       <div className="font-medium text-lg">{peakOrdersLabel}</div>
                     </div>
@@ -464,9 +477,9 @@ export default function Reports() {
               <h3 className="text-lg font-medium">Gestione Spese</h3>
             </div>
             <div className="flex flex-row gap-2 w-full">
-                <Button onClick={() => { setEditExpense(null); setExpenseDate(new Date().toISOString().slice(0,10)); setShowExpenseModal(true) }} className="flex-1">+ Spesa</Button>
-                <Button onClick={() => loadExpenses(expenseFilterStart, expenseFilterEnd)} className="bg-gray-600 flex-1">Applica filtro</Button>
-                <Button onClick={() => { setExpenseFilterStart(new Date(new Date().setMonth(new Date().getMonth()-1)).toISOString().slice(0,10)); setExpenseFilterEnd(new Date().toISOString().slice(0,10)); loadExpenses(); }} className="bg-gray-600 flex-1">Reset</Button>
+                <Button onClick={() => { setEditExpense(null); setExpenseDate(new Date().toISOString().slice(0,10)); setShowExpenseModal(true) }} className="px-4 py-2">+ Spesa</Button>
+                <Button onClick={() => loadExpenses(expenseFilterStart, expenseFilterEnd)} className="bg-gray-600 px-4 py-2">Applica filtro</Button>
+                <Button onClick={() => { setExpenseFilterStart(new Date(new Date().setMonth(new Date().getMonth()-1)).toISOString().slice(0,10)); setExpenseFilterEnd(new Date().toISOString().slice(0,10)); loadExpenses(); }} className="bg-gray-600 px-4 py-2">Reset</Button>
               </div>
           </div>
 
@@ -505,12 +518,12 @@ export default function Reports() {
                 </thead>
                 <tbody>
                   {expenses.map((ex:any)=> (
-                    <tr key={ex.id} role="button" tabIndex={0} onClick={(e) => { if ((e.target as HTMLElement).closest('button')) return; setShowExpenseDetail(true); setDetailExpense(ex) }} onKeyDown={(e:any) => { if (e.key === 'Enter') { setShowExpenseDetail(true); setDetailExpense(ex) } }} className="border-t border-neutral-100 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-700/50 cursor-pointer">
-                      <td className="py-2">{ex.date}</td>
-                      <td>{ex.category}</td>
-                      <td>{Number(ex.amount).toFixed(2)} €</td>
-                      <td>{ex.receipt_url ? <a href={ex.receipt_url} target="_blank" rel="noreferrer">Ricevuta</a> : '—'}</td>
-                      <td className="py-2">
+                    <tr key={ex.id} role="button" tabIndex={0} onClick={(e) => { if ((e.target as HTMLElement).closest('button')) return; setShowExpenseDetail(true); setDetailExpense(ex) }} onKeyDown={(e:any) => { if (e.key === 'Enter') { setShowExpenseDetail(true); setDetailExpense(ex) } }} className="border-t border-neutral-100 dark:border-neutral-800 hover:bg-white/5 dark:hover:bg-neutral-700/60 transition-colors cursor-pointer">
+                      <td className="py-2 lg:py-1">{ex.date}</td>
+                      <td className="lg:py-1">{ex.category}</td>
+                      <td className="lg:py-1">{Number(ex.amount).toFixed(2)} €</td>
+                      <td className="lg:py-1">{ex.receipt_url ? <a href={ex.receipt_url} target="_blank" rel="noreferrer">Ricevuta</a> : '—'}</td>
+                      <td className="py-2 lg:py-1">
                         <div className="flex gap-2">
                           <button onClick={(e)=>{ e.stopPropagation(); openEditExpense(ex) }} className="text-sm px-2 py-1 rounded border">Modifica</button>
                           <button onClick={(e)=>{ e.stopPropagation(); deleteExpense(ex.id) }} className="text-sm px-2 py-1 rounded border text-red-600">Elimina</button>
