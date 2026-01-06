@@ -14,13 +14,24 @@ export async function login(username: string, password: string) {
     // surface server error message for UX
     throw new Error(error.message || 'Invalid credentials')
   }
-  const token = (data as any) ?? null
+  // Normalize token regardless of RPC return shape
+  let token: any = null
+  if (Array.isArray(data) && data.length > 0) {
+    token = data[0]?.token ?? data[0]?.authenticate_user ?? data[0]?.id ?? Object.values(data[0])[0]
+  } else if (data && typeof data === 'object') {
+    token = data.token ?? data.authenticate_user ?? Object.values(data)[0]
+  } else {
+    token = data
+  }
+
   if (!token) throw new Error('Login failed')
-  try { window.localStorage.setItem('app_session_token', token) } catch (e) {}
-  cachedToken = token
+  try { window.localStorage.setItem('app_session_token', String(token)) } catch (e) {}
+  cachedToken = String(token)
   cachedRole = null
+  // small debug log to help trace auth during development
+  try { console.debug('login: stored session token', cachedToken) } catch (e) {}
   window.dispatchEvent(new CustomEvent('auth:changed'))
-  return token
+  return cachedToken
 }
 
 export async function logout() {
