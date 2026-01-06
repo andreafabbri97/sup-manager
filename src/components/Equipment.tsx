@@ -163,9 +163,8 @@ export default function Equipment() {
                   <div>
                     <div className="flex items-start justify-between gap-3">
                       <div className="font-medium text-lg truncate">{it.name}</div>
-                      <div className="text-sm text-amber-500 font-semibold whitespace-nowrap">€ {(it as any).price_per_hour ? Number((it as any).price_per_hour).toFixed(2) : '0.00'} /h</div>
                     </div>
-                    <div className="text-sm text-neutral-500 mt-1">{it.type} • Quantità: {it.quantity}</div>
+                    <div className="text-sm text-neutral-700 dark:text-neutral-300 mt-1">{it.type} • Quantità: {it.quantity}</div>
                     {((it as any).next_maintenance || (it as any).last_maintenance) && (
                       <div className="mt-2 text-xs border-t pt-2">
                         {(it as any).last_maintenance && (
@@ -182,18 +181,21 @@ export default function Equipment() {
                     <div className={`mt-3 inline-block px-2 py-1 text-xs rounded ${it.status === 'available' ? 'bg-green-100 text-green-800' : it.status === 'maintenance' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>{it.status === 'available' ? 'Disponibile' : it.status === 'maintenance' ? 'In manutenzione' : 'Ritirata'}</div>
                   </div>
 
-                    <div className="mt-4">
-                      <div className="hidden sm:flex gap-2 justify-end">
-                        <Button onClick={()=>startEdit(it)} className="px-3 py-1">Modifica</Button>
-                        <button onClick={()=>deleteItem(it.id)} className="px-3 py-1 rounded text-red-600 hover:bg-red-50 dark:hover:bg-red-900">Elimina</button>
-                      </div>
-                      <div className="flex sm:hidden gap-2 justify-end">
-                        <button onClick={()=>startEdit(it)} className="p-2 rounded border" aria-label={`Modifica ${it.name}`}>
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536M4 13.5V17h3.5L17.868 6.633 14.366 3.131 4 13.5z"/></svg>
-                        </button>
-                        <button onClick={()=>deleteItem(it.id)} className="p-2 rounded border text-red-500" aria-label={`Elimina ${it.name}`}>
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-1 12a2 2 0 01-2 2H8a2 2 0 01-2-2L5 7m5-4h4a2 2 0 012 2v0a2 2 0 01-2 2H10a2 2 0 01-2-2V5a2 2 0 012-2z"/></svg>
-                        </button>
+                    <div className="mt-4 flex items-center justify-between">
+                      <div className="text-sm text-amber-500 font-semibold">{(it as any).price_per_hour ? `€ ${Number((it as any).price_per_hour).toFixed(2)} /h` : '—'}</div>
+                      <div>
+                        <div className="hidden sm:flex gap-2">
+                          <Button onClick={()=>startEdit(it)} className="px-3 py-1">Modifica</Button>
+                          <button onClick={()=>deleteItem(it.id)} className="px-3 py-1 rounded text-red-600 hover:bg-red-50 dark:hover:bg-red-900">Elimina</button>
+                        </div>
+                        <div className="flex sm:hidden gap-2">
+                          <button onClick={()=>startEdit(it)} className="p-2 rounded border" aria-label={`Modifica ${it.name}`}>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536M4 13.5V17h3.5L17.868 6.633 14.366 3.131 4 13.5z"/></svg>
+                          </button>
+                          <button onClick={()=>deleteItem(it.id)} className="p-2 rounded border text-red-500" aria-label={`Elimina ${it.name}`}>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-1 12a2 2 0 01-2 2H8a2 2 0 01-2-2L5 7m5-4h4a2 2 0 012 2v0a2 2 0 01-2 2H10a2 2 0 01-2-2V5a2 2 0 012-2z"/></svg>
+                          </button>
+                        </div>
                       </div>
                     </div>
                 </>
