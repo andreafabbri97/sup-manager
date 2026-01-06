@@ -73,6 +73,8 @@ export default function Sidebar({ onNav, currentPage }: { onNav?: (page: string)
     { id: 'bookings', label: 'Prenotazioni' },
     { id: 'packages', label: 'Pacchetti' },
     { id: 'customers', label: 'Clienti' },
+    { id: 'employees', label: 'Dipendenti' },
+    { id: 'timesheet', label: 'Turni' },
     // Reports page shown unless role is explicitly staff
     ...(isAdmin ? [{ id: 'reports', label: 'Report & Amministrazione' }] : []),
     { id: 'settings', label: 'Impostazioni' }
@@ -116,6 +118,20 @@ export default function Sidebar({ onNav, currentPage }: { onNav?: (page: string)
         return (
           <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8zM23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
+          </svg>
+        )
+      case 'employees':
+        return (
+          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" d="M12 12a4 4 0 100-8 4 4 0 000 8z" />
+            <path strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" d="M4 21v-1a5 5 0 015-5h6a5 5 0 015 5v1" />
+          </svg>
+        )
+      case 'timesheet':
+        return (
+          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3" />
+            <circle cx="12" cy="12" r="8" strokeWidth="1.5" />
           </svg>
         )
       case 'expenses':
