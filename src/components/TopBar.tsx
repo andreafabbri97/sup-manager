@@ -28,10 +28,7 @@ export default function TopBar() {
         </button>
         <div className="flex-1 min-w-0 truncate">{formatted}</div>
         <div className="flex items-center gap-3">
-          {/* Link to login page / account */}
-          <button onClick={() => { try { window.dispatchEvent(new CustomEvent('navigate:login')) } catch (e) {} }} className="text-sm px-3 py-1 rounded bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200">
-            Login
-          </button>
+          {/* Top-right login button removed as login is managed in the app navigation */}
         </div>
       </div>
     </div>

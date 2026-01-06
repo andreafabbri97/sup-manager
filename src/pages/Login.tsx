@@ -44,43 +44,41 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="w-full px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4">
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <PageTitle className="m-0">Login</PageTitle>
-        {user && <Button variant="ghost" onClick={signOut}>Logout</Button>}
+    <div className="w-full px-4 sm:px-6 lg:px-8 py-4 sm:py-6 flex items-center justify-center min-h-[calc(100vh-56px)]">
+      <div className="w-full max-w-md space-y-4">
+        <Card className="p-6">
+          <PageTitle className="m-0">Login</PageTitle>
+          {message && <div className="text-sm text-emerald-600 dark:text-emerald-300 mt-2">{message}</div>}
+          <div className="text-sm text-neutral-600 dark:text-neutral-300 mt-2">Usa username e password creati dagli admin per accedere. Gli admin possono gestire gli utenti dalla pagina "Utenti".</div>
+          <form onSubmit={signIn} className="space-y-3 mt-4">
+            <div>
+              <label className="text-sm block mb-1">Username</label>
+              <input className="w-full border rounded px-3 py-2" value={username} onChange={(e)=>setUsername(e.target.value)} required autoCapitalize="off" autoCorrect="off" spellCheck={false} autoComplete="username" inputMode="text" />
+            </div>
+            <div>
+              <label className="text-sm block mb-1">Password</label>
+              <input className="w-full border rounded px-3 py-2" type="password" value={password} onChange={(e)=>setPassword(e.target.value)} required />
+            </div>
+            <div className="flex gap-2 flex-wrap">
+              <Button type="submit" disabled={loading}>{loading ? 'Attendere...' : 'Accedi'}</Button>
+              {user && <Button variant="ghost" onClick={signOut}>Logout</Button>}
+            </div>
+          </form>
+        </Card>
+
+        <Card className="p-4 sm:p-6">
+          <div className="font-semibold mb-2">Sessione attuale</div>
+          {user ? (
+            <div className="text-sm space-y-1">
+              <div>ID: {user.id}</div>
+              <div>Username: {user.username || '—'}</div>
+              <div>Role: {user.role || '—'}</div>
+            </div>
+          ) : (
+            <div className="text-sm text-neutral-500">Non sei autenticato.</div>
+          )}
+        </Card>
       </div>
-
-      {message && <div className="text-sm text-emerald-600 dark:text-emerald-300">{message}</div>}
-
-      <Card className="p-4 sm:p-6 space-y-3">
-        <div className="text-sm text-neutral-600 dark:text-neutral-300">Usa username e password creati dagli admin per accedere. Gli admin possono gestire gli utenti dalla pagina "Utenti".</div>
-        <form onSubmit={signIn} className="space-y-3">
-          <div>
-            <label className="text-sm block mb-1">Username</label>
-            <input className="w-full border rounded px-3 py-2" value={username} onChange={(e)=>setUsername(e.target.value)} required autoCapitalize="off" autoCorrect="off" spellCheck={false} autoComplete="username" inputMode="text" />
-          </div>
-          <div>
-            <label className="text-sm block mb-1">Password</label>
-            <input className="w-full border rounded px-3 py-2" type="password" value={password} onChange={(e)=>setPassword(e.target.value)} required />
-          </div>
-          <div className="flex gap-2 flex-wrap">
-            <Button type="submit" disabled={loading}>{loading ? 'Attendere...' : 'Accedi'}</Button>
-          </div>
-        </form>
-      </Card>
-
-      <Card className="p-4 sm:p-6">
-        <div className="font-semibold mb-2">Sessione attuale</div>
-        {user ? (
-          <div className="text-sm space-y-1">
-            <div>ID: {user.id}</div>
-            <div>Username: {user.username || '—'}</div>
-            <div>Role: {user.role || '—'}</div>
-          </div>
-        ) : (
-          <div className="text-sm text-neutral-500">Non sei autenticato.</div>
-        )}
-      </Card>
     </div>
   )
 }
