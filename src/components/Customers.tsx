@@ -208,6 +208,7 @@ export default function Customers() {
           resetForm()
         }}
         title={editingCustomer ? 'Modifica Cliente' : 'Nuovo Cliente'}
+        autoFocus={false}
       >
         <div className="space-y-4">
           <div>
