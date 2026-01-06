@@ -23,7 +23,7 @@ BEGIN
     ALTER TABLE app_user ADD COLUMN IF NOT EXISTS last_login timestamptz;
     -- Ensure role CHECK allows admin/staff only
     ALTER TABLE app_user DROP CONSTRAINT IF EXISTS app_user_role_check;
-    ALTER TABLE app_user ADD CONSTRAINT IF NOT EXISTS app_user_role_check CHECK (role IN ('admin','staff'));
+    ALTER TABLE app_user ADD CONSTRAINT app_user_role_check CHECK (role IN ('admin','staff'));
     CREATE INDEX IF NOT EXISTS idx_app_user_role ON app_user(role);
   END IF;
 END$$;
