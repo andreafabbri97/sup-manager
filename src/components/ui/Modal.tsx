@@ -28,7 +28,7 @@ interface ModalProps {
   mobileCentered?: boolean
 }
 
-export default function Modal({ isOpen, onClose, title, children, autoFocus = true, mobileDropdown = false, fullScreenMobile = false, openFullMobile = false, mobileCentered = false }: ModalProps) {
+export default function Modal({ isOpen, onClose, title, children, autoFocus = false, mobileDropdown = false, fullScreenMobile = false, openFullMobile = false, mobileCentered = false }: ModalProps) {
   const dialogRef = useRef<HTMLDivElement | null>(null)
   const [isMobile, setIsMobile] = useState(false)
   const latestOnClose = useRef(onClose)
