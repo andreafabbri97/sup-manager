@@ -9,8 +9,7 @@ import Customers from './components/Customers'
 import PWAInstallPrompt from './components/PWAInstallPrompt'
 import TopBar from './components/TopBar'
 import Archive from './pages/Archive'
-import Employees from './pages/Employees'
-import Timesheet from './pages/Timesheet'
+import People from './pages/People'
 import Login from './pages/Login'
 import Users from './pages/Users'
 import Payroll from './pages/Payroll'
@@ -107,15 +106,14 @@ export default function App() {
               {page === 'bookings' && <Bookings />}
               {page === 'packages' && <Packages />}
               {page === 'customers' && <Customers />}
-              {page === 'employees' && <Employees />}
-              {page === 'timesheet' && <Timesheet />}
+              {page === 'people' && <People />}
               {page === 'users' && <Users />}
               {page === 'login' && <Login />}
               {page === 'payroll' && <Payroll />}
               {page === 'reports' && <Reports />}
               {page === 'archive' && <Archive />}
               {page === 'settings' && <Settings />}
-              {!['equipment','bookings','packages','customers','employees','timesheet','reports','settings','archive','users','login'].includes(page) && <Reports />}
+              {!['equipment','bookings','packages','customers','people','reports','settings','archive','users','login'].includes(page) && <Reports /> }
             </>
           )}
         </div>

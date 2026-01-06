@@ -81,8 +81,7 @@ export default function Sidebar({ onNav, currentPage }: { onNav?: (page: string)
     { id: 'bookings', label: 'Prenotazioni' },
     { id: 'packages', label: 'Pacchetti' },
     { id: 'customers', label: 'Clienti' },
-    { id: 'employees', label: 'Dipendenti' },
-    { id: 'timesheet', label: 'Turni' },
+    { id: 'people', label: 'Dipendenti & Turni' },
     ...(isAdmin ? [{ id: 'reports', label: 'Report & Amministrazione' }] : []),
     ...(isAdmin ? [{ id: 'users', label: 'Utenti' }] : []),
     ...(isAdmin ? [{ id: 'payroll', label: 'Paghe' }] : []),
@@ -131,7 +130,7 @@ export default function Sidebar({ onNav, currentPage }: { onNav?: (page: string)
             <path strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8zM23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
           </svg>
         )
-      case 'employees':
+      case 'people':
         return (
           <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" d="M12 12a4 4 0 100-8 4 4 0 000 8z" />
