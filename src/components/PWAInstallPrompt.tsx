@@ -36,7 +36,29 @@ export default function PWAInstallPrompt() {
 
     window.addEventListener('beforeinstallprompt', handler)
 
-    return () => window.removeEventListener('beforeinstallprompt', handler)
+    // If a global handler already captured the event before this component mounted,
+    // pick up the stored prompt and show after delay (respecting dismiss)
+    const globalDp = (window as any).__deferredPWAInstall
+    if (globalDp) {
+      setDeferredPrompt(globalDp)
+      setTimeout(() => setShowPrompt(true), 3000)
+    }
+
+    // also listen to the custom event dispatched by the global helper
+    const onDeferred = () => {
+      const g = (window as any).__deferredPWAInstall
+      if (g) {
+        setDeferredPrompt(g)
+        setTimeout(() => setShowPrompt(true), 3000)
+      }
+    }
+
+    window.addEventListener('pwa:deferred', onDeferred)
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handler)
+      window.removeEventListener('pwa:deferred', onDeferred)
+    }
   }, [])
 
   async function handleInstall() {

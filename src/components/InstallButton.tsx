@@ -36,9 +36,29 @@ export default function InstallButton({ inline = false }: { inline?: boolean }) 
       setVisible(true)
     }
 
+    // Listen to custom events from the global PWA helper so we react
+    // irrespective of component mount order
+    const onDeferred = () => {
+      const g = (window as any).__deferredPWAInstall
+      if (g) {
+        setDeferredPrompt(g)
+        setVisible(true)
+      }
+    }
+    const onInstalled = () => {
+      setIsInstalled(true)
+      setVisible(false)
+      setDeferredPrompt(null)
+    }
+
+    window.addEventListener('pwa:deferred', onDeferred)
+    window.addEventListener('pwa:installed', onInstalled)
+
     return () => {
       window.removeEventListener('beforeinstallprompt', beforeHandler)
       window.removeEventListener('appinstalled', appInstalled)
+      window.removeEventListener('pwa:deferred', onDeferred)
+      window.removeEventListener('pwa:installed', onInstalled)
     }
   }, [])
 
