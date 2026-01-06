@@ -35,7 +35,8 @@ export default function EmployeesPage() {
   const [search, setSearch] = useState('')
   const [roleMsg, setRoleMsg] = useState('')
   const [roles, setRoles] = useState<Record<string, string>>({})
-  const [availableUsers, setAvailableUsers] = useState<{id: string; role: string}[]>([])
+  const [availableUsers, setAvailableUsers] = useState<{id: string; username?: string; role: string}[]>([])
+  const [usersById, setUsersById] = useState<Record<string,string>>({})
   const [authWarning, setAuthWarning] = useState('')
   const [isAdmin, setIsAdmin] = useState(false)
 
@@ -78,8 +79,12 @@ export default function EmployeesPage() {
   }
 
   async function loadUsers() {
-    const { data } = await supabase.from('app_user').select('id, role').order('id')
-    setAvailableUsers((data as any) || [])
+    const { data } = await supabase.from('app_user').select('id, username, role').order('username')
+    const users = (data as any) || []
+    setAvailableUsers(users)
+    const map: Record<string,string> = {}
+    users.forEach((u: any) => { if (u?.id && u?.username) map[u.id] = u.username })
+    setUsersById(map)
   }
 
   useEffect(() => {
@@ -198,7 +203,7 @@ export default function EmployeesPage() {
                 <div className="font-semibold text-lg">{emp.name}</div>
                 <div className="text-sm text-amber-500 font-semibold">{emp.hourly_rate?.toFixed(2)} € / ora</div>
                 <div className="text-xs text-neutral-500 mt-1 flex flex-col sm:flex-row sm:gap-3">
-                  {emp.auth_user_id ? <span className="text-emerald-600 dark:text-emerald-400">Auth user: {emp.auth_user_id}</span> : <span>Auth user: —</span>}
+                  {emp.auth_user_id ? <span className="text-emerald-600 dark:text-emerald-400">Auth user: {usersById[emp.auth_user_id] || emp.auth_user_id}</span> : <span>Auth user: —</span>}
                   {emp.tax_id ? <span>Cod. fiscale/IVA: {emp.tax_id}</span> : <span>Cod. fiscale/IVA: —</span>}
                   {emp.payment_method ? <span>Pagamento: {emp.payment_method}</span> : <span>Pagamento: —</span>}
                 </div>
@@ -242,12 +247,11 @@ export default function EmployeesPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
             <label className="text-sm block mb-1">Associa utente (opzionale)</label>
-            <div className="flex gap-2">
-              <select className="flex-1 border rounded px-3 py-2" value={form.auth_user_id ?? ''} onChange={(e)=>{ setForm(f=>({...f, auth_user_id: e.target.value})); const existing = employees.find(en => en.auth_user_id === e.target.value && en.id !== (form.id || '')); setAuthWarning(existing ? `Utente già associato a ${existing.name}` : '') }}>
+            <div>
+              <select className="w-full border rounded px-3 py-2" value={form.auth_user_id ?? ''} onChange={(e)=>{ const val = e.target.value; setForm(f=>({...f, auth_user_id: val})); const existing = employees.find(en => en.auth_user_id === val && en.id !== (form.id || '')); setAuthWarning(existing ? `Utente già associato a ${existing.name}` : '') }}>
                 <option value="">-- Nessuna associazione --</option>
-                {availableUsers.map(u => (<option key={u.id} value={u.id}>{u.id}{u.role ? ` (${u.role})` : ''}</option>))}
+                {availableUsers.map(u => (<option key={u.id} value={u.id}>{u.username || u.id}{u.role ? ` (${u.role})` : ''}</option>))}
               </select>
-              <input className="w-48 border rounded px-3 py-2" value={form.auth_user_id ?? ''} onChange={(e)=>{ setForm(f=>({...f, auth_user_id: e.target.value})); const existing = employees.find(en => en.auth_user_id === e.target.value && en.id !== (form.id || '')); setAuthWarning(existing ? `Utente già associato a ${existing.name}` : '') }} placeholder="o incolla UUID" />
             </div>
             {authWarning && <div className="text-xs text-amber-600 mt-1">{authWarning}</div>}
             </div>
