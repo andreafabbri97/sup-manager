@@ -45,14 +45,14 @@ export default function App() {
   }, [])
 
   React.useEffect(() => {
-    // Redirect non-admin users away from Reports if previously stored as current page
+    // Redirect only if role is explicitly staff; allow fallback admin/default
     let mounted = true
     ;(async () => {
       try {
         const { getCurrentUserRole } = await import('./lib/auth')
         const role = await getCurrentUserRole()
         if (!mounted) return
-        if (role !== 'admin' && page === 'reports') {
+        if (role === 'staff' && page === 'reports') {
           handleNav('bookings')
         }
       } catch (e) {

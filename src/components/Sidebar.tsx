@@ -66,13 +66,15 @@ export default function Sidebar({ onNav, currentPage }: { onNav?: (page: string)
     return () => { mounted = false }
   }, [])
 
+  const isAdmin = role !== 'staff' // default true when role is null/unknown
+
   const items = [
     { id: 'equipment', label: 'Attrezzatura' },
     { id: 'bookings', label: 'Prenotazioni' },
     { id: 'packages', label: 'Pacchetti' },
     { id: 'customers', label: 'Clienti' },
-    // Reports page is admin-only
-    ...(role === 'admin' ? [{ id: 'reports', label: 'Report & Amministrazione' }] : []),
+    // Reports page shown unless role is explicitly staff
+    ...(isAdmin ? [{ id: 'reports', label: 'Report & Amministrazione' }] : []),
     { id: 'settings', label: 'Impostazioni' }
   ]
 
