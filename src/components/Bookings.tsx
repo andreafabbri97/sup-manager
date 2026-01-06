@@ -772,7 +772,7 @@ export default function Bookings() {
           <div className="p-4">
               <div className="space-y-1">
               {getBookingsForDate(currentDate).map(b => (
-                <button key={b.id} title={bookingTitle(b)} onClick={() => { setSelectedBooking(b); setShowBookingDetails(true) }} className={`w-full text-left p-4 rounded-md border border-neutral-200 dark:border-neutral-700 bg-amber-50/70 dark:bg-neutral-800/60 interactive ${statusClass(b)} min-h-[56px] sm:min-h-[48px]`}>
+                <button key={b.id} title={bookingTitle(b)} onClick={() => { setSelectedBooking(b); setShowBookingDetails(true) }} className={`w-full text-left p-4 rounded-md bg-amber-50/70 dark:bg-neutral-800/60 interactive ${statusClass(b)} min-h-[56px] sm:min-h-[48px] ${b.paid ? 'border border-green-400 dark:border-green-600' : (b.invoiced ? 'border border-blue-400 dark:border-blue-600' : 'border border-amber-300 dark:border-amber-600')}`}>
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between">
@@ -805,11 +805,8 @@ export default function Bookings() {
                       {b.price && <div className="text-amber-500 dark:text-amber-300 font-bold text-lg whitespace-nowrap flex-shrink-0 ml-2">€ {Number(b.price).toFixed(2)}</div>}
                       <div className="flex items-center gap-2">
                         {!b.paid && (
-                          <button onClick={(e)=>{ e.stopPropagation(); markPaid(b.id) }} className="text-green-600 hover:text-green-700 p-1 focus-ring" title="Registra incasso">
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3" />
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
+                          <button onClick={(e)=>{ e.stopPropagation(); markPaid(b.id) }} className="text-sm px-3 py-1 rounded bg-green-600 text-white" title="Segna come pagato">
+                            Segna come pagato
                           </button>
                         )}
                         {b.paid && <div className="text-sm text-green-600 font-semibold">Pagato</div>}
