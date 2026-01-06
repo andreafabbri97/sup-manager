@@ -640,13 +640,12 @@ export default function Bookings() {
       </div>
 
       {/* Calendar view */}
-      <div className="mb-2 flex items-center justify-between">
+      <div className="mb-2 flex items-center justify-start">
         <div className="flex items-center gap-3 text-sm">
           <div className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-green-500 inline-block" /> <span className="text-xs text-neutral-500">Pagato</span></div>
           <div className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-blue-500 inline-block" /> <span className="text-xs text-neutral-500">Fatturato</span></div>
           <div className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-500 inline-block" /> <span className="text-xs text-neutral-500">Non pagato</span></div>
         </div>
-        <div className="text-sm text-neutral-500">Tocca un giorno per vedere le prenotazioni</div>
       </div>
       <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-neutral-200 dark:border-neutral-700">
         {viewMode === 'day' && (
@@ -807,8 +806,8 @@ export default function Bookings() {
             </div>
 
             {/* Mobile stacked list */}
-            <div className="sm:hidden p-2">
-              <div className="grid grid-cols-7 gap-1">
+            <div className="sm:hidden p-3">
+              <div className="grid grid-cols-7 gap-2 auto-rows-[minmax(72px,auto)]">
                 {getMonthDays(currentDate).map((day) => {
                   const dayBookings = getBookingsForDate(day)
                   const isToday = day.toDateString() === new Date().toDateString()
@@ -816,28 +815,24 @@ export default function Bookings() {
                   return (
                     <button
                       key={day.toDateString()}
-                      onClick={() => {
-                        // short tap: show pressed animation then open modal
-                        setPressedDay(day.toDateString())
-                        window.setTimeout(()=>{ setPressedDay(null); openDayListModal(day) }, 120)
-                      }}
+                      onClick={() => { setPressedDay(day.toDateString()); window.setTimeout(()=>{ setPressedDay(null); openDayListModal(day) }, 120) }}
                       aria-label={`Apri prenotazioni ${day.toLocaleDateString('it-IT')}`}
-                      className={`p-2 rounded border text-left text-[11px] ${pressedDay === day.toDateString() ? 'scale-95 transform transition-transform duration-100' : ''} ${isToday ? 'bg-amber-50 dark:bg-amber-900/10 border-amber-200' : 'border-neutral-200 dark:border-neutral-700'} ${!isCurrentMonth ? 'opacity-50' : ''}`}>
+                      className={`p-3 rounded border text-left text-[12px] ${pressedDay === day.toDateString() ? 'scale-95 transform transition-transform duration-100' : ''} ${isToday ? 'bg-amber-50 dark:bg-amber-900/10 border-amber-200' : 'border-neutral-200 dark:border-neutral-700'} ${!isCurrentMonth ? 'opacity-50' : ''}`}>
                       <div className="flex items-center justify-between mb-1">
-                        <div className="font-medium text-[11px]">{day.toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric' })}</div>
-                        <div className="text-[11px] text-neutral-500">{dayBookings.length}</div>
+                        <div className="font-medium text-sm">{day.toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric' })}</div>
+                        <div className="text-sm text-neutral-500">{dayBookings.length}</div>
                       </div>
-                      <div className="flex flex-col gap-0.5">
+                      <div className="flex flex-col gap-1">
                         {dayBookings.slice(0,3).map(b => (
-                          <div key={b.id} title={bookingTitle(b)} className="flex items-center justify-between text-[11px] text-neutral-700 dark:text-neutral-200">
-                            <div className="flex items-center gap-1 truncate">
+                          <div key={b.id} title={bookingTitle(b)} className="flex items-center justify-between text-[12px] text-neutral-700 dark:text-neutral-200">
+                            <div className="flex items-center gap-2 truncate">
                               {compactDot(b)}
-                              <span className="truncate max-w-[70px]">{new Date(b.start_time).toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'})} {b.customer_name?.slice(0,8) || ''}</span>
+                              <span className="truncate max-w-[90px]">{new Date(b.start_time).toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'})} {(b.customer_name?.slice(0,12)) || ''}</span>
                             </div>
-                            <div className="text-[10px] text-neutral-500">{b.paid ? '●' : b.invoiced ? '●' : ''}</div>
+                            <div className="text-[11px] text-neutral-500">{b.paid ? '●' : b.invoiced ? '●' : ''}</div>
                           </div>
                         ))}
-                        {dayBookings.length > 3 && <div className="text-[11px] text-neutral-500">+{dayBookings.length - 3} altre</div>}
+                        {dayBookings.length > 3 && <div className="text-[12px] text-neutral-500">+{dayBookings.length - 3} altre</div>}
                       </div>
                     </button>
                   )
