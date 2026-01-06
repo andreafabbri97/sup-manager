@@ -135,9 +135,7 @@ export default function Archive({ start: propStart, end: propEnd }: { start?: st
       </div>
 
       <Card>
-        <div className={`${!showFiltersMobile ? 'hidden sm:block' : ''} mb-3`}>
-        </div>
-
+        <div className={`${showFiltersMobile ? '' : 'hidden'} sm:block mb-3`}>
           <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center sm:gap-3">
             <div className="flex items-center gap-2">
               <label className="text-sm">Da</label>
@@ -169,6 +167,7 @@ export default function Archive({ start: propStart, end: propEnd }: { start?: st
               <input placeholder="Nr fattura" value={qInvoice} onChange={(e)=>setQInvoice(e.target.value)} className="border px-2 py-1 rounded w-full" />
             </div>
           </div>
+        </div>
 
         {/* Mobile stacked list */}
       <div className="sm:hidden space-y-2 mb-3">
@@ -177,7 +176,7 @@ export default function Archive({ start: propStart, end: propEnd }: { start?: st
             <div className="flex items-center justify-between">
               <div>
                 <div className="font-medium">{b.customer_name}</div>
-                <div className="text-xs text-neutral-400">{new Date(b.start_time).toLocaleString('it-IT', { day: '2-digit', month: 'short', year: 'numeric' })} • {b.invoice_number ? <span>{b.invoice_number}{b.invoiced ? <span className="text-blue-600 font-semibold"> Fatturata</span> : null}</span> : (b.invoiced ? <span className="text-blue-600 font-semibold">Fatturata</span> : '—') }</div>
+                <div className="text-xs text-neutral-400">{new Date(b.start_time).toLocaleString('it-IT', { day: '2-digit', month: 'short', year: 'numeric' })} • {b.invoice_number ? <span>{b.invoice_number}</span> : '—'}</div>
               </div>
               <div className="flex flex-col items-end">
                 <div className="text-amber-500 dark:text-amber-300 font-bold">{b.price ? `€ ${Number(b.price).toFixed(2)}` : '—'}</div>
