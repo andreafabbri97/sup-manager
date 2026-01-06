@@ -57,7 +57,7 @@ export default function LoginPage() {
         <form onSubmit={signIn} className="space-y-3">
           <div>
             <label className="text-sm block mb-1">Username</label>
-            <input className="w-full border rounded px-3 py-2" value={username} onChange={(e)=>setUsername(e.target.value)} required />
+            <input className="w-full border rounded px-3 py-2" value={username} onChange={(e)=>setUsername(e.target.value)} required autoCapitalize="off" autoCorrect="off" spellCheck={false} autoComplete="username" inputMode="text" />
           </div>
           <div>
             <label className="text-sm block mb-1">Password</label>

@@ -90,7 +90,7 @@ export default function UsersPage() {
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
           <div>
             <label className="text-sm block mb-1">Username</label>
-            <input className="w-full border rounded px-3 py-2" value={newUsername} onChange={(e)=>setNewUsername(e.target.value)} placeholder="username" />
+            <input className="w-full border rounded px-3 py-2" value={newUsername} onChange={(e)=>setNewUsername(e.target.value)} placeholder="username" autoCapitalize="off" autoCorrect="off" spellCheck={false} autoComplete="username" inputMode="text" />
           </div>
           <div>
             <label className="text-sm block mb-1">Password</label>
