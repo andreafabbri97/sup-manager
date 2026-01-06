@@ -27,6 +27,17 @@ export default function Customers() {
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
   const [notes, setNotes] = useState('')
+  // Sort option: name-asc | name-desc | bookings-desc | bookings-asc
+  const [sortOption, setSortOption] = useState<'name-asc'|'name-desc'|'bookings-desc'|'bookings-asc'>('name-asc')
+
+  useEffect(() => {
+    const s = typeof window !== 'undefined' ? localStorage.getItem('customers:sort') : null
+    if (s) setSortOption(s as any)
+  }, [])
+
+  useEffect(() => {
+    try { localStorage.setItem('customers:sort', sortOption) } catch (e) {}
+  }, [sortOption])
 
   // Helper: convert stored phone to international digits-only format suitable for wa.me links
   // Rules: strip non-digit chars; if starts with '00' drop the leading zeros; if starts with single '0' assume Italian country code '39'
@@ -162,6 +173,25 @@ export default function Customers() {
     )
   })
 
+  const sortedCustomers = React.useMemo(() => {
+    const arr = [...filteredCustomers]
+    switch (sortOption) {
+      case 'name-asc':
+        arr.sort((a,b) => a.name.localeCompare(b.name))
+        break
+      case 'name-desc':
+        arr.sort((a,b) => b.name.localeCompare(a.name))
+        break
+      case 'bookings-desc':
+        arr.sort((a,b) => ( (bookingsCounts[b.id]||0) - (bookingsCounts[a.id]||0) ) || a.name.localeCompare(b.name))
+        break
+      case 'bookings-asc':
+        arr.sort((a,b) => ( (bookingsCounts[a.id]||0) - (bookingsCounts[b.id]||0) ) || a.name.localeCompare(b.name))
+        break
+    }
+    return arr
+  }, [filteredCustomers, bookingsCounts, sortOption])
+
   return (
     <section className="mt-6">
       <div className="flex items-center justify-between mb-3">
@@ -172,16 +202,26 @@ export default function Customers() {
         <Button onClick={openCreateModal}>+ Nuovo Cliente</Button>
       </div>
 
-      <Card className="mt-2">
-        {/* Search */}
-        <div className="mb-4">
+      <div className="mt-2">
+        {/* Search + Sort */}
+        <div className="mb-4 flex flex-col sm:flex-row sm:items-center gap-2">
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Cerca per nome, email o telefono..."
-            className="w-full border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-slate-700 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-amber-500"
+            className="flex-1 border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-slate-700 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-amber-500"
           />
+          <select
+            value={sortOption}
+            onChange={(e) => setSortOption(e.target.value as any)}
+            className="w-full sm:w-auto border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-slate-700 px-3 py-2 rounded"
+          >
+            <option value="name-asc">Ordina: Nome A→Z</option>
+            <option value="name-desc">Ordina: Nome Z→A</option>
+            <option value="bookings-desc">Ordina: Prenotazioni (più → meno)</option>
+            <option value="bookings-asc">Ordina: Prenotazioni (meno → più)</option>
+          </select>
         </div>
 
         {/* Customers list */}
@@ -192,8 +232,8 @@ export default function Customers() {
             </div>
           )}
 
-          {filteredCustomers.map((customer) => (
-            <Card key={customer.id} className="flex items-start justify-between interactive">
+          {sortedCustomers.map((customer) => (
+            <Card key={customer.id} className="flex items-start justify-between interactive bg-white dark:bg-neutral-700 border border-neutral-200 dark:border-neutral-600">
               <div className="flex-1">
                 <div className="flex items-center gap-2">
                   <div className="font-medium text-neutral-900 dark:text-neutral-100">
@@ -263,7 +303,7 @@ export default function Customers() {
             </Card>
           ))}
         </div>
-      </Card>
+      </div>
 
       {/* Modal Create/Edit */}
       <Modal
