@@ -215,6 +215,7 @@ export default function Modal({ isOpen, onClose, title, children, autoFocus = tr
           aria-label={title}
           className={`absolute top-full right-0 mt-2 w-80 max-w-[95vw] bg-white dark:bg-slate-800 rounded-lg shadow-2xl z-50 overflow-y-auto max-h-[60vh] transform transition-transform duration-300 ease-out animate-modal-open transition-max-h ${isClosing ? 'animate-slide-down' : 'animate-modal-open'}`}
           onClick={(e) => e.stopPropagation()}
+          onPointerDown={(e) => e.stopPropagation()}
         >
           <div className="sticky top-0 bg-white dark:bg-slate-800 border-b border-neutral-200 dark:border-neutral-700 px-4 py-3 flex items-center justify-between">
             <h3 className="text-lg font-semibold">{title}</h3>
@@ -239,6 +240,7 @@ export default function Modal({ isOpen, onClose, title, children, autoFocus = tr
         aria-label={title}
         className={`bg-white dark:bg-slate-800 rounded-t-3xl sm:rounded-lg shadow-2xl w-full sm:max-w-2xl overflow-hidden transform transition-transform duration-300 ease-out scale-100 sm:animate-modal-open ${isClosing ? 'animate-slide-down' : 'animate-modal-open'} touch-manipulation`}
         onClick={(e) => e.stopPropagation()}
+        onPointerDown={(e) => e.stopPropagation()}
       >
         {/* Inner scrollable wrapper - keeps rounded corners visible while allowing internal scroll */}
         <div ref={contentRef} className={`${isMobile && fullScreenMobile ? 'max-h-[100vh]' : 'max-h-[60vh]'} sm:max-h-[calc(100svh-20px)] overflow-y-auto touch-manipulation`} style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>

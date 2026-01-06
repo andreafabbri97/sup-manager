@@ -406,7 +406,7 @@ export default function NotificationBell() {
         ) : (
           <div className="fixed inset-0 z-50 flex justify-end">
             <div className="fixed inset-0 z-40 bg-transparent" onClick={() => setShowPopup(false)} onPointerDown={() => setShowPopup(false)} aria-hidden />
-            <div className="relative z-50 mt-2 w-80 max-w-[95vw] p-0">
+            <div className="relative z-50 mt-2 w-80 max-w-[95vw] p-0" onPointerDown={(e) => e.stopPropagation()}>
               <Card as="div" className="p-0">
                 {notificationsContent}
               </Card>
