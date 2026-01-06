@@ -7,6 +7,6 @@ type Props = {
 
 export default function PageTitle({ children, className = '' }: Props) {
   return (
-    <h1 className={`text-3xl sm:text-4xl font-extrabold tracking-tight mb-0 ${className}`}>{children}</h1>
+    <h1 className={`text-3xl sm:text-4xl font-extrabold tracking-tight mb-0 animate-fade-up ${className}`}>{children}</h1>
   )
 }

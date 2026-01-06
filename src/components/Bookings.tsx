@@ -48,27 +48,13 @@ export default function Bookings() {
   const [showDayListModal, setShowDayListModal] = useState(false)
   const [modalDay, setModalDay] = useState<Date | null>(null)
 
-  // Mobile preview & tap interactions
+  // Mobile tap interactions (tap-to-expand animation)
   const touchTimer = React.useRef<number | null>(null)
-  const [previewDay, setPreviewDay] = useState<Date | null>(null)
-  const previewTimeoutRef = React.useRef<number | null>(null)
   const [pressedDay, setPressedDay] = useState<string | null>(null)
 
   function openDayListModal(day: Date) {
     setModalDay(day)
     setShowDayListModal(true)
-  }
-
-  function showPreview(day: Date) {
-    setPreviewDay(day)
-    // auto-hide preview after 2.5s
-    if (previewTimeoutRef.current) window.clearTimeout(previewTimeoutRef.current)
-    previewTimeoutRef.current = window.setTimeout(() => { setPreviewDay(null); previewTimeoutRef.current = null }, 2500)
-  }
-
-  function clearPreview() {
-    setPreviewDay(null)
-    if (previewTimeoutRef.current) { window.clearTimeout(previewTimeoutRef.current); previewTimeoutRef.current = null }
   }
 
   // Helpers for improved display
@@ -835,25 +821,6 @@ export default function Bookings() {
                         setPressedDay(day.toDateString())
                         window.setTimeout(()=>{ setPressedDay(null); openDayListModal(day) }, 120)
                       }}
-                      onTouchStart={() => {
-                        // start long-press timer
-                        if (touchTimer.current) window.clearTimeout(touchTimer.current)
-                        touchTimer.current = window.setTimeout(()=>{ touchTimer.current = null; showPreview(day) }, 600)
-                      }}
-                      onTouchEnd={() => {
-                        // if long-press didn't fire, treat as tap
-                        if (touchTimer.current) {
-                          window.clearTimeout(touchTimer.current)
-                          touchTimer.current = null
-                        } else {
-                          // long-press had fired; close preview after short delay
-                          window.setTimeout(()=>clearPreview(), 200)
-                          return
-                        }
-                      }}
-                      onTouchMove={() => { if (touchTimer.current) { window.clearTimeout(touchTimer.current); touchTimer.current = null } }}
-                      onMouseEnter={() => { /* desktop: show transient preview on hover */ showPreview(day) }}
-                      onMouseLeave={() => clearPreview()}
                       aria-label={`Apri prenotazioni ${day.toLocaleDateString('it-IT')}`}
                       className={`p-2 rounded border text-left text-[11px] ${pressedDay === day.toDateString() ? 'scale-95 transform transition-transform duration-100' : ''} ${isToday ? 'bg-amber-50 dark:bg-amber-900/10 border-amber-200' : 'border-neutral-200 dark:border-neutral-700'} ${!isCurrentMonth ? 'opacity-50' : ''}`}>
                       <div className="flex items-center justify-between mb-1">
@@ -1002,33 +969,7 @@ export default function Bookings() {
       </Modal>
 
       {/* Preview popover for long-press / hover */}
-      {previewDay && (
-        <div className="fixed left-1/2 -translate-x-1/2 bottom-24 z-50 w-[92%] sm:hidden">
-          <Card className="p-2">
-            <div className="flex items-center justify-between mb-2">
-              <div className="font-medium">Prenotazioni {previewDay.toLocaleDateString('it-IT')}</div>
-              <div className="flex gap-2">
-                <button onClick={() => { openDayListModal(previewDay); clearPreview() }} className="text-xs px-2 py-1 rounded border">Apri</button>
-                <button onClick={() => clearPreview()} className="text-xs px-2 py-1 rounded border">Chiudi</button>
-              </div>
-            </div>
-            <div className="space-y-2">
-              {getBookingsForDate(previewDay).slice(0,3).map(b => (
-                <button key={b.id} onClick={() => { setSelectedBooking(b); setShowBookingDetails(true); clearPreview() }} className="w-full text-left p-2 rounded hover:bg-neutral-50 dark:hover:bg-neutral-800">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      {compactDot(b)}
-                      <div className="truncate text-sm">{new Date(b.start_time).toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'})} — {b.customer_name?.slice(0,20) ?? 'Cliente'}</div>
-                    </div>
-                    <div className="text-sm text-amber-600">{b.price ? `€ ${Number(b.price).toFixed(2)}` : ''}</div>
-                  </div>
-                </button>
-              ))}
-              {getBookingsForDate(previewDay).length === 0 && <div className="text-neutral-500">Nessuna prenotazione</div>}
-            </div>
-          </Card>
-        </div>
-      )}
+
 
       {/* Day bookings modal (all bookings for a selected date) */}
       <Modal isOpen={showDayListModal} onClose={() => { setShowDayListModal(false); setModalDay(null) }} title={modalDay ? `Prenotazioni ${modalDay.toLocaleDateString('it-IT')}` : 'Prenotazioni'}>
