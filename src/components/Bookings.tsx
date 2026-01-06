@@ -11,6 +11,9 @@ export default function Bookings() {
   const [equipment, setEquipment] = useState<any[]>([])
   const [packages, setPackages] = useState<any[]>([])
   const [bookings, setBookings] = useState<any[]>([])
+  // Cache for day-specific bookings to speed up day view (server-side query per day)
+  const [dayBookingsCache, setDayBookingsCache] = useState<Record<string, any[]>>({})
+  const [dayLoading, setDayLoading] = useState<Record<string, boolean>>({})
   const [customers, setCustomers] = useState<any[]>([])
   const [selectedBooking, setSelectedBooking] = useState<any | null>(null)
   const [showBookingDetails, setShowBookingDetails] = useState(false)
@@ -182,6 +185,158 @@ export default function Bookings() {
     }
     window.addEventListener('realtime:booking', onRealtimeBooking as any)
 
+    // When a realtime booking arrives, invalidate day cache for affected day(s)
+    const onRealtimeBookingInvalidate = (ev: any) => {
+      try {
+        const b = ev?.detail
+        if (!b || !b.start_time) return
+        const d = new Date(b.start_time)
+        const key = dateKey(d)
+        setDayBookingsCache(prev => ({ ...prev, [key]: undefined }))
+      } catch (err) {
+        // ignore
+      }
+    }
+    window.addEventListener('realtime:booking:changed', onRealtimeBookingInvalidate as any)
+
+    // Listen for navigation requests from other components (e.g. NotificationBell)
+    const onNavigate = async (ev: any) => {
+      try {
+        const detail = ev?.detail || {}
+        if (detail.bookingId) {
+          // try to find booking in memory
+          const b = bookings.find((x: any) => x.id === detail.bookingId)
+          if (b) {
+            setViewMode('day')
+            setCurrentDate(new Date(b.start_time))
+            setSelectedBooking(b)
+            setShowBookingDetails(true)
+            return
+          }
+          // fallback: fetch booking then open
+          const { data } = await supabase.from('booking').select('*').eq('id', detail.bookingId).single()
+          if (data) {
+            setViewMode('day')
+            setCurrentDate(new Date(data.start_time))
+            setSelectedBooking(data)
+            setShowBookingDetails(true)
+            return
+          }
+        }
+      } catch (err) {
+        // ignore
+      }
+    }
+    window.addEventListener('sups:navigate', onNavigate as any)
+
+    return () => {
+      window.removeEventListener('sups:changed', handler)
+      window.removeEventListener('realtime:booking', onRealtimeBooking as any)
+      window.removeEventListener('realtime:booking:changed', onRealtimeBookingInvalidate as any)
+      window.removeEventListener('sups:navigate', onNavigate as any)
+    }
+  }, [bookings])
+
+  // Render helper for day list to simplify inline JSX
+  function renderDayList() {
+    const key = dateKey(currentDate)
+    const loading = dayLoading[key]
+    const dayList = dayBookingsCache[key] ?? getBookingsForDate(currentDate)
+    if (loading) return <div className="text-center py-8 text-neutral-500">Caricamento prenotazioni…</div>
+    if (dayList.length === 0) return <div className="text-center py-12 text-neutral-500 dark:text-neutral-400">Nessuna prenotazione per questa giornata</div>
+    return dayList.map(b => (
+      <div key={b.id} role="button" tabIndex={0} title={bookingTitle(b)} onClick={() => { setSelectedBooking(b); setShowBookingDetails(true) }} className={`w-full text-left p-4 rounded-md bg-amber-50/70 dark:bg-neutral-800/60 interactive ${statusClass(b)} min-h-[56px] sm:min-h-[48px] ${b.paid ? 'border border-green-400 dark:border-green-600' : (b.invoiced ? 'border border-blue-400 dark:border-blue-600' : 'border border-amber-300 dark:border-amber-600')}`}>
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex-1 min-w-0">
+            <div className="flex flex-col items-start justify-between">
+              <div className="flex items-center gap-2">
+                <div className="font-medium truncate text-neutral-900 dark:text-neutral-100 text-lg sm:text-base">{b.customer_name || 'Cliente'}</div>
+                {formatPhoneForWhatsApp(b.customer_phone) && (
+                  <a href={`https://wa.me/${formatPhoneForWhatsApp(b.customer_phone)}`} target="_blank" rel="noopener noreferrer" title="Apri chat WhatsApp" onClick={(e)=>e.stopPropagation()} className="inline-flex items-center justify-center">
+                    <svg className="w-5 h-5" viewBox="0 0 175.216 175.552" aria-hidden="true">
+                      <circle fill="#25D366" cx="87.608" cy="87.776" r="87.608"/>
+                      <path fill="#FFFFFF" d="M126.88 48.572c-9.304-9.304-21.664-14.432-34.848-14.432-27.136 0-49.216 22.08-49.216 49.216 0 8.672 2.272 17.152 6.56 24.608l-6.976 25.472 26.048-6.816c7.232 3.936 15.36 6.016 23.584 6.016h.032c27.136 0 49.216-22.08 49.216-49.216 0-13.152-5.12-25.504-14.4-34.848zm-34.848 75.776h-.032c-7.328 0-14.528-1.952-20.8-5.632l-1.504-.896-15.488 4.064 4.128-15.104-.992-1.568c-4.032-6.4-6.176-13.792-6.176-21.408 0-22.176 18.048-40.224 40.256-40.224 10.752 0 20.864 4.192 28.448 11.808 7.584 7.584 11.776 17.664 11.776 28.416-.032 22.208-18.08 40.256-40.256 40.256zm22.08-30.144c-1.216-.608-7.136-3.52-8.224-3.904-1.088-.416-1.888-.608-2.688.608-.8 1.216-3.104 3.904-3.808 4.704-.704.8-1.408 .928-2.624.32-1.216-.608-5.12-1.888-9.76-6.016-3.616-3.2-6.048-7.168-6.752-8.384-.704-1.216-.064-1.888.544-2.496.544-.544 1.216-1.408 1.824-2.112.608-.704.8-1.216 1.216-2.016.416-.8.192-1.504-.096-2.112-.32-.608-2.688-6.464-3.68-8.864-.96-2.304-1.984-2.016-2.688-2.048-.704-.032-1.504-.032-2.304-.032s-2.112.32-3.2 1.504c-1.088 1.216-4.16 4.064-4.16 9.92s4.256 11.52 4.864 12.32c.608.8 8.672 13.216 21.024 18.528 2.944 1.28 5.248 2.048 7.04 2.624 2.944.96 5.632.832 7.744.512 2.368-.352 7.136-2.912 8.128-5.728.992-2.816.992-5.248.672-5.76-.288-.544-1.088-.864-2.304-1.472z"/>
+                    </svg>
+                  </a>
+                )}
+                </div>
+                {b.price && <div className="text-amber-500 dark:text-amber-300 font-bold text-lg whitespace-nowrap flex-shrink-0 ml-2">€ {Number(b.price).toFixed(2)}</div>}
+              <div className="flex items-center gap-2">
+                {!b.paid && (
+                  <button onClick={(e)=>{}} className="text-sm px-3 py-1 rounded bg-green-600 text-white" title="Segna come pagato">
+                    Segna come pagato
+                  </button>
+                )}
+                {b.paid && <div className="text-sm text-green-600 font-semibold">Pagato</div>}
+                {b.invoiced && <div className="text-sm text-blue-600 font-semibold">Fatturato</div>}
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    ))
+  }
+
+  // Helper: per data yyyy-mm-dd date key per cache
+  function dateKey(date: Date): string {
+    const YYYY = date.getFullYear()
+    const MM = String(date.getMonth() + 1).padStart(2, '0')
+    const DD = String(date.getDate()).padStart(2, '0')
+    return `${YYYY}-${MM}-${DD}`
+  }
+
+  // Fetch bookings for a specific day from server (per-day query for better performance)
+  async function fetchBookingsForDate(date: Date) {
+    const key = dateKey(date)
+    setDayLoading(prev => ({ ...prev, [key]: true }))
+    try {
+      const dayStart = new Date(date)
+      dayStart.setHours(0, 0, 0, 0)
+      const dayEnd = new Date(date)
+      dayEnd.setHours(23, 59, 59, 999)
+      const { data } = await supabase
+        .from('booking')
+        .select('*')
+        .gte('start_time', dayStart.toISOString())
+        .lt('start_time', dayEnd.toISOString())
+        .order('start_time', { ascending: true })
+      setDayBookingsCache(prev => ({ ...prev, [key]: data || [] }))
+    } catch (err) {
+      console.error('Error fetching day bookings:', err)
+    } finally {
+      setDayLoading(prev => ({ ...prev, [key]: false }))
+    }
+  }
+
+  useEffect(() => {
+    load()
+
+    const handler = () => load()
+    window.addEventListener('sups:changed', handler)
+
+    // realtime booking updates (debounced)
+    const realtimeTimer = { id: 0 as any }
+    const onRealtimeBooking = () => {
+      if (realtimeTimer.id) clearTimeout(realtimeTimer.id)
+      realtimeTimer.id = window.setTimeout(() => { load(); realtimeTimer.id = 0 }, 300)
+    }
+    window.addEventListener('realtime:booking', onRealtimeBooking as any)
+
+    // When a realtime booking arrives, invalidate day cache for affected day(s)
+    const onRealtimeBookingInvalidate = (ev: any) => {
+      try {
+        const b = ev?.detail
+        if (!b || !b.start_time) return
+        const d = new Date(b.start_time)
+        const key = dateKey(d)
+        setDayBookingsCache(prev => ({ ...prev, [key]: undefined }))
+      } catch (err) {
+        // ignore
+      }
+    }
+    window.addEventListener('realtime:booking:changed', onRealtimeBookingInvalidate as any)
+
     // Listen for navigation requests from other components (e.g. NotificationBell)
     const onNavigate = async (ev: any) => {
       try {
@@ -211,23 +366,18 @@ export default function Bookings() {
           setCurrentDate(new Date(detail.date))
         }
       } catch (err) {
-        console.error('Errore navigazione prenotazione:', err)
+        // ignore
       }
     }
-
-    window.addEventListener('navigate:booking', onNavigate)
+    window.addEventListener('sups:navigate', onNavigate as any)
 
     return () => {
       window.removeEventListener('sups:changed', handler)
-      window.removeEventListener('navigate:booking', onNavigate)
       window.removeEventListener('realtime:booking', onRealtimeBooking as any)
+      window.removeEventListener('realtime:booking:changed', onRealtimeBookingInvalidate as any)
+      window.removeEventListener('sups:navigate', onNavigate as any)
     }
-
-    return () => {
-      window.removeEventListener('sups:changed', handler)
-      window.removeEventListener('navigate:booking', onNavigate)
-    }
-  }, [])
+  }, [bookings])
 
   // Close customer dropdown when clicking outside
   useEffect(() => {
@@ -704,7 +854,36 @@ export default function Bookings() {
     return days
   }
 
+  function dateKey(date: Date) {
+    return date.toISOString().slice(0,10)
+  }
+
+  async function fetchBookingsForDate(date: Date) {
+    const key = dateKey(date)
+    // If cached, reuse
+    if (dayBookingsCache[key]) return dayBookingsCache[key]
+    try {
+      setDayLoading(prev => ({...prev, [key]: true}))
+      const dayStart = new Date(date)
+      dayStart.setHours(0, 0, 0, 0)
+      const dayEnd = new Date(date)
+      dayEnd.setHours(23, 59, 59, 999)
+      const { data } = await supabase.from('booking').select('*').gte('start_time', dayStart.toISOString()).lt('start_time', dayEnd.toISOString()).order('start_time', { ascending: true })
+      setDayBookingsCache(prev => ({ ...prev, [key]: data || [] }))
+      return data || []
+    } catch (err) {
+      console.error('Errore caricamento prenotazioni per giorno:', err)
+      setDayBookingsCache(prev => ({ ...prev, [key]: [] }))
+      return []
+    } finally {
+      setDayLoading(prev => ({...prev, [key]: false}))
+    }
+  }
+
   function getBookingsForDate(date: Date) {
+    const key = dateKey(date)
+    if (dayBookingsCache[key]) return dayBookingsCache[key]
+
     const dayStart = new Date(date)
     dayStart.setHours(0, 0, 0, 0)
     const dayEnd = new Date(date)
@@ -736,12 +915,12 @@ export default function Bookings() {
 
   return (
     <section className="mt-6">
-      <div className="mb-4 flex items-center gap-3 justify-between flex-wrap">
-        <div className="flex items-center gap-3">
+      <div className="mb-4">
+        <div className="flex items-center gap-3 flex-wrap mb-1">
           <PageTitle className="m-0">Prenotazioni</PageTitle>
           <Button onClick={() => setShowModal(true)}>+ Nuova Prenotazione</Button>
         </div>
-        <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1 sm:mt-0">Gestisci le prenotazioni della tua attrezzatura</p>
+        <p className="text-sm text-neutral-500 dark:text-neutral-400">Gestisci le prenotazioni della tua attrezzatura</p>
       </div>
 
       {/* View controls */}
@@ -777,55 +956,7 @@ export default function Bookings() {
         {viewMode === 'day' && (
           <div className="p-4">
               <div className="space-y-1">
-              {getBookingsForDate(currentDate).map(b => (
-                <div key={b.id} role="button" tabIndex={0} title={bookingTitle(b)} onClick={() => { setSelectedBooking(b); setShowBookingDetails(true) }} className={`w-full text-left p-4 rounded-md bg-amber-50/70 dark:bg-neutral-800/60 interactive ${statusClass(b)} min-h-[56px] sm:min-h-[48px] ${b.paid ? 'border border-green-400 dark:border-green-600' : (b.invoiced ? 'border border-blue-400 dark:border-blue-600' : 'border border-amber-300 dark:border-amber-600')}`}>
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex flex-col items-start justify-between">
-                        <div className="flex items-center gap-2">
-                          <div className="font-medium truncate text-neutral-900 dark:text-neutral-100 text-lg sm:text-base">{b.customer_name || 'Cliente'}</div>
-                          {formatPhoneForWhatsApp(b.customer_phone) && (
-                            <a
-                              href={`https://wa.me/${formatPhoneForWhatsApp(b.customer_phone)}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              title="Apri chat WhatsApp"
-                              onClick={(e) => e.stopPropagation()}
-                              className="inline-flex items-center justify-center"
-                            >
-                              <svg className="w-5 h-5" viewBox="0 0 175.216 175.552" aria-hidden="true">
-                                <circle fill="#25D366" cx="87.608" cy="87.776" r="87.608"/>
-                                <path fill="#FFFFFF" d="M126.88 48.572c-9.304-9.304-21.664-14.432-34.848-14.432-27.136 0-49.216 22.08-49.216 49.216 0 8.672 2.272 17.152 6.56 24.608l-6.976 25.472 26.048-6.816c7.232 3.936 15.36 6.016 23.584 6.016h.032c27.136 0 49.216-22.08 49.216-49.216 0-13.152-5.12-25.504-14.4-34.848zm-34.848 75.776h-.032c-7.328 0-14.528-1.952-20.8-5.632l-1.504-.896-15.488 4.064 4.128-15.104-.992-1.568c-4.032-6.4-6.176-13.792-6.176-21.408 0-22.176 18.048-40.224 40.256-40.224 10.752 0 20.864 4.192 28.448 11.808 7.584 7.584 11.776 17.664 11.776 28.416-.032 22.208-18.08 40.256-40.256 40.256zm22.08-30.144c-1.216-.608-7.136-3.52-8.224-3.904-1.088-.416-1.888-.608-2.688.608-.8 1.216-3.104 3.904-3.808 4.704-.704.8-1.408 .928-2.624.32-1.216-.608-5.12-1.888-9.76-6.016-3.616-3.2-6.048-7.168-6.752-8.384-.704-1.216-.064-1.888.544-2.496.544-.544 1.216-1.408 1.824-2.112.608-.704.8-1.216 1.216-2.016.416-.8.192-1.504-.096-2.112-.32-.608-2.688-6.464-3.68-8.864-.96-2.304-1.984-2.016-2.688-2.048-.704-.032-1.504-.032-2.304-.032s-2.112.32-3.2 1.504c-1.088 1.216-4.16 4.064-4.16 9.92s4.256 11.52 4.864 12.32c.608.8 8.672 13.216 21.024 18.528 2.944 1.28 5.248 2.048 7.04 2.624 2.944.96 5.632.832 7.744.512 2.368-.352 7.136-2.912 8.128-5.728.992-2.816.992-5.248.672-5.76-.288-.544-1.088-.864-2.304-1.472z"/>
-                              </svg>
-                            </a>
-                          )}
-                        </div>
-                      <div className="w-full text-sm text-neutral-500 mt-1 break-words booking-time">{formatTimeRange(b)}</div>
-                      </div>
-                      <div className="mt-1 text-sm text-neutral-600 dark:text-neutral-300">{b.notes ? (b.notes.length > 100 ? b.notes.slice(0,100) + '…' : b.notes) : ''}</div>
-                      <div className="mt-1 flex items-center gap-2 text-sm">
-                        <div className="px-2 py-0.5 bg-neutral-100 dark:bg-neutral-700 rounded text-sm font-medium text-neutral-700 dark:text-neutral-200">{equipmentLabel(b)}</div>
-                      </div>
-                    </div>
-                    <div className="flex flex-col items-end justify-between gap-2 min-h-[44px]">
-                      {b.price && <div className="text-amber-500 dark:text-amber-300 font-bold text-lg whitespace-nowrap flex-shrink-0 ml-2">€ {Number(b.price).toFixed(2)}</div>}
-                      <div className="flex items-center gap-2">
-                        {!b.paid && (
-                          <button onClick={(e)=>{ e.stopPropagation(); setMarkPaidBooking(b); setMarkPaidInvoiced(null); setMarkPaidInvoiceNumber(null); setShowMarkPaidModal(true) }} className="text-sm px-3 py-1 rounded bg-green-600 text-white" title="Segna come pagato">
-                            Segna come pagato
-                          </button>
-                        )}
-                        {b.paid && <div className="text-sm text-green-600 font-semibold">Pagato</div>}
-                        {b.invoiced && <div className="text-sm text-blue-600 font-semibold">Fatturato</div>}
-
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-              {getBookingsForDate(currentDate).length === 0 && (
-                <div className="text-center py-12 text-neutral-500 dark:text-neutral-400">Nessuna prenotazione per questa giornata</div>
-              )}
+              {renderDayList()}
             </div>
           </div>
         )}
