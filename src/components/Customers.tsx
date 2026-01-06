@@ -26,6 +26,19 @@ export default function Customers() {
   const [phone, setPhone] = useState('')
   const [notes, setNotes] = useState('')
 
+  // Helper: convert stored phone to international digits-only format suitable for wa.me links
+  // Rules: strip non-digit chars; if starts with '00' drop the leading zeros; if starts with single '0' assume Italian country code '39'
+  function formatPhoneForWhatsApp(p?: string): string | null {
+    if (!p) return null
+    let s = p.replace(/\D+/g, '')
+    if (!s) return null
+    if (s.startsWith('00')) s = s.replace(/^00/, '')
+    if (s.startsWith('0')) s = '39' + s.replace(/^0+/, '')
+    // basic sanity check
+    if (s.length < 7) return null
+    return s
+  }
+
   useEffect(() => {
     loadCustomers()
   }, [])
@@ -172,6 +185,21 @@ export default function Customers() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                       </svg>
                       <span>{customer.phone}</span>
+                      {formatPhoneForWhatsApp(customer.phone) && (
+                        <a
+                          href={`https://wa.me/${formatPhoneForWhatsApp(customer.phone)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title="Apri chat WhatsApp"
+                          className="ml-2 text-green-600 hover:text-green-700"
+                        >
+                          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" d="M20.5 3.5v17a1 1 0 01-1 1h-16a1 1 0 01-1-1v-17a1 1 0 011-1h16a1 1 0 011 1z" />
+                            <path strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.5c1.5 3 4 5 6.5 6" />
+                            <path strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" d="M10 13l1.5 1.5 3-3" />
+                          </svg>
+                        </a>
+                      )}
                     </div>
                   )}
                   {customer.notes && (
@@ -237,13 +265,30 @@ export default function Customers() {
 
           <div>
             <label className="block text-sm font-medium mb-1">Telefono</label>
-            <input
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="+39 123 456 7890"
-              className="w-full border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-slate-700 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-amber-500"
-            />
+            <div className="relative">
+              <input
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="+39 123 456 7890"
+                className="w-full border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-slate-700 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-amber-500"
+              />
+              {formatPhoneForWhatsApp(phone) && (
+                <a
+                  href={`https://wa.me/${formatPhoneForWhatsApp(phone)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="Apri chat WhatsApp"
+                  className="absolute right-2 top-2 text-green-600 hover:text-green-700"
+                >
+                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" d="M20.5 3.5v17a1 1 0 01-1 1h-16a1 1 0 01-1-1v-17a1 1 0 011-1h16a1 1 0 011 1z" />
+                    <path strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.5c1.5 3 4 5 6.5 6" />
+                    <path strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" d="M10 13l1.5 1.5 3-3" />
+                  </svg>
+                </a>
+              )}
+            </div>
           </div>
 
           <div>
