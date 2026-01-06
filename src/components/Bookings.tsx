@@ -693,7 +693,7 @@ export default function Bookings() {
           <>
             {/* Desktop / Tablet grid */}
             <div className="hidden sm:block">
-              <div className="grid grid-cols-7">
+              <div className="grid grid-cols-7 auto-rows-[minmax(160px,auto)] lg:auto-rows-[minmax(220px,auto)]">
                 {['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'].map((day, i) => (
                   <div key={i} className="p-2 text-center text-sm font-medium border-b border-neutral-200 dark:border-neutral-700">
                     {day}
