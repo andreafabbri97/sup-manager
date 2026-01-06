@@ -366,7 +366,7 @@ export default function Reports() {
             <button role="tab" aria-selected={tab==='reports'} onClick={()=>setTab('reports')} className={`px-3 py-1 rounded ${tab==='reports' ? 'bg-white dark:bg-neutral-700 shadow' : ''}`}>Reports</button>
             <button role="tab" aria-selected={tab==='admin'} onClick={()=>{ setTab('admin'); loadExpenses(expenseFilterStart, expenseFilterEnd) }} className={`px-3 py-1 rounded ${tab==='admin' ? 'bg-white dark:bg-neutral-700 shadow' : ''}`}>Amministrazione</button>
           </div>
-          <label className="flex items-center gap-2 text-sm">
+          <label className="flex items-center gap-2 text-sm md:hidden">
             <input type="checkbox" checked={excludeIva} onChange={(e)=>setExcludeIva(e.target.checked)} className="border rounded" />
             Escludi IVA
           </label>
@@ -379,6 +379,10 @@ export default function Reports() {
           <button role="tab" aria-selected={tab==='reports'} onClick={()=>setTab('reports')} className={`px-3 py-1 rounded ${tab==='reports' ? 'bg-white dark:bg-neutral-700 shadow' : ''}`}>Reports</button>
           <button role="tab" aria-selected={tab==='admin'} onClick={()=>{ setTab('admin'); loadExpenses(expenseFilterStart, expenseFilterEnd) }} className={`px-3 py-1 rounded ${tab==='admin' ? 'bg-white dark:bg-neutral-700 shadow' : ''}`}>Amministrazione</button>
         </div>
+        <label className="flex items-center gap-2 text-sm">
+            <input type="checkbox" checked={excludeIva} onChange={(e)=>setExcludeIva(e.target.checked)} className="border rounded" />
+            Escludi IVA
+        </label>
       </div>
 
       {/* Date filters (applied to both Reports and Admin) */}
