@@ -193,10 +193,8 @@ export default function Customers() {
                           title="Apri chat WhatsApp"
                           className="ml-2 text-green-600 hover:text-green-700"
                         >
-                          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <path strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" d="M20.5 3.5v17a1 1 0 01-1 1h-16a1 1 0 01-1-1v-17a1 1 0 011-1h16a1 1 0 011 1z" />
-                            <path strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.5c1.5 3 4 5 6.5 6" />
-                            <path strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" d="M10 13l1.5 1.5 3-3" />
+                          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                            <path d="M20.52 3.48A11.77 11.77 0 0012 .04 11.61 11.61 0 003.48 3.52 11 11 0 000 12.01c0 2.12.55 4.2 1.6 6.04L.24 23l4.99-1.31A11 11 0 0012 24c6.08 0 11-4.92 11-11 0-3.01-1.17-5.8-3.48-7.51zM16.51 14.83c-.26-.13-1.54-.76-1.78-.84-.24-.08-.41-.13-.58.13-.17.26-.65.84-.8 1.01-.15.17-.3.19-.56.06-.26-.13-1.08-.4-2.06-1.27-.76-.69-1.27-1.55-1.42-1.81-.15-.26-.02-.4.12-.53.12-.12.26-.3.39-.45.13-.15.17-.26.26-.43.09-.17.04-.32-.02-.45-.06-.13-.58-1.4-.8-1.92-.21-.5-.43-.43-.59-.44-.15-.01-.33-.01-.5-.01s-.45.06-.69.32c-.24.26-.92.9-.92 2.2s.94 2.55 1.07 2.73c.13.17 1.86 2.86 4.5 3.9 3 .12 3.33-2 3.7-2.1.37-.12 1.2-.48 1.37-.95.17-.47.17-.87.12-.95-.05-.08-.23-.13-.49-.26z" />
                           </svg>
                         </a>
                       )}
@@ -281,10 +279,8 @@ export default function Customers() {
                   title="Apri chat WhatsApp"
                   className="absolute right-2 top-2 text-green-600 hover:text-green-700"
                 >
-                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" d="M20.5 3.5v17a1 1 0 01-1 1h-16a1 1 0 01-1-1v-17a1 1 0 011-1h16a1 1 0 011 1z" />
-                    <path strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.5c1.5 3 4 5 6.5 6" />
-                    <path strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" d="M10 13l1.5 1.5 3-3" />
+                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M20.52 3.48A11.77 11.77 0 0012 .04 11.61 11.61 0 003.48 3.52 11 11 0 000 12.01c0 2.12.55 4.2 1.6 6.04L.24 23l4.99-1.31A11 11 0 0012 24c6.08 0 11-4.92 11-11 0-3.01-1.17-5.8-3.48-7.51zM16.51 14.83c-.26-.13-1.54-.76-1.78-.84-.24-.08-.41-.13-.58.13-.17.26-.65.84-.8 1.01-.15.17-.3.19-.56.06-.26-.13-1.08-.4-2.06-1.27-.76-.69-1.27-1.55-1.42-1.81-.15-.26-.02-.4.12-.53.12-.12.26-.3.39-.45.13-.15.17-.26.26-.43.09-.17.04-.32-.02-.45-.06-.13-.58-1.4-.8-1.92-.21-.5-.43-.43-.59-.44-.15-.01-.33-.01-.5-.01s-.45.06-.69.32c-.24.26-.92.9-.92 2.2s.94 2.55 1.07 2.73c.13.17 1.86 2.86 4.5 3.9 3 .12 3.33-2 3.7-2.1.37-.12 1.2-.48 1.37-.95.17-.47.17-.87.12-.95-.05-.08-.23-.13-.49-.26z" />
                   </svg>
                 </a>
               )}
