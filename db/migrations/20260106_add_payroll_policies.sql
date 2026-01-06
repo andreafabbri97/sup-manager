@@ -25,7 +25,7 @@ CREATE POLICY employees_select_admin_or_owner ON employees
   );
 
 CREATE POLICY employees_admin_manage ON employees
-  FOR INSERT, UPDATE, DELETE
+  FOR ALL
   USING ((SELECT role FROM app_user WHERE id = auth.uid()) = 'admin')
   WITH CHECK ((SELECT role FROM app_user WHERE id = auth.uid()) = 'admin');
 
