@@ -125,3 +125,7 @@ export default function PayrollPage() {
           </div>
         </Card>
       )}
+
+    </div>
+  )
+}

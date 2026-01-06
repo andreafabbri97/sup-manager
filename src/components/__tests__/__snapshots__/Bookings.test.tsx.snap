@@ -6,10 +6,10 @@ exports[`Bookings > renders booking page snapshot 1`] = `
     class="mt-6"
   >
     <div
-      class="mb-4 flex items-center gap-3 justify-between flex-wrap"
+      class="mb-4"
     >
       <div
-        class="flex items-center gap-3"
+        class="flex items-center gap-3 flex-wrap mb-1"
       >
         <h1
           class="text-3xl sm:text-4xl font-extrabold tracking-tight mb-0 animate-fade-up m-0"
@@ -17,14 +17,14 @@ exports[`Bookings > renders booking page snapshot 1`] = `
           Prenotazioni
         </h1>
         <button
-          class="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all duration-180 will-change-transform focus:outline-none focus:ring-2 focus:ring-offset-2 bg-amber-500 hover:bg-amber-600 text-white dark:bg-amber-600 dark:hover:bg-amber-700 focus:ring-amber-300 hover:-translate-y-0.5 hover:shadow-md active:scale-95 "
+          class="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all duration-180 will-change-transform focus:outline-none focus:ring-2 focus:ring-offset-2  bg-amber-500 hover:bg-amber-600 text-white dark:bg-amber-600 dark:hover:bg-amber-700 focus:ring-amber-300 hover:-translate-y-0.5 hover:shadow-md active:scale-95 "
           type="button"
         >
           + Nuova Prenotazione
         </button>
       </div>
       <p
-        class="text-sm text-neutral-500 dark:text-neutral-400 mt-1 sm:mt-0"
+        class="text-sm text-neutral-500 dark:text-neutral-400"
       >
         Gestisci le prenotazioni della tua attrezzatura
       </p>
@@ -111,7 +111,27 @@ exports[`Bookings > renders booking page snapshot 1`] = `
           <div
             class="text-center py-12 text-neutral-500 dark:text-neutral-400"
           >
-            Nessuna prenotazione per questa giornata
+            <svg
+              class="animate-spin inline-block w-6 h-6 mr-2"
+              fill="none"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <circle
+                class="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                stroke-width="4"
+              />
+              <path
+                class="opacity-75"
+                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                fill="currentColor"
+              />
+            </svg>
+            Caricamento prenotazioni…
           </div>
         </div>
       </div>

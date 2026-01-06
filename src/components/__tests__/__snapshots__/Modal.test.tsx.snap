@@ -12,7 +12,7 @@ exports[`Modal > renders content and matches snapshot 1`] = `
       role="dialog"
     >
       <div
-        class="max-h-[60vh] sm:max-h-[calc(100svh-20px)] overflow-y-auto touch-manipulation"
+        class="max-h-[calc(100vh-48px)] sm:max-h-[calc(100vh-48px)] overflow-y-auto touch-manipulation"
       >
         <div
           class="sm:hidden flex justify-center pt-4"
