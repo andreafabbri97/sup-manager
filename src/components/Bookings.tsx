@@ -22,6 +22,7 @@ export default function Bookings() {
   const [detailStartTime, setDetailStartTime] = useState<string | null>(null)
   const [detailEndTime, setDetailEndTime] = useState<string | null>(null)
   const [detailCustomerName, setDetailCustomerName] = useState<string>('')
+  const [detailCustomerPhone, setDetailCustomerPhone] = useState<string>('')
   const [detailInvoiceNumber, setDetailInvoiceNumber] = useState<string | null>(null)
   const [detailNotes, setDetailNotes] = useState<string>('')
   const [detailPaid, setDetailPaid] = useState<boolean>(false)
@@ -34,6 +35,7 @@ export default function Bookings() {
   const [selectedEquipment, setSelectedEquipment] = useState<{id: string, quantity: number}[]>([])
   const [selectedPackage, setSelectedPackage] = useState<string | null>(null)
   const [customerName, setCustomerName] = useState('')
+  const [customerPhone, setCustomerPhone] = useState('')
   const [startTime, setStartTime] = useState('')
   const [durationMinutes, setDurationMinutes] = useState(60) // default duration in minutes
   const [durationInput, setDurationInput] = useState<string>(String(60)) // string state for editing the duration input
@@ -43,6 +45,10 @@ export default function Bookings() {
   const [newInvoiced, setNewInvoiced] = useState<boolean>(false)
   const [newInvoiceNumber, setNewInvoiceNumber] = useState<string | null>(null)
   const [newNotes, setNewNotes] = useState<string>('')
+  
+  // Customer matching & suggestion modal
+  const [showAddCustomerModal, setShowAddCustomerModal] = useState(false)
+  const [pendingCustomerData, setPendingCustomerData] = useState<{name: string, phone: string} | null>(null)
 
   // Day-list modal state (for +N overflow)
   const [showDayListModal, setShowDayListModal] = useState(false)
@@ -98,6 +104,17 @@ export default function Bookings() {
     const hh = pad(date.getHours())
     const mm = pad(date.getMinutes())
     return `${YYYY}-${MM}-${DD}T${hh}:${mm}`
+  }
+
+  // Helper: format phone for WhatsApp
+  function formatPhoneForWhatsApp(p?: string): string | null {
+    if (!p) return null
+    let s = p.replace(/\D+/g, '')
+    if (!s) return null
+    if (s.startsWith('00')) s = s.replace(/^00/, '')
+    if (s.startsWith('0')) s = '39' + s.replace(/^0+/, '')
+    if (s.length < 7) return null
+    return s
   }
 
   function bookingTitle(b: any) {
@@ -226,6 +243,7 @@ export default function Bookings() {
     setDetailEndTime(formatToDatetimeLocal(selectedBooking.end_time || null))
     setDetailPrice(selectedBooking.price ?? null)
     setDetailCustomerName(selectedBooking.customer_name || '')
+    setDetailCustomerPhone(selectedBooking.customer_phone || '')
     setDetailInvoiceNumber(selectedBooking.invoice_number || null)
     setDetailNotes(selectedBooking.notes || '')
     setDetailPaid(!!selectedBooking.paid)
@@ -329,10 +347,15 @@ export default function Bookings() {
     setSelectedEquipment([])
     setSelectedPackage(null)
     setCustomerName('')
+    setCustomerPhone('')
     setStartTime('')
     setDurationMinutes(60)
     setDurationInput('60')
     setComputedPrice(null)
+    setNewPaid(false)
+    setNewInvoiced(false)
+    setNewInvoiceNumber(null)
+    setNewNotes('')
   }
 
   const handleCloseModal = useCallback(() => {
@@ -414,8 +437,30 @@ export default function Bookings() {
       }
     }
 
+    // Try to match customer in anagrafica
+    let customerId: string | null = null
+    let shouldAskToAddCustomer = false
+    
+    if (customerPhone.trim()) {
+      // Search for existing customer by phone
+      const { data: existingCustomers } = await supabase
+        .from('customers')
+        .select('id, name, phone')
+        .ilike('phone', `%${customerPhone.trim()}%`)
+        .limit(1)
+      
+      if (existingCustomers && existingCustomers.length > 0) {
+        customerId = existingCustomers[0].id
+      } else if (customerName.trim()) {
+        // Customer not found, suggest adding to anagrafica
+        shouldAskToAddCustomer = true
+      }
+    }
+
     const bookingData = {
       customer_name: customerName,
+      customer_phone: customerPhone.trim() || null,
+      customer_id: customerId,
       start_time: new Date(startTime).toISOString(),
       end_time: end_time.toISOString(),
       price,
@@ -470,18 +515,32 @@ export default function Bookings() {
         p_equipment_items: bookingData.equipment_items
       })
       if (error) throw error
-      // RPC returns the created booking id (table result). Update paid/invoiced if user set them at creation
+      // RPC returns the created booking id (table result). Update with customer_phone, customer_id, paid/invoiced if user set them
       const createdId = Array.isArray(data) ? data[0]?.id : (data?.id ?? null)
-      if (createdId && (newPaid || newInvoiced || newInvoiceNumber)) {
+      if (createdId) {
         const payload: any = {}
-        if (newPaid) payload.paid = true
-        if (newPaid) payload.paid_at = new Date().toISOString()
+        if (bookingData.customer_phone) payload.customer_phone = bookingData.customer_phone
+        if (customerId) payload.customer_id = customerId
+        if (newPaid) {
+          payload.paid = true
+          payload.paid_at = new Date().toISOString()
+        }
         if (newInvoiced !== undefined) payload.invoiced = newInvoiced
         if (newInvoiceNumber) payload.invoice_number = newInvoiceNumber
         if (newNotes) payload.notes = newNotes
-        const { error: upErr } = await supabase.from('booking').update(payload).eq('id', createdId)
-        if (upErr) throw upErr
+        
+        if (Object.keys(payload).length > 0) {
+          const { error: upErr } = await supabase.from('booking').update(payload).eq('id', createdId)
+          if (upErr) throw upErr
+        }
       }
+      
+      // If customer not in anagrafica, ask user if they want to add
+      if (shouldAskToAddCustomer && customerName.trim() && customerPhone.trim()) {
+        setPendingCustomerData({ name: customerName.trim(), phone: customerPhone.trim() })
+        setShowAddCustomerModal(true)
+      }
+      
     } catch (err: any) {
       const msg = err?.message || String(err)
       if (msg.includes("Could not find")) {
@@ -503,6 +562,26 @@ export default function Bookings() {
     load()
   }
 
+  async function addCustomerToAnagrafica() {
+    if (!pendingCustomerData) return
+    
+    try {
+      const { error } = await supabase.from('customers').insert({
+        name: pendingCustomerData.name,
+        phone: pendingCustomerData.phone
+      })
+      
+      if (error) throw error
+      
+      alert('Cliente aggiunto all\'anagrafica!')
+    } catch (err: any) {
+      alert('Errore durante l\'aggiunta del cliente: ' + (err?.message || String(err)))
+    }
+    
+    setShowAddCustomerModal(false)
+    setPendingCustomerData(null)
+  }
+
   async function removeBooking(id: string) {
     if (!confirm('Eliminare questa prenotazione?')) return
     const { error } = await supabase.from('booking').delete().eq('id', id)
@@ -511,8 +590,8 @@ export default function Bookings() {
   }
 
   async function saveBookingChanges(updated: any) {
-    const { id, customer_name, start_time, end_time, price, package_id, equipment_items, paid, invoiced, invoice_number, notes } = updated
-    const updatePayload: any = { customer_name, start_time, end_time, price, package_id, equipment_items, notes }
+    const { id, customer_name, customer_phone, start_time, end_time, price, package_id, equipment_items, paid, invoiced, invoice_number, notes } = updated
+    const updatePayload: any = { customer_name, customer_phone, start_time, end_time, price, package_id, equipment_items, notes }
     if (paid !== undefined) updatePayload.paid = paid
     if (invoiced !== undefined) updatePayload.invoiced = invoiced
     if (invoice_number !== undefined) updatePayload.invoice_number = invoice_number
@@ -648,7 +727,24 @@ export default function Bookings() {
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between">
-                        <div className="font-medium truncate text-neutral-900 dark:text-neutral-100 text-lg sm:text-base">{b.customer_name || 'Cliente'}</div>
+                        <div className="flex items-center gap-2">
+                          <div className="font-medium truncate text-neutral-900 dark:text-neutral-100 text-lg sm:text-base">{b.customer_name || 'Cliente'}</div>
+                          {formatPhoneForWhatsApp(b.customer_phone) && (
+                            <a
+                              href={`https://wa.me/${formatPhoneForWhatsApp(b.customer_phone)}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              title="Apri chat WhatsApp"
+                              onClick={(e) => e.stopPropagation()}
+                              className="inline-flex items-center justify-center"
+                            >
+                              <svg className="w-5 h-5" viewBox="0 0 175.216 175.552" aria-hidden="true">
+                                <circle fill="#25D366" cx="87.608" cy="87.776" r="87.608"/>
+                                <path fill="#FFFFFF" d="M126.88 48.572c-9.304-9.304-21.664-14.432-34.848-14.432-27.136 0-49.216 22.08-49.216 49.216 0 8.672 2.272 17.152 6.56 24.608l-6.976 25.472 26.048-6.816c7.232 3.936 15.36 6.016 23.584 6.016h.032c27.136 0 49.216-22.08 49.216-49.216 0-13.152-5.12-25.504-14.4-34.848zm-34.848 75.776h-.032c-7.328 0-14.528-1.952-20.8-5.632l-1.504-.896-15.488 4.064 4.128-15.104-.992-1.568c-4.032-6.4-6.176-13.792-6.176-21.408 0-22.176 18.048-40.224 40.256-40.224 10.752 0 20.864 4.192 28.448 11.808 7.584 7.584 11.776 17.664 11.776 28.416-.032 22.208-18.08 40.256-40.256 40.256zm22.08-30.144c-1.216-.608-7.136-3.52-8.224-3.904-1.088-.416-1.888-.608-2.688.608-.8 1.216-3.104 3.904-3.808 4.704-.704.8-1.408 .928-2.624.32-1.216-.608-5.12-1.888-9.76-6.016-3.616-3.2-6.048-7.168-6.752-8.384-.704-1.216-.064-1.888.544-2.496.544-.544 1.216-1.408 1.824-2.112.608-.704.8-1.216 1.216-2.016.416-.8.192-1.504-.096-2.112-.32-.608-2.688-6.464-3.68-8.864-.96-2.304-1.984-2.016-2.688-2.048-.704-.032-1.504-.032-2.304-.032s-2.112.32-3.2 1.504c-1.088 1.216-4.16 4.064-4.16 9.92s4.256 11.52 4.864 12.32c.608.8 8.672 13.216 21.024 18.528 2.944 1.28 5.248 2.048 7.04 2.624 2.944.96 5.632.832 7.744.512 2.368-.352 7.136-2.912 8.128-5.728.992-2.816.992-5.248.672-5.76-.288-.544-1.088-.864-2.304-1.472z"/>
+                              </svg>
+                            </a>
+                          )}
+                        </div>
                         <div className="text-sm text-neutral-500">{formatTimeRange(b)}</div>
                       </div>
                       <div className="mt-1 text-sm text-neutral-600 dark:text-neutral-300">{b.notes ? (b.notes.length > 100 ? b.notes.slice(0,100) + '…' : b.notes) : ''}</div>
@@ -757,6 +853,32 @@ export default function Bookings() {
               placeholder="Nome cliente"
               className="w-full border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-slate-700 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-amber-500"
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Telefono</label>
+            <div className="relative">
+              <input
+                value={customerPhone}
+                onChange={(e) => setCustomerPhone(e.target.value)}
+                placeholder="+39 123 456 7890"
+                className="w-full border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-slate-700 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-amber-500"
+              />
+              {formatPhoneForWhatsApp(customerPhone) && (
+                <a
+                  href={`https://wa.me/${formatPhoneForWhatsApp(customerPhone)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="Apri chat WhatsApp"
+                  className="absolute right-2 top-2 inline-flex items-center justify-center"
+                >
+                  <svg className="w-5 h-5" viewBox="0 0 175.216 175.552" aria-hidden="true">
+                    <circle fill="#25D366" cx="87.608" cy="87.776" r="87.608"/>
+                    <path fill="#FFFFFF" d="M126.88 48.572c-9.304-9.304-21.664-14.432-34.848-14.432-27.136 0-49.216 22.08-49.216 49.216 0 8.672 2.272 17.152 6.56 24.608l-6.976 25.472 26.048-6.816c7.232 3.936 15.36 6.016 23.584 6.016h.032c27.136 0 49.216-22.08 49.216-49.216 0-13.152-5.12-25.504-14.4-34.848zm-34.848 75.776h-.032c-7.328 0-14.528-1.952-20.8-5.632l-1.504-.896-15.488 4.064 4.128-15.104-.992-1.568c-4.032-6.4-6.176-13.792-6.176-21.408 0-22.176 18.048-40.224 40.256-40.224 10.752 0 20.864 4.192 28.448 11.808 7.584 7.584 11.776 17.664 11.776 28.416-.032 22.208-18.08 40.256-40.256 40.256zm22.08-30.144c-1.216-.608-7.136-3.52-8.224-3.904-1.088-.416-1.888-.608-2.688.608-.8 1.216-3.104 3.904-3.808 4.704-.704.8-1.408 .928-2.624.32-1.216-.608-5.12-1.888-9.76-6.016-3.616-3.2-6.048-7.168-6.752-8.384-.704-1.216-.064-1.888.544-2.496.544-.544 1.216-1.408 1.824-2.112.608-.704.8-1.216 1.216-2.016.416-.8.192-1.504-.096-2.112-.32-.608-2.688-6.464-3.68-8.864-.96-2.304-1.984-2.016-2.688-2.048-.704-.032-1.504-.032-2.304-.032s-2.112.32-3.2 1.504c-1.088 1.216-4.16 4.064-4.16 9.92s4.256 11.52 4.864 12.32c.608.8 8.672 13.216 21.024 18.528 2.944 1.28 5.248 2.048 7.04 2.624 2.944.96 5.632.832 7.744.512 2.368-.352 7.136-2.912 8.128-5.728.992-2.816.992-5.248.672-5.76-.288-.544-1.088-.864-2.304-1.472z"/>
+                  </svg>
+                </a>
+              )}
+            </div>
           </div>
 
           <div>
@@ -879,7 +1001,23 @@ export default function Bookings() {
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
-                      <div className="font-medium truncate">{formatTimeRange(b)} — {b.customer_name || 'Cliente'}</div>
+                      <div className="flex items-center gap-2">
+                        <div className="font-medium truncate">{formatTimeRange(b)} — {b.customer_name || 'Cliente'}</div>
+                        {formatPhoneForWhatsApp(b.customer_phone) && (
+                          <a
+                            href={`https://wa.me/${formatPhoneForWhatsApp(b.customer_phone)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title="Apri chat WhatsApp"
+                            className="inline-flex items-center justify-center"
+                          >
+                            <svg className="w-5 h-5" viewBox="0 0 175.216 175.552" aria-hidden="true">
+                              <circle fill="#25D366" cx="87.608" cy="87.776" r="87.608"/>
+                              <path fill="#FFFFFF" d="M126.88 48.572c-9.304-9.304-21.664-14.432-34.848-14.432-27.136 0-49.216 22.08-49.216 49.216 0 8.672 2.272 17.152 6.56 24.608l-6.976 25.472 26.048-6.816c7.232 3.936 15.36 6.016 23.584 6.016h.032c27.136 0 49.216-22.08 49.216-49.216 0-13.152-5.12-25.504-14.4-34.848zm-34.848 75.776h-.032c-7.328 0-14.528-1.952-20.8-5.632l-1.504-.896-15.488 4.064 4.128-15.104-.992-1.568c-4.032-6.4-6.176-13.792-6.176-21.408 0-22.176 18.048-40.224 40.256-40.224 10.752 0 20.864 4.192 28.448 11.808 7.584 7.584 11.776 17.664 11.776 28.416-.032 22.208-18.08 40.256-40.256 40.256zm22.08-30.144c-1.216-.608-7.136-3.52-8.224-3.904-1.088-.416-1.888-.608-2.688.608-.8 1.216-3.104 3.904-3.808 4.704-.704.8-1.408 .928-2.624.32-1.216-.608-5.12-1.888-9.76-6.016-3.616-3.2-6.048-7.168-6.752-8.384-.704-1.216-.064-1.888.544-2.496.544-.544 1.216-1.408 1.824-2.112.608-.704.8-1.216 1.216-2.016.416-.8.192-1.504-.096-2.112-.32-.608-2.688-6.464-3.68-8.864-.96-2.304-1.984-2.016-2.688-2.048-.704-.032-1.504-.032-2.304-.032s-2.112.32-3.2 1.504c-1.088 1.216-4.16 4.064-4.16 9.92s4.256 11.52 4.864 12.32c.608.8 8.672 13.216 21.024 18.528 2.944 1.28 5.248 2.048 7.04 2.624 2.944.96 5.632.832 7.744.512 2.368-.352 7.136-2.912 8.128-5.728.992-2.816.992-5.248.672-5.76-.288-.544-1.088-.864-2.304-1.472z"/>
+                            </svg>
+                          </a>
+                        )}
+                      </div>
                       <div className="text-sm text-neutral-500">{b.price ? `€ ${Number(b.price).toFixed(2)}` : ''}</div>
                     </div>
                     <div className="mt-1 text-sm text-neutral-600 dark:text-neutral-300">{b.notes ? (b.notes.length > 150 ? b.notes.slice(0,150) + '…' : b.notes) : ''}</div>
@@ -906,6 +1044,32 @@ export default function Bookings() {
             <div>
               <label className="block text-sm font-medium mb-1">Cliente</label>
               <input value={detailCustomerName} onChange={(e)=>setDetailCustomerName(e.target.value)} className="w-full border px-3 py-2 rounded" />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">Telefono</label>
+              <div className="relative">
+                <input
+                  value={detailCustomerPhone}
+                  onChange={(e)=>setDetailCustomerPhone(e.target.value)}
+                  placeholder="+39 123 456 7890"
+                  className="w-full border px-3 py-2 rounded"
+                />
+                {formatPhoneForWhatsApp(detailCustomerPhone) && (
+                  <a
+                    href={`https://wa.me/${formatPhoneForWhatsApp(detailCustomerPhone)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title="Apri chat WhatsApp"
+                    className="absolute right-2 top-2 inline-flex items-center justify-center"
+                  >
+                    <svg className="w-5 h-5" viewBox="0 0 175.216 175.552" aria-hidden="true">
+                      <circle fill="#25D366" cx="87.608" cy="87.776" r="87.608"/>
+                      <path fill="#FFFFFF" d="M126.88 48.572c-9.304-9.304-21.664-14.432-34.848-14.432-27.136 0-49.216 22.08-49.216 49.216 0 8.672 2.272 17.152 6.56 24.608l-6.976 25.472 26.048-6.816c7.232 3.936 15.36 6.016 23.584 6.016h.032c27.136 0 49.216-22.08 49.216-49.216 0-13.152-5.12-25.504-14.4-34.848zm-34.848 75.776h-.032c-7.328 0-14.528-1.952-20.8-5.632l-1.504-.896-15.488 4.064 4.128-15.104-.992-1.568c-4.032-6.4-6.176-13.792-6.176-21.408 0-22.176 18.048-40.224 40.256-40.224 10.752 0 20.864 4.192 28.448 11.808 7.584 7.584 11.776 17.664 11.776 28.416-.032 22.208-18.08 40.256-40.256 40.256zm22.08-30.144c-1.216-.608-7.136-3.52-8.224-3.904-1.088-.416-1.888-.608-2.688.608-.8 1.216-3.104 3.904-3.808 4.704-.704.8-1.408 .928-2.624.32-1.216-.608-5.12-1.888-9.76-6.016-3.616-3.2-6.048-7.168-6.752-8.384-.704-1.216-.064-1.888.544-2.496.544-.544 1.216-1.408 1.824-2.112.608-.704.8-1.216 1.216-2.016.416-.8.192-1.504-.096-2.112-.32-.608-2.688-6.464-3.68-8.864-.96-2.304-1.984-2.016-2.688-2.048-.704-.032-1.504-.032-2.304-.032s-2.112.32-3.2 1.504c-1.088 1.216-4.16 4.064-4.16 9.92s4.256 11.52 4.864 12.32c.608.8 8.672 13.216 21.024 18.528 2.944 1.28 5.248 2.048 7.04 2.624 2.944.96 5.632.832 7.744.512 2.368-.352 7.136-2.912 8.128-5.728.992-2.816.992-5.248.672-5.76-.288-.544-1.088-.864-2.304-1.472z"/>
+                    </svg>
+                  </a>
+                )}
+              </div>
             </div>
 
             <div>
@@ -1014,6 +1178,7 @@ export default function Bookings() {
                 const updated = {
                   id,
                   customer_name: detailCustomerName,
+                  customer_phone: detailCustomerPhone,
                   start_time: start_iso,
                   end_time: end_iso,
                   price: detailPrice,
@@ -1027,6 +1192,28 @@ export default function Bookings() {
                 saveBookingChanges(updated)
               }} className="bg-amber-500 text-white px-4 py-2 rounded">Salva</button>
               <button onClick={() => { if (confirm('Eliminare questa prenotazione?')) { removeBooking(selectedBooking.id); setShowBookingDetails(false); setSelectedBooking(null) } }} className="px-4 py-2 rounded border">Elimina</button>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* Modal for suggesting adding customer to anagrafica */}
+      <Modal isOpen={showAddCustomerModal} onClose={() => { setShowAddCustomerModal(false); setPendingCustomerData(null) }} title="Aggiungi cliente all'anagrafica?">
+        {pendingCustomerData && (
+          <div className="space-y-4">
+            <p className="text-neutral-700 dark:text-neutral-300">
+              Il cliente <strong>{pendingCustomerData.name}</strong> con telefono <strong>{pendingCustomerData.phone}</strong> non è presente nell'anagrafica.
+            </p>
+            <p className="text-sm text-neutral-600 dark:text-neutral-400">
+              Vuoi aggiungerlo ora per poterlo richiamare velocemente nelle prossime prenotazioni?
+            </p>
+            <div className="flex gap-2 justify-end">
+              <button onClick={() => { setShowAddCustomerModal(false); setPendingCustomerData(null) }} className="px-4 py-2 rounded border border-neutral-300 dark:border-neutral-600">
+                No, grazie
+              </button>
+              <button onClick={addCustomerToAnagrafica} className="bg-amber-500 text-white px-4 py-2 rounded">
+                Sì, aggiungi
+              </button>
             </div>
           </div>
         )}

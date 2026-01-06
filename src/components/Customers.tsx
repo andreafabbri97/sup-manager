@@ -12,6 +12,7 @@ type Customer = {
   phone?: string
   notes?: string
   created_at: string
+  bookings_count?: number
 }
 
 export default function Customers() {
@@ -19,6 +20,7 @@ export default function Customers() {
   const [showModal, setShowModal] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null)
+  const [bookingsCounts, setBookingsCounts] = useState<Record<string, number>>({})
 
   // Form state
   const [name, setName] = useState('')
@@ -41,6 +43,7 @@ export default function Customers() {
 
   useEffect(() => {
     loadCustomers()
+    loadBookingsCounts()
   }, [])
 
   async function loadCustomers() {
@@ -53,6 +56,29 @@ export default function Customers() {
       return
     }
     setCustomers(data || [])
+  }
+
+  async function loadBookingsCounts() {
+    // Query booking counts per customer_id
+    const { data, error } = await supabase
+      .from('booking')
+      .select('customer_id')
+    
+    if (error) {
+      console.error('Error loading bookings counts:', error)
+      return
+    }
+    
+    // Count bookings per customer
+    const counts: Record<string, number> = {}
+    if (data) {
+      for (const booking of data) {
+        if (booking.customer_id) {
+          counts[booking.customer_id] = (counts[booking.customer_id] || 0) + 1
+        }
+      }
+    }
+    setBookingsCounts(counts)
   }
 
   function resetForm() {
@@ -112,6 +138,7 @@ export default function Customers() {
     resetForm()
     setShowModal(false)
     loadCustomers()
+    loadBookingsCounts()
   }
 
   async function deleteCustomer(id: string) {
@@ -123,6 +150,7 @@ export default function Customers() {
       return
     }
     loadCustomers()
+    loadBookingsCounts()
   }
 
   const filteredCustomers = customers.filter((c) => {
@@ -167,8 +195,18 @@ export default function Customers() {
           {filteredCustomers.map((customer) => (
             <Card key={customer.id} className="flex items-start justify-between interactive">
               <div className="flex-1">
-                <div className="font-medium text-neutral-900 dark:text-neutral-100">
-                  {customer.name}
+                <div className="flex items-center gap-2">
+                  <div className="font-medium text-neutral-900 dark:text-neutral-100">
+                    {customer.name}
+                  </div>
+                  {bookingsCounts[customer.id] !== undefined && bookingsCounts[customer.id] > 0 && (
+                    <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 rounded-full text-xs font-semibold">
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      <span>{bookingsCounts[customer.id]} {bookingsCounts[customer.id] === 1 ? 'prenotazione' : 'prenotazioni'}</span>
+                    </div>
+                  )}
                 </div>
                 <div className="text-sm text-neutral-600 dark:text-neutral-400 space-y-1 mt-1">
                   {customer.email && (
