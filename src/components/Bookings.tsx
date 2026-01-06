@@ -604,7 +604,10 @@ export default function Bookings() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          <div className="text-sm font-medium min-w-[120px] sm:min-w-[200px] text-center">{getDateRangeLabel()}</div>
+          <div className="text-sm font-medium min-w-[120px] sm:min-w-[200px] text-center">
+            {viewMode === 'day' && <div className="text-xs text-neutral-500 mb-0.5">{currentDate.toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric' })}</div>}
+            <div>{getDateRangeLabel()}</div>
+          </div>
           <button onClick={() => navigateDate('next')} className="p-2 rounded hover:bg-neutral-100 dark:hover:bg-neutral-800">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -616,8 +619,8 @@ export default function Bookings() {
         </div>
 
         <div className="flex gap-1 bg-neutral-100 dark:bg-neutral-800 rounded p-1">
-          <button onClick={() => setViewMode('day')} className={`px-3 py-1 text-sm rounded ${viewMode === 'day' ? 'bg-white dark:bg-neutral-700 shadow' : ''}`}>Giorno</button>
-          <button onClick={() => setViewMode('month')} className={`px-3 py-1 text-sm rounded ${viewMode === 'month' ? 'bg-white dark:bg-neutral-700 shadow' : ''}`}>Mese</button>
+          <button onClick={() => setViewMode('day')} aria-pressed={viewMode === 'day'} className={`w-20 text-center px-3 py-1 text-sm rounded ${viewMode === 'day' ? 'bg-white dark:bg-neutral-700 shadow' : ''}`}>Giorno</button>
+          <button onClick={() => setViewMode('month')} aria-pressed={viewMode === 'month'} className={`w-20 text-center px-3 py-1 text-sm rounded ${viewMode === 'month' ? 'bg-white dark:bg-neutral-700 shadow' : ''}`}>Mese</button>
         </div>
       </div>
 
