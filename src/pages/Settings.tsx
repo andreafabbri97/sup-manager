@@ -51,7 +51,16 @@ export default function Settings() {
         <Card>
           <h3 className="font-semibold mb-2">Installa l'app (PWA)</h3>
           <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-3">Se stai usando il sito via browser, puoi installare l'app sul tuo dispositivo per un accesso più rapido e notifiche migliori.</p>
-          <InstallButton inline />
+          <div className="flex items-center gap-3">
+            <InstallButton inline />
+            <button title="iOS: apri il menu Condividi → " aria-label="Istruzioni installazione iOS" className="text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300">
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M12 5v.01M12 12v6" />
+                <circle cx="12" cy="12" r="9" strokeWidth="1.5" />
+              </svg>
+            </button>
+            <div className="text-xs text-neutral-500">Su iOS: <span className="font-medium">Condividi → Aggiungi a schermata Home</span></div>
+          </div>
         </Card>
       </div>
     </div>

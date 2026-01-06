@@ -443,6 +443,27 @@ export default function Reports() {
                 </div>
               </div>
 
+              {/* Mobile: Quick stats (visible on small screens) */}
+              <div className="md:hidden mb-4">
+                <div className="mb-2">
+                  <div className="text-lg font-medium text-white mb-2">Statistiche rapide</div>
+                  <div className="grid grid-cols-1 gap-3">
+                    <Card className="p-3">
+                      <div className="text-xs text-neutral-400">Valore medio prenotazione</div>
+                      <div className="font-medium text-lg">{avgBookingValue.toFixed(2)} €</div>
+                    </Card>
+                    <div className="p-3 rounded bg-white/5 dark:bg-slate-800">
+                      <div className="text-xs text-neutral-400">Giorno migliore (ricavi)</div>
+                      <div className="font-medium text-lg">{bestDayLabel}</div>
+                    </div>
+                    <div className="p-3 rounded bg-white/5 dark:bg-slate-800">
+                      <div className="text-xs text-neutral-400">Giorno con più ordini</div>
+                      <div className="font-medium text-lg">{peakOrdersLabel}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               {/* Desktop: Quick stats on right column */}
               <div className="hidden md:block">
                 <div className="mb-2">
