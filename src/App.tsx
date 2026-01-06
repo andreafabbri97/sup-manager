@@ -57,22 +57,40 @@ export default function App() {
     }
   }, [])
 
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
+
   React.useEffect(() => {
-    // Redirect only if role is explicitly staff; allow fallback admin/default
+    // Redirect based on authentication/role
     let mounted = true
     ;(async () => {
       try {
         const { getCurrentUserRole } = await import('./lib/auth')
         const role = await getCurrentUserRole()
         if (!mounted) return
+        setIsAuthenticated(role !== null)
+        if (role === null) {
+          handleNav('login')
+          return
+        }
         if (role === 'staff' && page === 'reports') {
           handleNav('bookings')
         }
       } catch (e) {
         // ignore
+        setIsAuthenticated(false)
+        handleNav('login')
       }
     })()
-    return () => { mounted = false }
+
+    const onAuthChanged = async () => {
+      const { getCurrentUserRole } = await import('./lib/auth')
+      const role = await getCurrentUserRole()
+      setIsAuthenticated(role !== null)
+      if (!role) handleNav('login')
+    }
+    window.addEventListener('auth:changed', onAuthChanged as any)
+
+    return () => { mounted = false; window.removeEventListener('auth:changed', onAuthChanged as any) }
   }, [])
 
   return (
@@ -81,19 +99,25 @@ export default function App() {
       <main className="flex-1 flex flex-col w-full">
         <TopBar />
         <div className="px-2 sm:px-4 lg:px-6 py-0 sm:py-0 flex-1">
-          {page === 'equipment' && <Equipment />}
-          {page === 'bookings' && <Bookings />}
-          {page === 'packages' && <Packages />}
-          {page === 'customers' && <Customers />}
-          {page === 'employees' && <Employees />}
-          {page === 'timesheet' && <Timesheet />}
-          {page === 'users' && <Users />}
-          {page === 'login' && <Login />}
-          {page === 'payroll' && <Payroll />}
-          {page === 'reports' && <Reports />}
-          {page === 'archive' && <Archive />}
-          {page === 'settings' && <Settings />}
-          {!['equipment','bookings','packages','customers','employees','timesheet','reports','settings','archive','users','login'].includes(page) && <Reports />}
+          {isAuthenticated === false ? (
+            <Login />
+          ) : (
+            <>
+              {page === 'equipment' && <Equipment />}
+              {page === 'bookings' && <Bookings />}
+              {page === 'packages' && <Packages />}
+              {page === 'customers' && <Customers />}
+              {page === 'employees' && <Employees />}
+              {page === 'timesheet' && <Timesheet />}
+              {page === 'users' && <Users />}
+              {page === 'login' && <Login />}
+              {page === 'payroll' && <Payroll />}
+              {page === 'reports' && <Reports />}
+              {page === 'archive' && <Archive />}
+              {page === 'settings' && <Settings />}
+              {!['equipment','bookings','packages','customers','employees','timesheet','reports','settings','archive','users','login'].includes(page) && <Reports />}
+            </>
+          )}
         </div>
       </main>
 

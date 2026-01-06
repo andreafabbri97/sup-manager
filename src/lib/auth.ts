@@ -1,36 +1,46 @@
 import { supabase } from './supabaseClient'
 
 let cachedRole: string | null = null
+let cachedToken: string | null = null
+
+function getStoredToken() {
+  try { return window.localStorage.getItem('app_session_token') } catch (e) { return null }
+}
+
+export async function login(username: string, password: string) {
+  const { data, error } = await supabase.rpc('authenticate_user', { p_username: username, p_password: password })
+  if (error) throw error
+  const token = (data as any) ?? null
+  if (!token) throw new Error('Login failed')
+  try { window.localStorage.setItem('app_session_token', token) } catch (e) {}
+  cachedToken = token
+  cachedRole = null
+  window.dispatchEvent(new CustomEvent('auth:changed'))
+  return token
+}
+
+export async function logout() {
+  try {
+    const token = cachedToken ?? getStoredToken()
+    if (token) await supabase.rpc('logout_session', { p_token: token })
+  } catch (_) {}
+  try { window.localStorage.removeItem('app_session_token') } catch (e) {}
+  cachedToken = null
+  cachedRole = null
+  window.dispatchEvent(new CustomEvent('auth:changed'))
+}
 
 export async function getCurrentUserRole() {
   if (cachedRole) return cachedRole
   try {
-    const userRes = await supabase.auth.getUser()
-    const user = (userRes as any)?.data?.user
-    // If there's no authenticated user (or auth not configured), treat as admin so Reports remains accessible
-    if (!user) {
-      cachedRole = 'admin'
-      return cachedRole
-    }
-
-    // Fallback strategy: check if any app_user rows exist; if none, assume first user is admin (fresh install convenience)
-    const { data: anyUser, error: anyErr } = await supabase.from('app_user').select('id').limit(1).maybeSingle()
-    if (!anyErr && !anyUser) {
-      cachedRole = 'admin'
-      return cachedRole
-    }
-
-    const { data, error } = await supabase.from('app_user').select('role').eq('id', user.id).single()
-    if (error) {
-      // if no app_user row for this user, default to admin to avoid hiding Reports for bootstrap
-      cachedRole = 'admin'
-      return cachedRole
-    }
-    cachedRole = data?.role ?? 'admin'
+    const token = cachedToken ?? getStoredToken()
+    if (!token) return null
+    const { data, error } = await supabase.rpc('get_current_user_role', { p_token: token })
+    if (error) return null
+    cachedRole = (data as any) ?? null
     return cachedRole
   } catch (e) {
-    cachedRole = 'admin'
-    return cachedRole
+    return null
   }
 }
 
@@ -40,9 +50,11 @@ export function clearCachedRole() {
 
 export async function getCurrentUserId() {
   try {
-    const res = await supabase.auth.getUser()
-    const user = (res as any)?.data?.user
-    return user?.id ?? null
+    const token = cachedToken ?? getStoredToken()
+    if (!token) return null
+    const { data, error } = await supabase.rpc('get_current_user_id', { p_token: token })
+    if (error) return null
+    return (data as any) ?? null
   } catch (e) {
     return null
   }

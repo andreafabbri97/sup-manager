@@ -23,6 +23,8 @@ export default function UsersPage() {
   const [newUserId, setNewUserId] = useState('')
   const [newRole, setNewRole] = useState<'admin' | 'staff'>('staff')
   const [isAdmin, setIsAdmin] = useState(false)
+  const [newUsername, setNewUsername] = useState('')
+  const [newPassword, setNewPassword] = useState('')
 
   useEffect(() => {
     let mounted = true
@@ -41,7 +43,7 @@ export default function UsersPage() {
   async function load() {
     setLoading(true)
     const [{ data: userRows, error: userErr }, { data: employeeRows, error: empErr }] = await Promise.all([
-      supabase.from('app_user').select('id, role, created_at').order('created_at', { ascending: false }),
+      supabase.from('app_user').select('id, username, role, created_at').order('created_at', { ascending: false }),
       supabase.from('employees').select('id, name, auth_user_id').order('name', { ascending: true })
     ])
     setLoading(false)
@@ -84,11 +86,15 @@ export default function UsersPage() {
       </div>
 
       <Card className="p-4 sm:p-6 space-y-3">
-        <div className="font-semibold">Aggiungi o aggiorna ruolo</div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
+        <div className="font-semibold">Crea utente interno</div>
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
           <div>
-            <label className="text-sm block mb-1">Auth user ID</label>
-            <input className="w-full border rounded px-3 py-2" value={newUserId} onChange={(e)=>setNewUserId(e.target.value)} placeholder="UUID utente" />
+            <label className="text-sm block mb-1">Username</label>
+            <input className="w-full border rounded px-3 py-2" value={newUsername} onChange={(e)=>setNewUsername(e.target.value)} placeholder="username" />
+          </div>
+          <div>
+            <label className="text-sm block mb-1">Password</label>
+            <input className="w-full border rounded px-3 py-2" value={newPassword} onChange={(e)=>setNewPassword(e.target.value)} placeholder="password" />
           </div>
           <div>
             <label className="text-sm block mb-1">Ruolo</label>
@@ -98,11 +104,18 @@ export default function UsersPage() {
             </select>
           </div>
           <div className="flex gap-2">
-            <Button onClick={()=>upsertUser(newUserId, newRole)} disabled={!newUserId}>Salva</Button>
-            <Button variant="ghost" type="button" onClick={()=>{ setNewUserId(''); setNewRole('staff') }}>Reset</Button>
+            <Button onClick={async ()=>{
+                if (!newUsername || !newPassword) return window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Inserisci username e password', type: 'error' } }))
+                const token = window.localStorage.getItem('app_session_token') || null
+                const { data, error } = await supabase.rpc('create_internal_user', { p_username: newUsername, p_password: newPassword, p_role: newRole, p_session_token: token })
+                if (error) return window.dispatchEvent(new CustomEvent('toast', { detail: { message: error.message, type: 'error' } }))
+                window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Utente creato', type: 'success' } }))
+                setNewUsername(''); setNewPassword(''); setNewRole('staff'); load()
+              }} disabled={!newUsername || !newPassword}>Crea</Button>
+            <Button variant="ghost" type="button" onClick={()=>{ setNewUsername(''); setNewPassword(''); setNewRole('staff') }}>Reset</Button>
           </div>
         </div>
-        <p className="text-xs text-neutral-500">Suggerimento: collega gli utenti alle anagrafiche dipendenti compilando il campo auth_user_id.</p>
+        <p className="text-xs text-neutral-500">Suggerimento: collega gli utenti alle anagrafiche dipendenti modificando il campo <code>auth_user_id</code> sull'anagrafica Dipendenti.</p>
       </Card>
 
       {loading && <div className="text-sm text-neutral-500">Caricamento...</div>}
@@ -113,7 +126,7 @@ export default function UsersPage() {
           return (
             <Card key={u.id} className="p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div className="flex-1 min-w-0">
-                <div className="font-semibold break-all">{u.id}</div>
+                <div className="font-semibold break-all">{u.username || u.id}</div>
                 <div className="text-xs text-neutral-500">Ruolo: {u.role}</div>
                 {emp && <div className="text-xs text-neutral-600 dark:text-neutral-300">Dipendente: {emp.name}</div>}
                 {u.created_at && <div className="text-xs text-neutral-400">Creato: {new Date(u.created_at).toLocaleString('it-IT')}</div>}

@@ -1,5 +1,6 @@
 import React from 'react'
 import { useTheme } from '../lib/theme'
+import { logout } from '../lib/auth'
 
 
 export default function Sidebar({ onNav, currentPage }: { onNav?: (page: string) => void; currentPage?: string }) {
@@ -72,21 +73,22 @@ export default function Sidebar({ onNav, currentPage }: { onNav?: (page: string)
     return () => window.removeEventListener('auth:changed', onAuthChanged as any)
   }, [])
 
-  const isAdmin = role !== 'staff' // default true when role is null/unknown
+  const isAuthenticated = role !== null
+  const isAdmin = role === 'admin'
 
-  const items = [
+  const items = isAuthenticated ? [
     { id: 'equipment', label: 'Attrezzatura' },
     { id: 'bookings', label: 'Prenotazioni' },
     { id: 'packages', label: 'Pacchetti' },
     { id: 'customers', label: 'Clienti' },
     { id: 'employees', label: 'Dipendenti' },
     { id: 'timesheet', label: 'Turni' },
-    // Reports page shown unless role is explicitly staff
     ...(isAdmin ? [{ id: 'reports', label: 'Report & Amministrazione' }] : []),
     ...(isAdmin ? [{ id: 'users', label: 'Utenti' }] : []),
     ...(isAdmin ? [{ id: 'payroll', label: 'Paghe' }] : []),
-    { id: 'login', label: 'Login' },
     { id: 'settings', label: 'Impostazioni' }
+  ] : [
+    { id: 'login', label: 'Login' }
   ]
 
   const Icon = ({ name }: { name: string }) => {
@@ -267,6 +269,11 @@ export default function Sidebar({ onNav, currentPage }: { onNav?: (page: string)
         </nav>
 
         <div className={`mt-auto ${collapsed ? 'text-center' : ''}`}>
+          {role !== null && (
+            <button onClick={async () => { await logout(); window.dispatchEvent(new CustomEvent('auth:changed')); window.dispatchEvent(new CustomEvent('navigate:login')) }} className={`px-3 py-2 mb-2 bg-rose-500 text-white rounded ${collapsed ? 'w-10 mx-auto' : 'w-full'}`}>
+              {collapsed ? 'L' : 'Logout'}
+            </button>
+          )}
           <button onClick={() => toggle()} className={`px-3 py-2 bg-sky-600 text-white rounded ${collapsed ? 'w-10 mx-auto' : 'w-full'}`}>
             {collapsed ? (theme === 'light' ? 'C' : 'S') : `Tema: ${theme === 'light' ? 'Chiaro' : 'Scuro'}`}
           </button>
