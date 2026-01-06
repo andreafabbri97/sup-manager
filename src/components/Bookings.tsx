@@ -60,6 +60,12 @@ export default function Bookings() {
   const [showDayListModal, setShowDayListModal] = useState(false)
   const [modalDay, setModalDay] = useState<Date | null>(null)
 
+  // Mark-paid modal state
+  const [showMarkPaidModal, setShowMarkPaidModal] = useState(false)
+  const [markPaidBooking, setMarkPaidBooking] = useState<any | null>(null)
+  const [markPaidInvoiced, setMarkPaidInvoiced] = useState<'yes'|'no' | null>(null)
+  const [markPaidInvoiceNumber, setMarkPaidInvoiceNumber] = useState<string | null>(null)
+
   // Mobile tap interactions (tap-to-expand animation)
   const touchTimer = React.useRef<number | null>(null)
   const [pressedDay, setPressedDay] = useState<string | null>(null)
@@ -730,12 +736,12 @@ export default function Bookings() {
 
   return (
     <section className="mt-6">
-      <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
-        <div>
-          <PageTitle className="m-0">Calendario Prenotazioni</PageTitle>
-          <p className="text-sm text-neutral-500 dark:text-neutral-400">Gestisci le prenotazioni della tua attrezzatura</p>
+      <div className="mb-4 flex items-center gap-3 justify-between flex-wrap">
+        <div className="flex items-center gap-3">
+          <PageTitle className="m-0">Prenotazioni</PageTitle>
+          <Button onClick={() => setShowModal(true)}>+ Nuova Prenotazione</Button>
         </div>
-        <Button onClick={() => setShowModal(true)}>+ Nuova Prenotazione</Button>
+        <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1 sm:mt-0">Gestisci le prenotazioni della tua attrezzatura</p>
       </div>
 
       {/* View controls */}
@@ -805,7 +811,7 @@ export default function Bookings() {
                       {b.price && <div className="text-amber-500 dark:text-amber-300 font-bold text-lg whitespace-nowrap flex-shrink-0 ml-2">€ {Number(b.price).toFixed(2)}</div>}
                       <div className="flex items-center gap-2">
                         {!b.paid && (
-                          <button onClick={(e)=>{ e.stopPropagation(); markPaid(b.id) }} className="text-sm px-3 py-1 rounded bg-green-600 text-white" title="Segna come pagato">
+                          <button onClick={(e)=>{ e.stopPropagation(); setMarkPaidBooking(b); setMarkPaidInvoiced(null); setMarkPaidInvoiceNumber(null); setShowMarkPaidModal(true) }} className="text-sm px-3 py-1 rounded bg-green-600 text-white" title="Segna come pagato">
                             Segna come pagato
                           </button>
                         )}
@@ -1117,7 +1123,7 @@ export default function Bookings() {
                   <div className="flex-shrink-0 flex items-center gap-2">
                     <div className="flex flex-col items-end w-full sm:w-auto">
                       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full">
-                        {!b.paid && <button onClick={(e)=>{ e.stopPropagation(); markPaid(b.id) }} className="text-sm px-3 py-1 rounded bg-green-600 text-white w-full sm:w-auto">Segna come pagato</button>}
+                        {!b.paid && <button onClick={(e)=>{ e.stopPropagation(); setMarkPaidBooking(b); setMarkPaidInvoiced(null); setMarkPaidInvoiceNumber(null); setShowMarkPaidModal(true) }} className="text-sm px-3 py-1 rounded bg-green-600 text-white w-full sm:w-auto">Segna come pagato</button>}
                       </div>
                       {b.price && <div className="text-sm text-neutral-500 mt-2 sm:mt-1">€ {Number(b.price).toFixed(2)}</div>}
                     </div>
@@ -1125,6 +1131,43 @@ export default function Bookings() {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+      </Modal>
+
+      {/* Mark as paid confirmation modal */}
+      <Modal isOpen={showMarkPaidModal} onClose={() => { setShowMarkPaidModal(false); setMarkPaidBooking(null); setMarkPaidInvoiced(null); setMarkPaidInvoiceNumber(null) }} title="Segna come pagato">
+        {markPaidBooking && (
+          <div className="space-y-4">
+            <p>Hai emesso fattura per questa prenotazione?</p>
+            <div className="flex items-center gap-2">
+              <button onClick={() => setMarkPaidInvoiced('yes')} className={`px-3 py-2 rounded ${markPaidInvoiced === 'yes' ? 'bg-amber-600 text-white' : 'border'}`}>Sì</button>
+              <button onClick={() => setMarkPaidInvoiced('no')} className={`px-3 py-2 rounded ${markPaidInvoiced === 'no' ? 'bg-amber-600 text-white' : 'border'}`}>No</button>
+            </div>
+            {markPaidInvoiced === 'yes' && (
+              <div>
+                <label className="block text-sm font-medium mb-1">Numero fattura (opzionale)</label>
+                <input value={markPaidInvoiceNumber ?? ''} onChange={(e)=>setMarkPaidInvoiceNumber(e.target.value || null)} className="w-full border px-2 py-2 rounded" />
+              </div>
+            )}
+            <div className="flex justify-end gap-2 pt-2">
+              <button onClick={() => { setShowMarkPaidModal(false); setMarkPaidBooking(null); setMarkPaidInvoiced(null); setMarkPaidInvoiceNumber(null) }} className="px-4 py-2 rounded border">Annulla</button>
+              <Button onClick={async () => {
+                if (!markPaidBooking || markPaidInvoiced === null) return
+                const id = markPaidBooking.id
+                const paidAt = new Date().toISOString()
+                const invoiced = markPaidInvoiced === 'yes'
+                const payload: any = { paid: true, paid_at: paidAt, invoiced }
+                if (invoiced && markPaidInvoiceNumber) payload.invoice_number = markPaidInvoiceNumber
+                const { error } = await supabase.from('booking').update(payload).eq('id', id)
+                if (error) return alert(error.message)
+                setShowMarkPaidModal(false)
+                setMarkPaidBooking(null)
+                setMarkPaidInvoiced(null)
+                setMarkPaidInvoiceNumber(null)
+                load()
+              }} disabled={markPaidInvoiced === null}>Conferma</Button>
+            </div>
           </div>
         )}
       </Modal>

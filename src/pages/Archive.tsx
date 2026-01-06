@@ -74,6 +74,27 @@ export default function Archive({ start: propStart, end: propEnd }: { start?: st
     load()
   }
 
+  // Mark-paid modal state
+  const [showMarkPaidModal, setShowMarkPaidModal] = useState(false)
+  const [markPaidBookingId, setMarkPaidBookingId] = useState<string | null>(null)
+  const [markPaidInvoiced, setMarkPaidInvoiced] = useState<'yes'|'no' | null>(null)
+  const [markPaidInvoiceNumber, setMarkPaidInvoiceNumber] = useState<string | null>(null)
+
+  async function confirmMarkPaidArchive() {
+    if (!markPaidBookingId || markPaidInvoiced === null) return
+    const paidAt = new Date().toISOString()
+    const invoiced = markPaidInvoiced === 'yes'
+    const payload: any = { paid: true, paid_at: paidAt, invoiced }
+    if (invoiced && markPaidInvoiceNumber) payload.invoice_number = markPaidInvoiceNumber
+    const { error } = await supabase.from('booking').update(payload).eq('id', markPaidBookingId)
+    if (error) return alert(error.message)
+    setShowMarkPaidModal(false)
+    setMarkPaidBookingId(null)
+    setMarkPaidInvoiced(null)
+    setMarkPaidInvoiceNumber(null)
+    load()
+  }
+
   const [page, setPage] = useState<number>(1)
   const [perPage, setPerPage] = useState<number>(20)
   const total = bookings.length
@@ -115,6 +136,8 @@ export default function Archive({ start: propStart, end: propEnd }: { start?: st
 
       <Card>
         <div className={`${!showFiltersMobile ? 'hidden sm:block' : ''} mb-3`}>
+        </div>
+
           <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center sm:gap-3">
             <div className="flex items-center gap-2">
               <label className="text-sm">Da</label>
@@ -146,7 +169,6 @@ export default function Archive({ start: propStart, end: propEnd }: { start?: st
               <input placeholder="Nr fattura" value={qInvoice} onChange={(e)=>setQInvoice(e.target.value)} className="border px-2 py-1 rounded w-full" />
             </div>
           </div>
-        </div>
 
         {/* Mobile stacked list */}
       <div className="sm:hidden space-y-2 mb-3">
@@ -180,7 +202,7 @@ export default function Archive({ start: propStart, end: propEnd }: { start?: st
                   <td>
                     <div className="flex items-center gap-2">
                       <button onClick={(e)=>{ e.stopPropagation(); setDetail(b); setShowDetail(true) }} className="text-sm px-2 py-1 rounded border">Dettagli</button>
-                      {!b.paid && <button onClick={(e)=>{ e.stopPropagation(); markPaid(b.id) }} className="text-sm px-2 py-1 rounded bg-green-600 text-white">Segna pagato</button>}
+                      {!b.paid && <button onClick={(e)=>{ e.stopPropagation(); setMarkPaidBookingId(b.id); setMarkPaidInvoiced(null); setMarkPaidInvoiceNumber(null); setShowMarkPaidModal(true) }} className="text-sm px-2 py-1 rounded bg-green-600 text-white">Segna pagato</button>}
                     </div>
                   </td>
                 </tr>
@@ -205,6 +227,27 @@ export default function Archive({ start: propStart, end: propEnd }: { start?: st
           </div>
         </div>
       </Card>
+
+      {/* Mark as paid modal */}
+      <Modal isOpen={showMarkPaidModal} onClose={() => { setShowMarkPaidModal(false); setMarkPaidBookingId(null); setMarkPaidInvoiced(null); setMarkPaidInvoiceNumber(null) }} title="Segna come pagato">
+        <div className="space-y-4">
+          <p>Hai emesso fattura per questa prenotazione?</p>
+          <div className="flex items-center gap-2">
+            <button onClick={() => setMarkPaidInvoiced('yes')} className={`px-3 py-2 rounded ${markPaidInvoiced === 'yes' ? 'bg-amber-600 text-white' : 'border'}`}>Sì</button>
+            <button onClick={() => setMarkPaidInvoiced('no')} className={`px-3 py-2 rounded ${markPaidInvoiced === 'no' ? 'bg-amber-600 text-white' : 'border'}`}>No</button>
+          </div>
+          {markPaidInvoiced === 'yes' && (
+            <div>
+              <label className="block text-sm font-medium mb-1">Numero fattura (opzionale)</label>
+              <input value={markPaidInvoiceNumber ?? ''} onChange={(e)=>setMarkPaidInvoiceNumber(e.target.value || null)} className="w-full border px-2 py-2 rounded" />
+            </div>
+          )}
+          <div className="flex justify-end gap-2 pt-2">
+            <button onClick={() => { setShowMarkPaidModal(false); setMarkPaidBookingId(null); setMarkPaidInvoiced(null); setMarkPaidInvoiceNumber(null) }} className="px-4 py-2 rounded border">Annulla</button>
+            <Button onClick={confirmMarkPaidArchive} disabled={markPaidInvoiced === null}>Conferma</Button>
+          </div>
+        </div>
+      </Modal>
 
       <Modal isOpen={showDetail} onClose={() => { setShowDetail(false); setDetail(null) }} title={detail ? `Prenotazione ${detail.id}` : 'Dettaglio'}>
         {detail && (
