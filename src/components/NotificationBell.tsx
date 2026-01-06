@@ -396,9 +396,14 @@ export default function NotificationBell() {
             </div>
           </Modal>
         ) : (
-          <Card as="div" className="absolute right-0 mt-2 w-80 max-w-[95vw] p-0 z-50">
-            {notificationsContent}
-          </Card>
+          <div className="fixed inset-0 z-50 flex justify-end">
+            <div className="absolute inset-0" onClick={() => setShowPopup(false)} aria-hidden />
+            <div className="relative mt-2 w-80 max-w-[95vw] p-0">
+              <Card as="div" className="p-0">
+                {notificationsContent}
+              </Card>
+            </div>
+          </div>
         )
       )}
 
