@@ -6,6 +6,7 @@ import Equipment from './components/Equipment'
 import Bookings from './components/Bookings'
 import Packages from './components/Packages'
 import Customers from './components/Customers'
+import PWAInstallPrompt from './components/PWAInstallPrompt'
 import TopBar from './components/TopBar'
 import Archive from './pages/Archive'
 
@@ -60,6 +61,7 @@ export default function App() {
         </div>
       </main>
 
+      <PWAInstallPrompt />
     </div>
   )
 }
