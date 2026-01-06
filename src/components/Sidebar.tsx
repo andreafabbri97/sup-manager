@@ -1,6 +1,7 @@
 import React from 'react'
 import { useTheme } from '../lib/theme'
 import { logout } from '../lib/auth'
+import { supabase } from '../lib/supabaseClient'
 
 
 export default function Sidebar({ onNav, currentPage }: { onNav?: (page: string) => void; currentPage?: string }) {
@@ -58,17 +59,32 @@ export default function Sidebar({ onNav, currentPage }: { onNav?: (page: string)
   }, [mobileOpen])
 
   const [role, setRole] = React.useState<string | null>(null)
+  const [username, setUsername] = React.useState<string | null>(null)
 
   React.useEffect(() => {
     let mounted = true
-    import('../lib/auth').then(({ getCurrentUserRole }) => {
+    import('../lib/auth').then(({ getCurrentUserRole, getCurrentUserId }) => {
       getCurrentUserRole().then(r => { if (mounted) setRole(r) })
+      getCurrentUserId().then(async (id) => {
+        if (!mounted) return
+        if (!id) { setUsername(null); return }
+        const { data } = await supabase.from('app_user').select('username').eq('id', id).single()
+        setUsername(data?.username ?? null)
+      })
     })
     return () => { mounted = false }
   }, [])
 
   React.useEffect(() => {
-    const onAuthChanged = () => { import('../lib/auth').then(({ getCurrentUserRole }) => getCurrentUserRole().then(r => setRole(r))) }
+    const onAuthChanged = async () => {
+      const { getCurrentUserRole, getCurrentUserId } = await import('../lib/auth')
+      const r = await getCurrentUserRole()
+      setRole(r)
+      const id = await getCurrentUserId()
+      if (!id) { setUsername(null); return }
+      const { data } = await supabase.from('app_user').select('username').eq('id', id).single()
+      setUsername(data?.username ?? null)
+    }
     window.addEventListener('auth:changed', onAuthChanged as any)
     return () => window.removeEventListener('auth:changed', onAuthChanged as any)
   }, [])
@@ -268,6 +284,12 @@ export default function Sidebar({ onNav, currentPage }: { onNav?: (page: string)
         </nav>
 
         <div className={`mt-auto ${collapsed ? 'text-center' : ''}`}>
+          {role !== null && (
+            <div className={`mb-2 text-sm ${collapsed ? 'text-center' : ''} text-neutral-700 dark:text-neutral-300`}>
+              <div className="truncate">{username ? `Connesso: ${username}` : 'Connesso'}</div>
+            </div>
+          )}
+
           {role !== null && (
             <button onClick={async () => { await logout(); window.dispatchEvent(new CustomEvent('auth:changed')); window.dispatchEvent(new CustomEvent('navigate:login')) }} className={`px-3 py-2 mb-2 bg-rose-500 text-white rounded ${collapsed ? 'w-10 mx-auto' : 'w-full'}`}>
               {collapsed ? 'L' : 'Logout'}
