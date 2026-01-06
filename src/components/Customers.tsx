@@ -233,10 +233,10 @@ export default function Customers() {
           )}
 
           {sortedCustomers.map((customer) => (
-            <Card key={customer.id} className="flex items-start justify-between interactive">
-              <div className="flex-1">
+            <Card key={customer.id} className="flex items-center justify-between interactive gap-4">
+              <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <div className="font-medium text-neutral-900 dark:text-neutral-100">
+                  <div className="font-medium text-neutral-900 dark:text-neutral-100 truncate">
                     {customer.name}
                   </div>
                   {bookingsCounts[customer.id] !== undefined && bookingsCounts[customer.id] > 0 && (
@@ -286,7 +286,7 @@ export default function Customers() {
                   )}
                 </div>
               </div>
-              <div className="flex gap-2 ml-4">
+              <div className="flex-shrink-0 flex items-center gap-2 ml-4">
                 <button
                   onClick={() => openEditModal(customer)}
                   className="text-blue-600 dark:text-blue-400 text-sm hover:underline"
