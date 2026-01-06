@@ -852,8 +852,8 @@ export default function Bookings() {
                         {dayBookings.slice(0, 6).map(b => (
                           <button key={b.id} title={bookingTitle(b)} onClick={() => { setSelectedBooking(b); setShowBookingDetails(true) }} className="inline-flex items-center gap-2 px-1 py-0.5 rounded bg-neutral-100 dark:bg-neutral-800 text-xs truncate">
                             {compactDot(b)}
-                            <div className="flex flex-col truncate max-w-[90px]">
-                              <span className="truncate font-medium">{(b.customer_name || 'Cliente').slice(0,12)}</span>
+                            <div className="flex flex-col truncate max-w-[120px]">
+                              <span className="truncate font-medium">{b.customer_name || 'Cliente'}</span>
                               <span className="text-xs text-neutral-500">{new Date(b.start_time).toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'})} — {new Date(b.end_time).toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'})}</span>
                             </div>
                           </button>
