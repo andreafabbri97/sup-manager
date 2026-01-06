@@ -31,6 +31,12 @@ interface ModalProps {
 export default function Modal({ isOpen, onClose, title, children, autoFocus = true, mobileDropdown = false, fullScreenMobile = false, openFullMobile = false, mobileCentered = false }: ModalProps) {
   const dialogRef = useRef<HTMLDivElement | null>(null)
   const [isMobile, setIsMobile] = useState(false)
+  const latestOnClose = useRef(onClose)
+  const prevIsOpenRef = useRef(false)
+
+  useEffect(() => {
+    latestOnClose.current = onClose
+  }, [onClose])
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 767.98px)')
@@ -153,23 +159,27 @@ export default function Modal({ isOpen, onClose, title, children, autoFocus = tr
   }, [isOpen, fullScreenMobile, userExpanded, isMobile, openFullMobile])
 
   const [isClosing, setIsClosing] = useState(false)
+  const isClosingRef = useRef(false)
   const closeAnimationDuration = 260
 
-  const requestClose = () => {
-    if (isClosing) return
-    // stop any drag/expanded state
+  const requestClose = React.useCallback(() => {
+    if (isClosingRef.current) return
+    isClosingRef.current = true
     setIsDragging(false)
     setUserExpanded(false)
     setIsClosing(true)
-    // allow the slide-down animation to play before invoking parent's onClose
     setTimeout(() => {
+      isClosingRef.current = false
       setIsClosing(false)
-      onClose()
+      latestOnClose.current?.()
     }, closeAnimationDuration)
-  }
+  }, [closeAnimationDuration])
 
   useEffect(() => {
-    if (!isOpen) return
+    // Track previous open state so we only auto-focus when the modal JUST opened
+    const wasOpen = prevIsOpenRef.current
+    prevIsOpenRef.current = isOpen
+
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') requestClose()
     }
@@ -185,7 +195,15 @@ export default function Modal({ isOpen, onClose, title, children, autoFocus = tr
       }, 200)
     }
 
-    if (autoFocus) {
+    // If modal isn't open, ensure we return quickly (but prevIsOpenRef already updated above)
+    if (!isOpen) {
+      document.removeEventListener('keydown', onKey)
+      dialogRef.current?.removeEventListener('focusin', onFocusIn)
+      if (timeoutId) clearTimeout(timeoutId)
+      return
+    }
+
+    if (autoFocus && !wasOpen) {
       timeoutId = window.setTimeout(() => {
         // Prefer focusing the first form control (input/select/textarea). If none found, fall back to first focusable.
         const firstControl = dialogRef.current?.querySelector('input, select, textarea') as HTMLElement | null
@@ -206,7 +224,7 @@ export default function Modal({ isOpen, onClose, title, children, autoFocus = tr
       if (timeoutId) clearTimeout(timeoutId)
       dialogRef.current?.removeEventListener('focusin', onFocusIn)
     }
-  }, [isOpen, onClose, autoFocus])
+  }, [isOpen, autoFocus, requestClose])
 
   if (!isOpen) return null
 

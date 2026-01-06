@@ -33,15 +33,21 @@ export default function TimesheetPage() {
   const [showModal, setShowModal] = useState(false)
   const [form, setForm] = useState<{ employee_id: string; start_at: string; end_at: string; status: string }>({ employee_id: '', start_at: '', end_at: '', status: 'scheduled' })
   const [saving, setSaving] = useState(false)
+  const [editing, setEditing] = useState<Shift | null>(null)
+  const [filterEmployee, setFilterEmployee] = useState('')
+  const [filterStatus, setFilterStatus] = useState('')
 
   useEffect(() => {
     loadEmployees()
     loadShifts()
+    const onShiftsChanged = () => loadShifts()
+    window.addEventListener('shifts:changed', onShiftsChanged as any)
+    return () => window.removeEventListener('shifts:changed', onShiftsChanged as any)
   }, [])
 
   async function loadEmployees() {
     const { data, error } = await supabase.from('employees').select('id, name').order('name', { ascending: true })
-    if (error) { alert(error.message); return }
+    if (error) { window.dispatchEvent(new CustomEvent('toast', { detail: { message: error.message, type: 'error' } })); return }
     setEmployees(data || [])
   }
 
@@ -49,7 +55,7 @@ export default function TimesheetPage() {
     setLoading(true)
     const { data, error } = await supabase.from('shifts').select('id, employee_id, start_at, end_at, status, duration_hours, employees(name)').order('start_at', { ascending: false }).limit(200)
     setLoading(false)
-    if (error) { alert(error.message); return }
+    if (error) { window.dispatchEvent(new CustomEvent('toast', { detail: { message: error.message, type: 'error' } })); return }
     setShifts((data as any) || [])
   }
 
@@ -57,29 +63,71 @@ export default function TimesheetPage() {
     const now = new Date()
     const later = new Date(now.getTime() + 60 * 60 * 1000)
     setForm({ employee_id: employees[0]?.id || '', start_at: now.toISOString().slice(0,16), end_at: later.toISOString().slice(0,16), status: 'scheduled' })
+    setEditing(null)
+    setShowModal(true)
+  }
+
+  function openEdit(shift: Shift) {
+    setEditing(shift)
+    setForm({
+      employee_id: shift.employee_id,
+      start_at: shift.start_at.slice(0,16),
+      end_at: shift.end_at.slice(0,16),
+      status: shift.status
+    })
     setShowModal(true)
   }
 
   async function save(e: React.FormEvent) {
     e.preventDefault()
-    if (!form.employee_id) return alert('Seleziona un dipendente')
-    if (!form.start_at || !form.end_at) return alert('Date obbligatorie')
+    if (!form.employee_id) { window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Seleziona un dipendente', type: 'error' } })); return }
+    if (!form.start_at || !form.end_at) { window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Date obbligatorie', type: 'error' } })); return }
+    const start = new Date(form.start_at)
+    const end = new Date(form.end_at)
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) { window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Date non valide', type: 'error' } })); return }
+    if (end <= start) { window.dispatchEvent(new CustomEvent('toast', { detail: { message: "La fine deve essere dopo l'\'inizio", type: 'error' } })); return }
     setSaving(true)
-    const { error } = await supabase.from('shifts').insert({
+    const payload = {
       employee_id: form.employee_id,
-      start_at: new Date(form.start_at).toISOString(),
-      end_at: new Date(form.end_at).toISOString(),
+      start_at: start.toISOString(),
+      end_at: end.toISOString(),
       status: form.status
-    })
+    }
+
+    const { error } = editing
+      ? await supabase.from('shifts').update(payload).eq('id', editing.id)
+      : await supabase.from('shifts').insert(payload)
     setSaving(false)
     if (error) return alert(error.message)
     setShowModal(false)
+    setEditing(null)
     loadShifts()
   }
 
   async function confirm(id: string) {
     const { error } = await supabase.rpc('confirm_shift', { p_shift_id: id })
-    if (error) return alert(error.message)
+    if (error) {
+      window.dispatchEvent(new CustomEvent('toast', { detail: { message: error.message, type: 'error' } }))
+      return
+    }
+    window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Turno confermato', type: 'success' } }))
+    loadShifts()
+  }
+
+  async function stopShift(id: string) {
+    const now = new Date().toISOString()
+    const { error } = await supabase.from('shifts').update({ end_at: now }).eq('id', id)
+    if (error) {
+      window.dispatchEvent(new CustomEvent('toast', { detail: { message: error.message, type: 'error' } }))
+      return
+    }
+    // try to confirm via RPC (may fail if not owner/admin), ignore if RPC errors
+    const { error: confErr } = await supabase.rpc('confirm_shift', { p_shift_id: id })
+    if (!confErr) {
+      window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Turno terminato e confermato', type: 'success' } }))
+    } else {
+      window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Turno terminato', type: 'success' } }))
+    }
     loadShifts()
   }
 
@@ -89,15 +137,30 @@ export default function TimesheetPage() {
     loadShifts()
   }
 
+  async function removeShift(id: string) {
+    if (!window.confirm('Eliminare questo turno?')) return
+    const { error } = await supabase.from('shifts').delete().eq('id', id)
+    if (error) return alert(error.message)
+    setShifts((prev) => prev.filter((s) => s.id !== id))
+  }
+
+  const filteredShifts = useMemo(() => {
+    return shifts.filter((s) => {
+      if (filterEmployee && s.employee_id !== filterEmployee) return false
+      if (filterStatus && s.status !== filterStatus) return false
+      return true
+    })
+  }, [shifts, filterEmployee, filterStatus])
+
   const grouped = useMemo(() => {
     const byDate: Record<string, Shift[]> = {}
-    shifts.forEach((s) => {
+    filteredShifts.forEach((s) => {
       const key = s.start_at ? s.start_at.slice(0,10) : 'sconosciuta'
       if (!byDate[key]) byDate[key] = []
       byDate[key].push(s)
     })
     return byDate
-  }, [shifts])
+  }, [filteredShifts])
 
   const fmtTime = (iso: string) => {
     const d = new Date(iso)
@@ -109,6 +172,22 @@ export default function TimesheetPage() {
       <div className="flex items-center justify-between flex-wrap gap-3 mb-4">
         <PageTitle className="m-0">Turni</PageTitle>
         <Button onClick={openNew}>Nuovo turno</Button>
+      </div>
+
+      <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between mb-4">
+        <div className="flex gap-2 flex-1 flex-wrap">
+          <select className="border rounded px-3 py-2" value={filterEmployee} onChange={(e)=>setFilterEmployee(e.target.value)}>
+            <option value="">Tutti i dipendenti</option>
+            {employees.map((e)=>(<option key={e.id} value={e.id}>{e.name}</option>))}
+          </select>
+          <select className="border rounded px-3 py-2" value={filterStatus} onChange={(e)=>setFilterStatus(e.target.value)}>
+            <option value="">Tutti gli stati</option>
+            <option value="scheduled">Programmato</option>
+            <option value="completed">Completato</option>
+            <option value="cancelled">Annullato</option>
+          </select>
+        </div>
+        <div className="text-xs text-neutral-500">{filteredShifts.length} turni</div>
       </div>
 
       {loading ? <div className="text-sm text-neutral-500">Caricamento...</div> : null}
@@ -125,11 +204,19 @@ export default function TimesheetPage() {
                   <div className="text-sm text-neutral-600 dark:text-neutral-300">
                     {fmtTime(shift.start_at)} → {fmtTime(shift.end_at)} ({shift.duration_hours?.toFixed(2)} h)
                   </div>
-                  <div className="text-xs text-neutral-500">{statusLabels[shift.status] || shift.status}</div>
+                  <div className="text-xs text-neutral-500 flex items-center gap-2">
+                    <span className={`inline-flex items-center px-2 py-1 rounded-full ${shift.status === 'completed' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-200' : shift.status === 'cancelled' ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/50 dark:text-rose-200' : 'bg-sky-100 text-sky-700 dark:bg-sky-900/50 dark:text-sky-200'}`}>
+                      {statusLabels[shift.status] || shift.status}
+                    </span>
+                    {shift.duration_hours ? <span>{shift.duration_hours.toFixed(2)} h</span> : null}
+                  </div>
                 </div>
                 <div className="flex gap-2 flex-wrap">
                   {shift.status !== 'completed' && <Button size="sm" variant="secondary" onClick={()=>confirm(shift.id)}>Conferma</Button>}
+                  {shift.end_at === shift.start_at && <Button size="sm" variant="secondary" onClick={()=>stopShift(shift.id)}>Termina</Button>}
                   {shift.status !== 'cancelled' && <Button size="sm" variant="ghost" onClick={()=>updateStatus(shift.id, 'cancelled')}>Annulla</Button>}
+                  <Button size="sm" variant="secondary" onClick={()=>openEdit(shift)}>Modifica</Button>
+                  <Button size="sm" variant="ghost" onClick={()=>removeShift(shift.id)}>Elimina</Button>
                 </div>
               </Card>
             ))}
@@ -137,7 +224,7 @@ export default function TimesheetPage() {
         ))}
       </div>
 
-      <Modal isOpen={showModal} onClose={()=>setShowModal(false)} title="Nuovo turno">
+      <Modal isOpen={showModal} onClose={()=>{ setShowModal(false); setEditing(null) }} title={editing ? 'Modifica turno' : 'Nuovo turno'}>
         <form onSubmit={save} className="space-y-3">
           <div>
             <label className="text-sm block mb-1">Dipendente</label>

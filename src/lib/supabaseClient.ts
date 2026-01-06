@@ -10,7 +10,13 @@ if (!supabaseUrl || !supabaseAnonKey) {
   // where env vars are not set (e.g. CI without secrets).
   _supabase = {
     from: () => ({ select: async () => ({ data: null, error: null }) }),
-    auth: { signIn: async () => null, getUser: async () => null },
+    auth: {
+      signIn: async () => null,
+      signInWithPassword: async () => ({ data: null, error: null }),
+      signUp: async () => ({ data: null, error: null }),
+      signOut: async () => ({ error: null }),
+      getUser: async () => ({ data: { user: null } })
+    },
     rpc: async () => ({ data: null, error: null })
   }
 } else {

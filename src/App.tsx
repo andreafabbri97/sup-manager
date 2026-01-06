@@ -11,6 +11,10 @@ import TopBar from './components/TopBar'
 import Archive from './pages/Archive'
 import Employees from './pages/Employees'
 import Timesheet from './pages/Timesheet'
+import Login from './pages/Login'
+import Users from './pages/Users'
+import Payroll from './pages/Payroll'
+import Toasts from './components/Toasts'
 
 export default function App() {
   const [page, setPage] = useState<string>(() => {
@@ -43,7 +47,14 @@ export default function App() {
       }, 240)
     }
     window.addEventListener('navigate:booking', onNavigateReq)
-    return () => window.removeEventListener('navigate:booking', onNavigateReq)
+
+    const onNavLogin = () => { setPage('login'); try { window.localStorage.setItem('app_page', 'login') } catch (e) {} }
+    window.addEventListener('navigate:login', onNavLogin as any)
+
+    return () => {
+      window.removeEventListener('navigate:booking', onNavigateReq)
+      window.removeEventListener('navigate:login', onNavLogin as any)
+    }
   }, [])
 
   React.useEffect(() => {
@@ -76,14 +87,18 @@ export default function App() {
           {page === 'customers' && <Customers />}
           {page === 'employees' && <Employees />}
           {page === 'timesheet' && <Timesheet />}
+          {page === 'users' && <Users />}
+          {page === 'login' && <Login />}
+          {page === 'payroll' && <Payroll />}
           {page === 'reports' && <Reports />}
           {page === 'archive' && <Archive />}
           {page === 'settings' && <Settings />}
-          {!['equipment','bookings','packages','customers','employees','timesheet','reports','settings','archive'].includes(page) && <Reports />}
+          {!['equipment','bookings','packages','customers','employees','timesheet','reports','settings','archive','users','login'].includes(page) && <Reports />}
         </div>
       </main>
 
       <PWAInstallPrompt />
+      <Toasts />
     </div>
   )
 }

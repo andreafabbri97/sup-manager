@@ -66,6 +66,12 @@ export default function Sidebar({ onNav, currentPage }: { onNav?: (page: string)
     return () => { mounted = false }
   }, [])
 
+  React.useEffect(() => {
+    const onAuthChanged = () => { import('../lib/auth').then(({ getCurrentUserRole }) => getCurrentUserRole().then(r => setRole(r))) }
+    window.addEventListener('auth:changed', onAuthChanged as any)
+    return () => window.removeEventListener('auth:changed', onAuthChanged as any)
+  }, [])
+
   const isAdmin = role !== 'staff' // default true when role is null/unknown
 
   const items = [
@@ -77,6 +83,9 @@ export default function Sidebar({ onNav, currentPage }: { onNav?: (page: string)
     { id: 'timesheet', label: 'Turni' },
     // Reports page shown unless role is explicitly staff
     ...(isAdmin ? [{ id: 'reports', label: 'Report & Amministrazione' }] : []),
+    ...(isAdmin ? [{ id: 'users', label: 'Utenti' }] : []),
+    ...(isAdmin ? [{ id: 'payroll', label: 'Paghe' }] : []),
+    { id: 'login', label: 'Login' },
     { id: 'settings', label: 'Impostazioni' }
   ]
 
@@ -153,6 +162,22 @@ export default function Sidebar({ onNav, currentPage }: { onNav?: (page: string)
         return (
           <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" d="M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7zM19.4 15a1.98 1.98 0 0 0 .35 2.04l.04.04a2 2 0 0 1-2.83 2.83l-.04-.04a1.98 1.98 0 0 0-2.04-.35 2 2 0 0 1-1.17 1.17c-.7.28-1.47.28-2.17 0a2 2 0 0 1-1.17-1.17 1.98 1.98 0 0 0-2.04.35l-.04.04a2 2 0 0 1-2.83-2.83l.04-.04a1.98 1.98 0 0 0 .35-2.04 2 2 0 0 1-1.17-1.17c-.28-.7-.28-1.47 0-2.17A2 2 0 0 1 3 8.58 1.98 1.98 0 0 0 2.65 6.54L2.61 6.5A2 2 0 0 1 5.44 3.67l.04.04c.7.28 1.47.28 2.17 0a2 2 0 0 1 1.17-1.17c.7-.28 1.47-.28 2.17 0a2 2 0 0 1 1.17 1.17c.28.7.28 1.47 0 2.17A2 2 0 0 1 19.4 8.58c.35.35.7.7.99 1.06z" />
+          </svg>
+        )
+      case 'users':
+        return (
+          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" d="M17 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2" />
+            <circle cx="10" cy="9" r="3.5" strokeWidth="1.5" />
+            <path strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" d="M19 8.5a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0zM21 21v-1.5a3 3 0 00-2.1-2.86" />
+          </svg>
+        )
+      case 'login':
+        return (
+          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4" />
+            <path strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" d="M10 17l5-5-5-5" />
+            <path strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" d="M15 12H3" />
           </svg>
         )
       default:

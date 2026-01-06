@@ -32,6 +32,11 @@ export default function EmployeesPage() {
   const [editing, setEditing] = useState<Employee | null>(null)
   const [form, setForm] = useState<Employee>(emptyEmployee)
   const [saving, setSaving] = useState(false)
+  const [search, setSearch] = useState('')
+  const [roleMsg, setRoleMsg] = useState('')
+  const [roles, setRoles] = useState<Record<string, string>>({})
+  const [availableUsers, setAvailableUsers] = useState<{id: string; role: string}[]>([])
+  const [authWarning, setAuthWarning] = useState('')
 
   useEffect(() => {
     load()
@@ -42,11 +47,34 @@ export default function EmployeesPage() {
     const { data, error } = await supabase.from('employees').select('*').order('name', { ascending: true })
     setLoading(false)
     if (error) {
-      alert(error.message)
+      window.dispatchEvent(new CustomEvent('toast', { detail: { message: error.message, type: 'error' } }))
       return
     }
-    setEmployees((data || []) as any)
+    const list = (data || []) as any as Employee[]
+    setEmployees(list)
+    const authIds = list.map((e) => e.auth_user_id).filter(Boolean) as string[]
+    if (authIds.length) {
+      const { data: rolesData } = await supabase.from('app_user').select('id, role').in('id', authIds)
+      const map: Record<string, string> = {}
+      rolesData?.forEach((r: any) => { if (r?.id) map[r.id] = r.role })
+      setRoles(map)
+    } else {
+      setRoles({})
+    }
+
   }
+
+  async function loadUsers() {
+    const { data } = await supabase.from('app_user').select('id, role').order('id')
+    setAvailableUsers((data as any) || [])
+  }
+
+  useEffect(() => {
+    loadUsers()
+    const onAuthChanged = () => { load(); loadUsers() }
+    window.addEventListener('auth:changed', onAuthChanged)
+    return () => window.removeEventListener('auth:changed', onAuthChanged)
+  }, [])
 
   function openNew() {
     setEditing(null)
@@ -62,30 +90,67 @@ export default function EmployeesPage() {
 
   async function save(e: React.FormEvent) {
     e.preventDefault()
-    if (!form.name.trim()) return alert('Nome obbligatorio')
-    if (!Number.isFinite(form.hourly_rate)) return alert('Tariffa oraria non valida')
+    if (!form.name.trim()) { window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Nome obbligatorio', type: 'error' } })); return }
+    if (!Number.isFinite(form.hourly_rate) || form.hourly_rate < 0) { window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Tariffa oraria non valida', type: 'error' } })); return }
     setSaving(true)
     const payload: any = {
       id: form.id || undefined,
       name: form.name.trim(),
       hourly_rate: Number(form.hourly_rate) || 0,
-      auth_user_id: form.auth_user_id || null,
       tax_id: form.tax_id || null,
       payment_method: form.payment_method || null,
       notes: form.notes || null
     }
+    // only include auth_user_id if provided (avoid Supabase error when column missing)
+    if (form.auth_user_id && String(form.auth_user_id).trim()) {
+      payload.auth_user_id = String(form.auth_user_id).trim()
+    }
+
     const { error } = await supabase.from('employees').upsert(payload)
     setSaving(false)
-    if (error) return alert(error.message)
+    if (error) {
+      // Provide a helpful message if the column is missing in the DB schema
+      if (typeof error.message === 'string' && error.message.includes("Could not find the 'auth_user_id'")) {
+        return window.dispatchEvent(new CustomEvent('toast', { detail: { message: "Il database non sembra avere la colonna 'auth_user_id' nella tabella 'employees'. Esegui la migration per aggiungerla (vedi db/migrations). Nel frattempo lascia il campo vuoto per evitare errori.", type: 'error' } }))
+      }
+      return window.dispatchEvent(new CustomEvent('toast', { detail: { message: error.message, type: 'error' } }))
+    }
+
     setShowModal(false)
     load()
+  }
+
+  async function setRole(emp: Employee, role: 'admin' | 'staff') {
+    if (!emp.auth_user_id) {
+      alert('Per assegnare un ruolo serve un auth_user_id sul dipendente.')
+      return
+    }
+    const { error } = await supabase.from('app_user').upsert({ id: emp.auth_user_id, role })
+    if (error) return alert(error.message)
+    setRoles((prev) => ({ ...prev, [emp.auth_user_id!]: role }))
+    setRoleMsg(`Ruolo impostato su ${role} per ${emp.name}`)
+    setTimeout(() => setRoleMsg(''), 2500)
   }
 
   async function remove(id: string) {
     if (!window.confirm('Eliminare questo dipendente?')) return
     const { error } = await supabase.from('employees').delete().eq('id', id)
-    if (error) return alert(error.message)
+    if (error) {
+      window.dispatchEvent(new CustomEvent('toast', { detail: { message: error.message, type: 'error' } }))
+      return
+    }
     setEmployees((prev) => prev.filter((e) => e.id !== id))
+  }
+
+  async function startShift(emp: Employee) {
+    const now = new Date().toISOString()
+    const { error } = await supabase.from('shifts').insert({ employee_id: emp.id, start_at: now, end_at: now, status: 'scheduled' })
+    if (error) {
+      window.dispatchEvent(new CustomEvent('toast', { detail: { message: error.message, type: 'error' } }))
+      return
+    }
+    window.dispatchEvent(new CustomEvent('toast', { detail: { message: `Turno iniziato per ${emp.name}`, type: 'success' } }))
+    window.dispatchEvent(new CustomEvent('shifts:changed'))
   }
 
   return (
@@ -95,29 +160,59 @@ export default function EmployeesPage() {
         <Button onClick={openNew}>Nuovo dipendente</Button>
       </div>
 
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
+        <div className="flex items-center gap-2 flex-1">
+          <input
+            className="w-full sm:w-72 border rounded px-3 py-2"
+            placeholder="Cerca per nome"
+            value={search}
+            onChange={(e)=>setSearch(e.target.value)}
+          />
+          {roleMsg && <span className="text-xs text-emerald-600">{roleMsg}</span>}
+        </div>
+        <div className="text-xs text-neutral-500">{employees.length} dipendenti</div>
+      </div>
+
       {loading ? (
         <div className="text-sm text-neutral-500">Caricamento...</div>
       ) : (
         <div className="grid gap-3 sm:gap-4">
-          {employees.map((emp) => (
+          {employees
+            .filter((emp) => emp.name.toLowerCase().includes(search.toLowerCase()))
+            .map((emp) => (
             <Card key={emp.id} className="p-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex-1">
                 <div className="font-semibold text-lg">{emp.name}</div>
                 <div className="text-sm text-amber-500 font-semibold">{emp.hourly_rate?.toFixed(2)} € / ora</div>
                 <div className="text-xs text-neutral-500 mt-1 flex flex-col sm:flex-row sm:gap-3">
-                  {emp.auth_user_id ? <span>Auth user: {emp.auth_user_id}</span> : <span>Auth user: —</span>}
+                  {emp.auth_user_id ? <span className="text-emerald-600 dark:text-emerald-400">Auth user: {emp.auth_user_id}</span> : <span>Auth user: —</span>}
                   {emp.tax_id ? <span>Cod. fiscale/IVA: {emp.tax_id}</span> : <span>Cod. fiscale/IVA: —</span>}
                   {emp.payment_method ? <span>Pagamento: {emp.payment_method}</span> : <span>Pagamento: —</span>}
                 </div>
+                {emp.auth_user_id && roles[emp.auth_user_id] && (
+                  <div className="text-xs mt-1">
+                    <span className={`inline-flex items-center px-2 py-1 rounded-full ${roles[emp.auth_user_id] === 'admin' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-200' : 'bg-sky-100 text-sky-700 dark:bg-sky-900/60 dark:text-sky-200'}`}>
+                      Ruolo: {roles[emp.auth_user_id]}
+                    </span>
+                  </div>
+                )}
                 {emp.notes && <div className="text-sm mt-1 text-neutral-600 dark:text-neutral-300">{emp.notes}</div>}
               </div>
-              <div className="flex gap-2 flex-shrink-0">
+              <div className="flex gap-2 flex-wrap justify-end">
+                {emp.auth_user_id && (
+                  <>
+                    <Button size="sm" variant="secondary" onClick={() => setRole(emp, 'admin')}>Rendi admin</Button>
+                    <Button size="sm" variant="ghost" onClick={() => setRole(emp, 'staff')}>Rendi staff</Button>
+                  </>
+                )}
                 <Button size="sm" variant="secondary" onClick={() => openEdit(emp)}>Modifica</Button>
                 <Button size="sm" variant="ghost" onClick={() => remove(emp.id)}>Elimina</Button>
+                <div className="w-full sm:w-auto" />
+                <Button size="sm" variant="secondary" onClick={() => startShift(emp)}>Inizia turno</Button>
               </div>
             </Card>
           ))}
-          {employees.length === 0 && <div className="text-sm text-neutral-500">Nessun dipendente</div>}
+          {employees.filter((emp) => emp.name.toLowerCase().includes(search.toLowerCase())).length === 0 && <div className="text-sm text-neutral-500">Nessun dipendente</div>}
         </div>
       )}
 
@@ -133,8 +228,15 @@ export default function EmployeesPage() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="text-sm block mb-1">Auth user ID (opzionale)</label>
-              <input className="w-full border rounded px-3 py-2" value={form.auth_user_id ?? ''} onChange={(e)=>setForm(f=>({...f, auth_user_id: e.target.value}))} placeholder="UUID utente" />
+            <label className="text-sm block mb-1">Associa utente (opzionale)</label>
+            <div className="flex gap-2">
+              <select className="flex-1 border rounded px-3 py-2" value={form.auth_user_id ?? ''} onChange={(e)=>{ setForm(f=>({...f, auth_user_id: e.target.value})); const existing = employees.find(en => en.auth_user_id === e.target.value && en.id !== (form.id || '')); setAuthWarning(existing ? `Utente già associato a ${existing.name}` : '') }}>
+                <option value="">-- Nessuna associazione --</option>
+                {availableUsers.map(u => (<option key={u.id} value={u.id}>{u.id}{u.role ? ` (${u.role})` : ''}</option>))}
+              </select>
+              <input className="w-48 border rounded px-3 py-2" value={form.auth_user_id ?? ''} onChange={(e)=>{ setForm(f=>({...f, auth_user_id: e.target.value})); const existing = employees.find(en => en.auth_user_id === e.target.value && en.id !== (form.id || '')); setAuthWarning(existing ? `Utente già associato a ${existing.name}` : '') }} placeholder="o incolla UUID" />
+            </div>
+            {authWarning && <div className="text-xs text-amber-600 mt-1">{authWarning}</div>}
             </div>
             <div>
               <label className="text-sm block mb-1">Cod. fiscale / IVA (opzionale)</label>
