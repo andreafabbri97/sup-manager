@@ -394,6 +394,8 @@ export default function Bookings() {
   // compute availability for detail modal (exclude current booking when counting)
   function computeAvailabilityForDetails(equipId: string) {
     const eq = equipment.find(e => e.id === equipId)
+    // If equipment status is not 'available', consider availability 0 (same behavior as create flow)
+    if (eq?.status && eq.status !== 'available') return 0
     const total = Number(eq?.quantity ?? 1)
     let booked = 0
     const s = detailStartTime ? new Date(detailStartTime) : null
@@ -448,6 +450,20 @@ export default function Bookings() {
     }
     setAvailabilityMap(map)
   }
+
+  // When detail start/end change, clamp selected equipment quantities to available
+  useEffect(() => {
+    if (!selectedBooking) return
+    let changed = false
+    const clamped = detailSelectedEquipment.map(d => {
+      const avail = computeAvailabilityForDetails(d.id)
+      const qty = Math.min(Number(d.quantity || 0), avail)
+      if (qty !== d.quantity) changed = true
+      return { ...d, quantity: qty }
+    }).filter(d => (d.quantity || 0) > 0)
+    if (changed) setDetailSelectedEquipment(clamped)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [detailStartTime, detailEndTime, bookings, equipment])
 
   function resetForm() {
     setSelectedEquipment([])
@@ -903,7 +919,7 @@ export default function Bookings() {
                   const isToday = day.toDateString() === new Date().toDateString()
                   const isCurrentMonth = day.getMonth() === currentDate.getMonth()
                   return (
-                    <div key={i} className={`p-2 border-r border-b border-neutral-200 dark:border-neutral-700 min-h-[100px] ${isToday ? 'bg-amber-50 dark:bg-amber-900/10' : ''} ${!isCurrentMonth ? 'opacity-30' : ''}`}>
+                    <div key={i} onClick={() => openDayListModal(day)} tabIndex={0} onKeyDown={(e)=>{ if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openDayListModal(day) } }} role="button" className={`p-2 border-r border-b border-neutral-200 dark:border-neutral-700 min-h-[100px] ${isToday ? 'bg-amber-50 dark:bg-amber-900/10' : ''} ${!isCurrentMonth ? 'opacity-30' : ''}`}>
                       <div className={`text-sm mb-1 ${isToday ? 'text-amber-600 dark:text-amber-400' : ''}`}>
                         <div className="text-xs text-neutral-500 dark:text-neutral-400">{day.toLocaleDateString('it-IT', { weekday: 'short' })}</div>
                         <div className="font-medium">{day.getDate()}</div>
@@ -911,7 +927,7 @@ export default function Bookings() {
                       <div className="flex flex-wrap items-center gap-1">
                         {/* Render compact dots (up to 6) with tooltip; show +N if more */}
                         {dayBookings.slice(0, 6).map(b => (
-                          <button key={b.id} title={bookingTitle(b)} onClick={() => { setSelectedBooking(b); setShowBookingDetails(true) }} className="inline-flex items-center gap-2 px-1 py-0.5 rounded bg-neutral-100 dark:bg-neutral-800 text-xs truncate">
+                          <button key={b.id} title={bookingTitle(b)} onClick={(e) => { e.stopPropagation(); setSelectedBooking(b); setShowBookingDetails(true) }} className="inline-flex items-center gap-2 px-1 py-0.5 rounded bg-neutral-100 dark:bg-neutral-800 text-xs truncate">
                             {compactDot(b)}
                             <div className="flex flex-col truncate max-w-[120px]">
                               <span className="truncate font-medium">{b.customer_name || 'Cliente'}</span>
@@ -920,7 +936,7 @@ export default function Bookings() {
                           </button>
                         ))}
                         {dayBookings.length > 6 && (
-                          <button onClick={() => openDayListModal(day)} className="text-xs text-neutral-500 hover:underline">+{dayBookings.length - 6}</button>
+                          <button onClick={(e)=>{ e.stopPropagation(); openDayListModal(day) }} className="text-xs text-neutral-500 hover:underline">+{dayBookings.length - 6}</button>
                         )}
                       </div>
                     </div>
