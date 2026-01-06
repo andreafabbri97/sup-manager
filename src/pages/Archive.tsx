@@ -88,7 +88,6 @@ export default function Archive({ start: propStart, end: propEnd }: { start?: st
         <div className="flex flex-row gap-2 w-full">
           <Button onClick={exportCSV} className="flex-1">Esporta CSV</Button>
           <Button onClick={exportInvoicesCSV} className="bg-amber-600 flex-1">Esporta fatture</Button>
-          <Button onClick={load} className="bg-gray-600 flex-1">Applica</Button>
         </div>
       </div>
 
