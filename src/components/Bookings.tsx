@@ -158,20 +158,25 @@ export default function Bookings() {
   }
 
   async function load() {
-    const { data: eq } = await supabase.from('equipment').select('*').order('name')
-    const { data: p } = await supabase.from('package').select('*')
     // Carica solo prenotazioni degli ultimi 3 mesi e prossimi 3 mesi per velocizzare
     const threeMonthsAgo = new Date()
     threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3)
     const threeMonthsAhead = new Date()
     threeMonthsAhead.setMonth(threeMonthsAhead.getMonth() + 3)
-    const { data: b } = await supabase
-      .from('booking')
-      .select('*')
-      .gte('start_time', threeMonthsAgo.toISOString())
-      .lte('start_time', threeMonthsAhead.toISOString())
-      .order('start_time', { ascending: true })
-    const { data: c } = await supabase.from('customers').select('*').order('name')
+    
+    // Query parallele per caricare più velocemente
+    const [
+      { data: eq },
+      { data: p },
+      { data: b },
+      { data: c }
+    ] = await Promise.all([
+      supabase.from('equipment').select('*').order('name'),
+      supabase.from('package').select('*'),
+      supabase.from('booking').select('*').gte('start_time', threeMonthsAgo.toISOString()).lte('start_time', threeMonthsAhead.toISOString()).order('start_time', { ascending: true }),
+      supabase.from('customers').select('*').order('name')
+    ])
+    
     setEquipment(eq || [])
     setPackages(p || [])
     setBookings(b || [])
