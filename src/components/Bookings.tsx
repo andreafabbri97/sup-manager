@@ -1088,7 +1088,7 @@ export default function Bookings() {
           <div className="space-y-3 max-h-[60vh] overflow-y-auto">
             {getBookingsForDate(modalDay).length === 0 && <div className="text-neutral-500">Nessuna prenotazione</div>}
             {getBookingsForDate(modalDay).map(b => (
-              <div key={b.id} className={`p-3 rounded border ${statusClass(b)} bg-amber-50 dark:bg-neutral-800/50`}>
+              <div key={b.id} className={`p-3 rounded border ${statusClass(b)} bg-amber-50 dark:bg-neutral-800/50 relative overflow-hidden`}>
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
@@ -1117,13 +1117,13 @@ export default function Bookings() {
                       {b.invoiced && <div className="text-blue-600 font-semibold">Fatturato</div>}
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <div className="flex flex-col items-end">
-                      <div className="flex items-center gap-2">
-                        <button onClick={() => { setSelectedBooking(b); setShowBookingDetails(true); setShowDayListModal(false) }} className="text-sm px-3 py-1 rounded bg-white/50 dark:bg-neutral-700/50">Dettagli</button>
-                        {!b.paid && <button onClick={() => { markPaid(b.id) }} className="text-sm px-3 py-1 rounded bg-green-600 text-white">Segna come pagato</button>}
+                  <div className="flex-shrink-0 flex items-center gap-2">
+                    <div className="flex flex-col items-end w-full sm:w-auto">
+                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full">
+                        <button onClick={() => { setSelectedBooking(b); setShowBookingDetails(true); setShowDayListModal(false) }} className="text-sm px-3 py-1 rounded bg-white/50 dark:bg-neutral-700/50 w-full sm:w-auto">Dettagli</button>
+                        {!b.paid && <button onClick={() => { markPaid(b.id) }} className="text-sm px-3 py-1 rounded bg-green-600 text-white w-full sm:w-auto">Segna come pagato</button>}
                       </div>
-                      {b.price && <div className="text-sm text-neutral-500 mt-1">€ {Number(b.price).toFixed(2)}</div>}
+                      {b.price && <div className="text-sm text-neutral-500 mt-2 sm:mt-1">€ {Number(b.price).toFixed(2)}</div>}
                     </div>
                   </div>
                 </div>
