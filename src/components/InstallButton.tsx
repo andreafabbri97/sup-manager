@@ -8,6 +8,8 @@ export default function InstallButton({ inline = false }: { inline?: boolean }) 
   useEffect(() => {
     const beforeHandler = (e: any) => {
       e.preventDefault()
+      // keep a global reference so components mounted later can see it
+      ;(window as any).__deferredPWAInstall = e
       setDeferredPrompt(e)
       setVisible(true)
     }
@@ -16,6 +18,7 @@ export default function InstallButton({ inline = false }: { inline?: boolean }) 
       setIsInstalled(true)
       setVisible(false)
       setDeferredPrompt(null)
+      (window as any).__deferredPWAInstall = null
     }
 
     window.addEventListener('beforeinstallprompt', beforeHandler)
@@ -25,6 +28,13 @@ export default function InstallButton({ inline = false }: { inline?: boolean }) 
     const isStandalone = window.matchMedia && window.matchMedia('(display-mode: standalone)').matches
     const isIOSStandalone = (window.navigator as any).standalone === true
     if (isStandalone || isIOSStandalone) setIsInstalled(true)
+
+    // if the beforeinstallprompt event already fired earlier, a global handler may have stored it
+    const globalDp = (window as any).__deferredPWAInstall
+    if (globalDp) {
+      setDeferredPrompt(globalDp)
+      setVisible(true)
+    }
 
     return () => {
       window.removeEventListener('beforeinstallprompt', beforeHandler)

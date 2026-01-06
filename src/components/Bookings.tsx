@@ -817,11 +817,7 @@ export default function Bookings() {
                         )}
                         {b.paid && <div className="text-sm text-green-600 font-semibold">Pagato</div>}
                         {b.invoiced && <div className="text-sm text-blue-600 font-semibold">Fatturato</div>}
-                        <button onClick={(e)=>{ e.stopPropagation(); removeBooking(b.id) }} className="text-red-500 hover:text-red-600 p-1 focus-ring" title="Elimina">
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                          </svg>
-                        </button>
+
                       </div>
                     </div>
                   </div>

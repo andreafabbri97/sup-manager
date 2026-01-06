@@ -19,14 +19,16 @@ export default function PWAInstallPrompt() {
     const dismissed = localStorage.getItem('pwa-install-dismissed')
     if (dismissed) {
       const ts = Number(dismissed)
-      // keep dismissed for 2 minutes
-      if (Number.isFinite(ts) && (Date.now() - ts) < 2 * 60 * 1000) return
+      // keep dismissed for 2 hours
+      if (Number.isFinite(ts) && (Date.now() - ts) < 2 * 60 * 60 * 1000) return
       // otherwise let the prompt show again
     }
 
     // Listen for beforeinstallprompt event
     const handler = (e: any) => {
       e.preventDefault()
+      // store globally so other components mounted later can access it (e.g. Settings inline Install button)
+      ;(window as any).__deferredPWAInstall = e
       setDeferredPrompt(e)
       // Show prompt after a short delay (3s) to avoid being intrusive
       setTimeout(() => setShowPrompt(true), 3000)
@@ -38,16 +40,19 @@ export default function PWAInstallPrompt() {
   }, [])
 
   async function handleInstall() {
-    if (!deferredPrompt) return
+    const dp = deferredPrompt || (window as any).__deferredPWAInstall
+    if (!dp) return
 
-    deferredPrompt.prompt()
-    const { outcome } = await deferredPrompt.userChoice
+    dp.prompt()
+    const { outcome } = await dp.userChoice
     
     if (outcome === 'accepted') {
       console.log('PWA installata')
       setIsInstalled(true)
     }
     
+    // clear global and local references
+    (window as any).__deferredPWAInstall = null
     setDeferredPrompt(null)
     setShowPrompt(false)
   }
