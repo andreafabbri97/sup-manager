@@ -11,9 +11,6 @@ export default function Bookings() {
   const [equipment, setEquipment] = useState<any[]>([])
   const [packages, setPackages] = useState<any[]>([])
   const [bookings, setBookings] = useState<any[]>([])
-  // Cache for day-specific bookings to speed up day view (server-side query per day)
-  const [dayBookingsCache, setDayBookingsCache] = useState<Record<string, any[]>>({})
-  const [dayLoading, setDayLoading] = useState<Record<string, boolean>>({})
   const [customers, setCustomers] = useState<any[]>([])
   const [selectedBooking, setSelectedBooking] = useState<any | null>(null)
   const [showBookingDetails, setShowBookingDetails] = useState(false)
@@ -232,17 +229,13 @@ export default function Bookings() {
     return () => {
       window.removeEventListener('sups:changed', handler)
       window.removeEventListener('realtime:booking', onRealtimeBooking as any)
-      window.removeEventListener('realtime:booking:changed', onRealtimeBookingInvalidate as any)
       window.removeEventListener('sups:navigate', onNavigate as any)
     }
   }, [bookings])
 
   // Render helper for day list to simplify inline JSX
   function renderDayList() {
-    const key = dateKey(currentDate)
-    const loading = dayLoading[key]
-    const dayList = dayBookingsCache[key] ?? getBookingsForDate(currentDate)
-    if (loading) return <div className="text-center py-8 text-neutral-500">Caricamento prenotazioni…</div>
+    const dayList = getBookingsForDate(currentDate)
     if (dayList.length === 0) return <div className="text-center py-12 text-neutral-500 dark:text-neutral-400">Nessuna prenotazione per questa giornata</div>
     return dayList.map(b => (
       <div key={b.id} role="button" tabIndex={0} title={bookingTitle(b)} onClick={() => { setSelectedBooking(b); setShowBookingDetails(true) }} className={`w-full text-left p-4 rounded-md bg-amber-50/70 dark:bg-neutral-800/60 interactive ${statusClass(b)} min-h-[56px] sm:min-h-[48px] ${b.paid ? 'border border-green-400 dark:border-green-600' : (b.invoiced ? 'border border-blue-400 dark:border-blue-600' : 'border border-amber-300 dark:border-amber-600')}`}>
@@ -277,37 +270,6 @@ export default function Bookings() {
         </div>
       </div>
     ))
-  }
-
-  // Helper: per data yyyy-mm-dd date key per cache
-  function dateKey(date: Date): string {
-    const YYYY = date.getFullYear()
-    const MM = String(date.getMonth() + 1).padStart(2, '0')
-    const DD = String(date.getDate()).padStart(2, '0')
-    return `${YYYY}-${MM}-${DD}`
-  }
-
-  // Fetch bookings for a specific day from server (per-day query for better performance)
-  async function fetchBookingsForDate(date: Date) {
-    const key = dateKey(date)
-    setDayLoading(prev => ({ ...prev, [key]: true }))
-    try {
-      const dayStart = new Date(date)
-      dayStart.setHours(0, 0, 0, 0)
-      const dayEnd = new Date(date)
-      dayEnd.setHours(23, 59, 59, 999)
-      const { data } = await supabase
-        .from('booking')
-        .select('*')
-        .gte('start_time', dayStart.toISOString())
-        .lt('start_time', dayEnd.toISOString())
-        .order('start_time', { ascending: true })
-      setDayBookingsCache(prev => ({ ...prev, [key]: data || [] }))
-    } catch (err) {
-      console.error('Error fetching day bookings:', err)
-    } finally {
-      setDayLoading(prev => ({ ...prev, [key]: false }))
-    }
   }
 
   useEffect(() => {
@@ -375,7 +337,6 @@ export default function Bookings() {
     return () => {
       window.removeEventListener('sups:changed', handler)
       window.removeEventListener('realtime:booking', onRealtimeBooking as any)
-      window.removeEventListener('realtime:booking:changed', onRealtimeBookingInvalidate as any)
       window.removeEventListener('sups:navigate', onNavigate as any)
     }
   }, [bookings])
@@ -882,9 +843,6 @@ export default function Bookings() {
   }
 
   function getBookingsForDate(date: Date) {
-    const key = dateKey(date)
-    if (dayBookingsCache[key]) return dayBookingsCache[key]
-
     const dayStart = new Date(date)
     dayStart.setHours(0, 0, 0, 0)
     const dayEnd = new Date(date)
