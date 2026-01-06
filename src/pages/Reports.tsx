@@ -360,7 +360,7 @@ export default function Reports() {
   return (
     <div className="w-full px-2 sm:px-4 lg:px-6 py-4 sm:py-6">
       <div className="flex items-center justify-between mb-3 sm:mb-4 flex-wrap gap-3">
-        <PageTitle className="m-0">Amministrazione e Report</PageTitle>
+        <PageTitle className="m-0">Report & Amministrazione</PageTitle>
         <div className="flex items-center gap-4">
           {/* small screens keep tablist on right - hidden on md+ */}
           <div className="inline-flex rounded bg-neutral-100 dark:bg-neutral-800 p-1 md:hidden" role="tablist" aria-label="Sezioni report">
