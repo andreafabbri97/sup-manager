@@ -151,7 +151,7 @@ DO $$
 BEGIN
   IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'expense') THEN
     CREATE OR REPLACE FUNCTION create_expenses_from_payroll_run(p_run_id uuid)
-    RETURNS void LANGUAGE plpgsql AS $$
+    RETURNS void LANGUAGE plpgsql AS $func$
     DECLARE r RECORD;
     BEGIN
       FOR r IN
@@ -165,7 +165,7 @@ BEGIN
         VALUES (r.amount, now()::date, 'Payroll', CONCAT('Paga ', r.name, ', ', to_char(r.period_start, 'Mon YYYY')));
       END LOOP;
     END;
-    $$;
+    $func$;
   END IF;
 END$$;
 
