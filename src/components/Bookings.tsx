@@ -795,31 +795,35 @@ export default function Bookings() {
             </div>
 
             {/* Mobile stacked list */}
-            <div className="sm:hidden p-2 overflow-x-auto">
-              <div className="min-w-[700px] grid grid-cols-7 gap-1">
+            <div className="sm:hidden p-2">
+              <div className="grid grid-cols-7 gap-1">
                 {getMonthDays(currentDate).map((day) => {
                   const dayBookings = getBookingsForDate(day)
                   const isToday = day.toDateString() === new Date().toDateString()
                   const isCurrentMonth = day.getMonth() === currentDate.getMonth()
                   return (
-                    <div key={day.toDateString()} className={`p-2 rounded border ${isToday ? 'bg-amber-50 dark:bg-amber-900/10 border-amber-200' : 'border-neutral-200 dark:border-neutral-700'} ${!isCurrentMonth ? 'opacity-50' : ''}`}>
+                    <button
+                      key={day.toDateString()}
+                      onClick={() => openDayListModal(day)}
+                      aria-label={`Apri prenotazioni ${day.toLocaleDateString('it-IT')}`}
+                      className={`p-2 rounded border text-left text-[11px] ${isToday ? 'bg-amber-50 dark:bg-amber-900/10 border-amber-200' : 'border-neutral-200 dark:border-neutral-700'} ${!isCurrentMonth ? 'opacity-50' : ''}`}>
                       <div className="flex items-center justify-between mb-1">
-                        <div className="font-medium text-xs">{day.toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric' })}</div>
-                        <div className="text-xs text-neutral-500">{dayBookings.length}</div>
+                        <div className="font-medium text-[11px]">{day.toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric' })}</div>
+                        <div className="text-[11px] text-neutral-500">{dayBookings.length}</div>
                       </div>
-                      <div className="flex flex-col gap-1">
-                        {dayBookings.slice(0,4).map(b => (
-                          <button key={b.id} title={bookingTitle(b)} onClick={() => { setSelectedBooking(b); setShowBookingDetails(true) }} className="w-full text-left text-xs p-1 rounded bg-amber-100 dark:bg-amber-900/30 flex items-center justify-between">
-                            <div className="truncate">{new Date(b.start_time).toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'})} — {b.customer_name?.slice(0,12) || 'Cliente'}</div>
-                            <div className="flex items-center gap-1">
-                              {b.paid && <span className="text-green-600 text-xs">●</span>}
-                              {b.invoiced && <span className="text-blue-600 text-xs">●</span>}
+                      <div className="flex flex-col gap-0.5">
+                        {dayBookings.slice(0,3).map(b => (
+                          <div key={b.id} title={bookingTitle(b)} className="flex items-center justify-between text-[11px] text-neutral-700 dark:text-neutral-200">
+                            <div className="flex items-center gap-1 truncate">
+                              {compactDot(b)}
+                              <span className="truncate max-w-[70px]">{new Date(b.start_time).toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'})} {b.customer_name?.slice(0,8) || ''}</span>
                             </div>
-                          </button>
+                            <div className="text-[10px] text-neutral-500">{b.paid ? '●' : b.invoiced ? '●' : ''}</div>
+                          </div>
                         ))}
-                        {dayBookings.length > 4 && <button onClick={() => openDayListModal(day)} className="text-xs text-neutral-500 hover:underline">+{dayBookings.length - 4}</button>}
+                        {dayBookings.length > 3 && <div className="text-[11px] text-neutral-500">+{dayBookings.length - 3} altre</div>}
                       </div>
-                    </div>
+                    </button>
                   )
                 })}
               </div>
