@@ -19,12 +19,16 @@ interface ModalProps {
    */
   fullScreenMobile?: boolean
   /**
+   * When true, the modal will open full-screen on mobile by default (and still allow drag to shrink).
+   */
+  openFullMobile?: boolean
+  /**
    * When true, the modal will be centered on mobile (instead of bottom sheet).
    */
   mobileCentered?: boolean
 }
 
-export default function Modal({ isOpen, onClose, title, children, autoFocus = true, mobileDropdown = false, fullScreenMobile = false, mobileCentered = false }: ModalProps) {
+export default function Modal({ isOpen, onClose, title, children, autoFocus = true, mobileDropdown = false, fullScreenMobile = false, openFullMobile = false, mobileCentered = false }: ModalProps) {
   const dialogRef = useRef<HTMLDivElement | null>(null)
   const [isMobile, setIsMobile] = useState(false)
 
@@ -128,10 +132,17 @@ export default function Modal({ isOpen, onClose, title, children, autoFocus = tr
       setUserExpanded(false)
     } else {
       if (contentRef.current && !userExpanded) {
+        // default opening height: if fullScreenMobile is requested we still use the '60vh' default
         contentRef.current.style.maxHeight = fullScreenMobile ? '60vh' : ''
       }
+      // If caller requested opening full-screen on mobile, expand automatically
+      if (isMobile && openFullMobile && contentRef.current) {
+        // expand to full viewport height on mobile
+        animateSetMaxHeight('100vh')
+        setUserExpanded(true)
+      }
     }
-  }, [isOpen, fullScreenMobile, userExpanded])
+  }, [isOpen, fullScreenMobile, userExpanded, isMobile, openFullMobile])
 
   const [isClosing, setIsClosing] = useState(false)
   const closeAnimationDuration = 260

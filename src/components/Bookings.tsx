@@ -1251,7 +1251,7 @@ export default function Bookings() {
         )}
       </Modal>
 
-      <Modal isOpen={showBookingDetails} onClose={() => { setShowBookingDetails(false); setSelectedBooking(null) }} title="Dettaglio Prenotazione" autoFocus={false}>
+      <Modal fullScreenMobile openFullMobile isOpen={showBookingDetails} onClose={() => { setShowBookingDetails(false); setSelectedBooking(null) }} title="Dettaglio Prenotazione" autoFocus={false}>
         {selectedBooking && (
           <div className="space-y-4">
             <div>
