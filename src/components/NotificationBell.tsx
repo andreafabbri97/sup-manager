@@ -90,7 +90,7 @@ export default function NotificationBell() {
         {items.map(it => (
           <div key={it.id} className="p-2 border rounded">
             <div className="font-medium">{it.customer_name || 'Cliente'}</div>
-            <div className="text-xs text-neutral-500 dark:text-neutral-300">{new Date(it.start_time).toLocaleString('it-IT')} — {it.invoice_number ? `#${it.invoice_number}` : ''}</div>
+            <div className="text-xs text-neutral-500 dark:text-neutral-300">{new Date(it.start_time).toLocaleString('it-IT')}</div>
             <div className="mt-2 flex gap-2">
               <button onClick={() => { navigator.clipboard.writeText(it.id); alert('ID prenotazione copiato') }} className="px-2 py-1 rounded border text-sm">Copia ID</button>
             </div>
@@ -405,8 +405,8 @@ export default function NotificationBell() {
           </Modal>
         ) : (
           <div className="fixed inset-0 z-50 flex justify-end">
-            <div className="absolute inset-0" onClick={() => setShowPopup(false)} aria-hidden />
-            <div className="relative mt-2 w-80 max-w-[95vw] p-0">
+            <div className="fixed inset-0 z-40 bg-transparent" onClick={() => setShowPopup(false)} onPointerDown={() => setShowPopup(false)} aria-hidden />
+            <div className="relative z-50 mt-2 w-80 max-w-[95vw] p-0">
               <Card as="div" className="p-0">
                 {notificationsContent}
               </Card>
