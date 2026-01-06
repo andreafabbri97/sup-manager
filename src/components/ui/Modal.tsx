@@ -155,40 +155,8 @@ export default function Modal({ isOpen, onClose, title, children, autoFocus = tr
       if (e.key === 'Escape') requestClose()
     }
     document.addEventListener('keydown', onKey)
-    if (autoFocus) {
-      const t = setTimeout(() => {
-        // Prefer focusing the first form control (input/select/textarea). If none found, fall back to first focusable.
-        const firstControl = dialogRef.current?.querySelector('input, select, textarea') as HTMLElement | null
-        if (firstControl) {
-          firstControl.focus()
-          return
-        }
-        const fallback = dialogRef.current?.querySelector('button:not([aria-label="Chiudi"]), [href], [tabindex]:not([tabindex="-1"])') as HTMLElement | null
-        fallback?.focus()
-      }, 10)
 
-      // ensure focused inputs are scrolled into view on mobile when keyboard appears
-      const onFocusIn = (ev: any) => {
-        const target = ev.target as HTMLElement | null
-        if (!target) return
-        // small timeout to allow virtual keyboard to open
-        setTimeout(() => {
-          target.scrollIntoView({ behavior: 'smooth', block: 'center' })
-        }, 200)
-      }
-      dialogRef.current?.addEventListener('focusin', onFocusIn)
-
-      return () => {
-        document.removeEventListener('keydown', onKey)
-        clearTimeout(t)
-        dialogRef.current?.removeEventListener('focusin', onFocusIn)
-      }
-    }
-
-    // If autoFocus is false, still add key handler and cleanup
-    return () => {
-      document.removeEventListener('keydown', onKey)
-    }    // ensure focused inputs are scrolled into view on mobile when keyboard appears
+    let timeoutId: number | undefined
     const onFocusIn = (ev: any) => {
       const target = ev.target as HTMLElement | null
       if (!target) return
@@ -197,13 +165,29 @@ export default function Modal({ isOpen, onClose, title, children, autoFocus = tr
         target.scrollIntoView({ behavior: 'smooth', block: 'center' })
       }, 200)
     }
+
+    if (autoFocus) {
+      timeoutId = window.setTimeout(() => {
+        // Prefer focusing the first form control (input/select/textarea). If none found, fall back to first focusable.
+        const firstControl = dialogRef.current?.querySelector('input, select, textarea') as HTMLElement | null
+        if (firstControl) {
+          firstControl.focus()
+        } else {
+          const fallback = dialogRef.current?.querySelector('button:not([aria-label="Chiudi"]), [href], [tabindex]:not([tabindex="-1"])') as HTMLElement | null
+          fallback?.focus()
+        }
+      }, 10)
+    }
+
+    // ensure focused inputs are scrolled into view on mobile when keyboard appears
     dialogRef.current?.addEventListener('focusin', onFocusIn)
+
     return () => {
       document.removeEventListener('keydown', onKey)
-      clearTimeout(t)
+      if (timeoutId) clearTimeout(timeoutId)
       dialogRef.current?.removeEventListener('focusin', onFocusIn)
     }
-  }, [isOpen, onClose])
+  }, [isOpen, onClose, autoFocus])
 
   if (!isOpen) return null
 

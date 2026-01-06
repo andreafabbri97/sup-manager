@@ -225,7 +225,7 @@ export default function NotificationBell() {
         .gte('start_time', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()) // ultimi 7 giorni
 
       if (unpaidBookings && unpaidBookings.length > 0) {
-        const total = unpaidBookings.reduce((sum, b) => sum + (Number(b.price) || 0), 0)
+        const total = unpaidBookings.reduce((sum: number, b: any) => sum + (Number(b.price) || 0), 0)
         notifs.push({
           id: 'unpaid-bookings',
           type: 'payment',

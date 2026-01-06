@@ -1,0 +1,121 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Bookings > renders booking page snapshot 1`] = `
+<div>
+  <section
+    class="mt-6"
+  >
+    <div
+      class="mb-4 flex items-center gap-3 justify-between flex-wrap"
+    >
+      <div
+        class="flex items-center gap-3"
+      >
+        <h1
+          class="text-3xl sm:text-4xl font-extrabold tracking-tight mb-0 animate-fade-up m-0"
+        >
+          Prenotazioni
+        </h1>
+        <button
+          class="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all duration-180 will-change-transform focus:outline-none focus:ring-2 focus:ring-offset-2 bg-amber-500 hover:bg-amber-600 text-white dark:bg-amber-600 dark:hover:bg-amber-700 focus:ring-amber-300 hover:-translate-y-0.5 hover:shadow-md active:scale-95 "
+          type="button"
+        >
+          + Nuova Prenotazione
+        </button>
+      </div>
+      <p
+        class="text-sm text-neutral-500 dark:text-neutral-400 mt-1 sm:mt-0"
+      >
+        Gestisci le prenotazioni della tua attrezzatura
+      </p>
+    </div>
+    <div
+      class="mb-4 flex flex-col gap-3"
+    >
+      <div
+        class="flex items-center gap-2"
+      >
+        <button
+          class="p-2 rounded hover:bg-neutral-100 dark:hover:bg-neutral-800"
+        >
+          <svg
+            class="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M15 19l-7-7 7-7"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+            />
+          </svg>
+        </button>
+        <div
+          class="text-sm font-medium min-w-[120px] sm:min-w-[200px] text-center"
+        >
+          <div>
+            martedì 6 gennaio 2026
+          </div>
+        </div>
+        <button
+          class="p-2 rounded hover:bg-neutral-100 dark:hover:bg-neutral-800"
+        >
+          <svg
+            class="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M9 5l7 7-7 7"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+            />
+          </svg>
+        </button>
+        <button
+          class="ml-2 px-3 py-1 text-sm rounded border border-neutral-300 dark:border-neutral-600 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+        >
+          Oggi
+        </button>
+      </div>
+      <div
+        class="flex gap-1 bg-neutral-100 dark:bg-neutral-800 rounded p-1 mt-2 self-start"
+      >
+        <button
+          aria-pressed="true"
+          class="w-20 text-center px-3 py-1 text-sm rounded bg-white dark:bg-neutral-700 shadow"
+        >
+          Giorno
+        </button>
+        <button
+          aria-pressed="false"
+          class="w-20 text-center px-3 py-1 text-sm rounded "
+        >
+          Mese
+        </button>
+      </div>
+    </div>
+    <div
+      class="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-neutral-200 dark:border-neutral-700"
+    >
+      <div
+        class="p-4"
+      >
+        <div
+          class="space-y-1"
+        >
+          <div
+            class="text-center py-12 text-neutral-500 dark:text-neutral-400"
+          >
+            Nessuna prenotazione per questa giornata
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+`;

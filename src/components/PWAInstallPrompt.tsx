@@ -62,20 +62,24 @@ export default function PWAInstallPrompt() {
   }, [])
 
   async function handleInstall() {
-    const dp = deferredPrompt || (window as any).__deferredPWAInstall
+    const dp: any = deferredPrompt || (window as any).__deferredPWAInstall
     if (!dp) return
 
-    dp.prompt()
-    const { outcome } = await dp.userChoice
-    
-    if (outcome === 'accepted') {
-      console.log('PWA installata')
-      setIsInstalled(true)
+    try {
+      await dp.prompt?.()
+      const choice = await dp.userChoice
+      const outcome = choice?.outcome
+      if (outcome === 'accepted') {
+        console.log('PWA installata')
+        setIsInstalled(true)
+      }
+    } catch (err) {
+      console.error('PWA prompt failed', err)
     }
-    
+
     // clear global and local references
     (window as any).__deferredPWAInstall = null
-    setDeferredPrompt(null)
+    ;(setDeferredPrompt as any)(null)
     setShowPrompt(false)
   }
 

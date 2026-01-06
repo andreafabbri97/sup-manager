@@ -7,7 +7,6 @@ import Input from '../components/ui/Input'
 import { Line } from 'react-chartjs-2'
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend } from 'chart.js'
 import StatCard from '../components/ui/StatCard'
-import Card from '../components/ui/Card'
 import PageTitle from '../components/ui/PageTitle'
 import Archive from './Archive'
 
@@ -435,11 +434,11 @@ export default function Reports() {
               <div className="col-span-2">
                 <div className="mb-4 sm:mb-6">
                   <div className="text-lg font-medium text-white mb-2">Ordini giornalieri</div>
-                  <div className="h-64 sm:h-72 lg:h-80 xl:h-96 animate-fade-up"><div className="h-full"><Line data={ordersData} options={ordersOptions} /></div></div>
+                  <div className="h-64 sm:h-72 lg:h-80 xl:h-96 animate-fade-up"><div className="h-full"><Line data={ordersData} options={ordersOptions as any} /></div></div>
                 </div>
                 <div className="mb-4 sm:mb-6">
                   <div className="text-lg font-medium text-white mb-2">Entrate giornaliere</div>
-                  <div className="h-64 sm:h-72 lg:h-80 xl:h-96 animate-fade-up"><div className="h-full"><Line data={revenueData} options={revenueOptions} /></div></div>
+                  <div className="h-64 sm:h-72 lg:h-80 xl:h-96 animate-fade-up"><div className="h-full"><Line data={revenueData} options={revenueOptions as any} /></div></div>
                 </div>
               </div>
 

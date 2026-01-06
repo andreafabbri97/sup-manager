@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react'
 export default function InstallButton({ inline = false }: { inline?: boolean }) {
   const [deferredPrompt, setDeferredPrompt] = useState<any | null>(null)
   const [isInstalled, setIsInstalled] = useState(false)
-  const [visible, setVisible] = useState(false)
+  const [visible, setIsVisible] = useState(false)
 
   useEffect(() => {
     const beforeHandler = (e: any) => {
@@ -11,14 +11,14 @@ export default function InstallButton({ inline = false }: { inline?: boolean }) 
       // keep a global reference so components mounted later can see it
       ;(window as any).__deferredPWAInstall = e
       setDeferredPrompt(e)
-      setVisible(true)
+      setIsVisible(true)
     }
 
     const appInstalled = () => {
       setIsInstalled(true)
-      setVisible(false)
-      setDeferredPrompt(null)
-      (window as any).__deferredPWAInstall = null
+      setIsVisible(false)
+      ;(setDeferredPrompt as any)(null)
+      ;(window as any).__deferredPWAInstall = null
     }
 
     window.addEventListener('beforeinstallprompt', beforeHandler)
@@ -33,7 +33,7 @@ export default function InstallButton({ inline = false }: { inline?: boolean }) 
     const globalDp = (window as any).__deferredPWAInstall
     if (globalDp) {
       setDeferredPrompt(globalDp)
-      setVisible(true)
+      setIsVisible(true)
     }
 
     // Listen to custom events from the global PWA helper so we react
@@ -42,13 +42,13 @@ export default function InstallButton({ inline = false }: { inline?: boolean }) 
       const g = (window as any).__deferredPWAInstall
       if (g) {
         setDeferredPrompt(g)
-        setVisible(true)
+        setIsVisible(true)
       }
     }
     const onInstalled = () => {
       setIsInstalled(true)
-      setVisible(false)
-      setDeferredPrompt(null)
+      setIsVisible(false)
+      ;(setDeferredPrompt as any)(null)
     }
 
     window.addEventListener('pwa:deferred', onDeferred)
@@ -70,7 +70,7 @@ export default function InstallButton({ inline = false }: { inline?: boolean }) 
       const choice = await deferredPrompt.userChoice
       if (choice && choice.outcome === 'accepted') {
         setIsInstalled(true)
-        setVisible(false)
+        setIsVisible(false)
       }
       setDeferredPrompt(null)
     } catch (err) {
