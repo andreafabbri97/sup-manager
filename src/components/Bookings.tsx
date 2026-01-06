@@ -1029,6 +1029,9 @@ export default function Bookings() {
             <label className="block text-sm font-medium mb-1">Telefono</label>
             <div className="relative">
               <input
+                type="tel"
+                inputMode="tel"
+                pattern="[0-9+\s()-]*"
                 value={customerPhone}
                 onChange={(e) => setCustomerPhone(e.target.value)}
                 placeholder="+39 123 456 7890"
@@ -1260,6 +1263,9 @@ export default function Bookings() {
               <label className="block text-sm font-medium mb-1">Telefono</label>
               <div className="relative">
                 <input
+                  type="tel"
+                  inputMode="tel"
+                  pattern="[0-9+\s()-]*"
                   value={detailCustomerPhone}
                   onChange={(e)=>setDetailCustomerPhone(e.target.value)}
                   placeholder="+39 123 456 7890"
