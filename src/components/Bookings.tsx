@@ -1199,7 +1199,7 @@ export default function Bookings() {
                   </div>
                   <div className="flex-shrink-0 flex flex-col items-end gap-2">
                     {b.price && <div className="text-amber-500 dark:text-amber-300 font-bold text-lg whitespace-nowrap">€ {Number(b.price).toFixed(2)}</div>}
-                    <div className="mt-1 w-full sm:w-auto flex flex-col items-end gap-2">
+                    <div className="mt-0 w-full sm:w-auto flex flex-col items-end gap-2">
                       {!b.paid && (
                         <button onClick={(e)=>{ e.stopPropagation(); setMarkPaidBooking(b); setMarkPaidInvoiced(null); setMarkPaidInvoiceNumber(null); setShowMarkPaidModal(true) }} className="text-sm px-3 py-2 rounded bg-green-600 text-white w-full sm:w-auto">Segna come pagato</button>
                       )}
