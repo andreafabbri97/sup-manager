@@ -183,7 +183,7 @@ export default function Sidebar({ onNav, currentPage }: { onNav?: (page: string)
           </div>
         </div>
 
-        <nav className="space-y-1 flex-1 overflow-auto" aria-label="Main navigation">
+        <nav className="space-y-1 flex-1 overflow-auto transition-all duration-200" aria-label="Main navigation">
           {items.map((it) => {
             const active = currentPage === it.id
             return (

@@ -781,7 +781,7 @@ export default function Bookings() {
                         {dayBookings.slice(0, 6).map(b => (
                           <button key={b.id} title={bookingTitle(b)} onClick={() => { setSelectedBooking(b); setShowBookingDetails(true) }} className="inline-flex items-center gap-2 px-1 py-0.5 rounded bg-neutral-100 dark:bg-neutral-800 text-xs truncate">
                             {compactDot(b)}
-                            <span className="truncate max-w-[90px]">{new Date(b.start_time).toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'})} {collapsed ? '' : `— ${b.customer_name?.slice(0,12) ?? 'Cliente'}`}</span>
+                            <span className="truncate max-w-[90px]">{new Date(b.start_time).toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'})} — {(b.customer_name || 'Cliente').slice(0,12)}</span>
                           </button>
                         ))}
                         {dayBookings.length > 6 && (
