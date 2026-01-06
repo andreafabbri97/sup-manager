@@ -435,11 +435,11 @@ export default function Reports() {
               <div className="col-span-2">
                 <div className="mb-4 sm:mb-6">
                   <div className="text-lg font-medium text-white mb-2">Ordini giornalieri</div>
-                  <div className="h-72 sm:h-80 lg:h-96 xl:h-[520px] animate-fade-up"><div className="h-full"><Line data={ordersData} options={ordersOptions} /></div></div>
+                  <div className="h-64 sm:h-72 lg:h-80 xl:h-96 animate-fade-up"><div className="h-full"><Line data={ordersData} options={ordersOptions} /></div></div>
                 </div>
                 <div className="mb-4 sm:mb-6">
                   <div className="text-lg font-medium text-white mb-2">Entrate giornaliere</div>
-                  <div className="h-72 sm:h-80 lg:h-96 xl:h-[520px] animate-fade-up"><div className="h-full"><Line data={revenueData} options={revenueOptions} /></div></div>
+                  <div className="h-64 sm:h-72 lg:h-80 xl:h-96 animate-fade-up"><div className="h-full"><Line data={revenueData} options={revenueOptions} /></div></div>
                 </div>
               </div>
 

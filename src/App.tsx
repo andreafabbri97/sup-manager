@@ -6,8 +6,6 @@ import Equipment from './components/Equipment'
 import Bookings from './components/Bookings'
 import Packages from './components/Packages'
 import Customers from './components/Customers'
-import PWAInstallPrompt from './components/PWAInstallPrompt'
-import InstallButton from './components/InstallButton'
 import TopBar from './components/TopBar'
 import Archive from './pages/Archive'
 
@@ -61,8 +59,7 @@ export default function App() {
           {!['equipment','bookings','packages','customers','reports','settings','archive'].includes(page) && <Reports />}
         </div>
       </main>
-      <PWAInstallPrompt />
-      <InstallButton />
+
     </div>
   )
 }
