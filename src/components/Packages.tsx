@@ -90,20 +90,24 @@ export default function Packages() {
   }
 
   const [expandedPackage, setExpandedPackage] = useState<string | null>(null)
+  const [compactView, setCompactView] = useState<boolean>(false)
 
   return (
     <section className="mt-6">
       <div className="flex items-center justify-between mb-4">
-        <div>
+        <div className="flex items-center gap-3">
           <PageTitle className="m-0">I tuoi pacchetti</PageTitle>
-          <p className="text-sm text-neutral-500 dark:text-neutral-400">Crea pacchetti preimpostati per velocizzare le prenotazioni</p>
+          <button onClick={() => setCompactView(v => !v)} className={`px-2 py-1 rounded border text-sm ${compactView ? 'bg-neutral-100 dark:bg-neutral-700' : ''}`}>{compactView ? 'Compatto' : 'Normale'}</button>
         </div>
-        <Button onClick={() => setShowModal(true)}>+ Nuovo Pacchetto</Button>
+        <div className="flex items-center gap-3">
+          <p className="text-sm text-neutral-500 dark:text-neutral-400 hidden sm:block">Crea pacchetti preimpostati per velocizzare le prenotazioni</p>
+          <Button onClick={() => setShowModal(true)}>+ Nuovo Pacchetto</Button>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className={`${compactView ? 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2' : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'}`}>
         {packages.map((p) => (
-          <div key={p.id} className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-neutral-200 dark:border-neutral-700 p-3 sm:p-4 hover:shadow-lg transition-shadow interactive">
+          <div key={p.id} className={`bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-neutral-200 dark:border-neutral-700 ${compactView ? 'p-2 text-sm' : 'p-3 sm:p-4'} hover:shadow-lg transition-shadow interactive`}>
             <div className="flex items-start justify-between mb-2">
               <div className="font-semibold text-lg truncate sm:max-w-[60%]">{p.name}</div>
               <div className="flex items-center gap-2">
@@ -113,8 +117,16 @@ export default function Packages() {
             <div className="flex items-center justify-between mb-2">
               <div className="text-sm text-neutral-500 dark:text-neutral-400">{p.duration ? `${p.duration} min` : ''}</div>
               <div className="flex items-center gap-2">
-                <button onClick={() => { setEditPackage(p); setName(p.name || ''); setPrice(String(p.price ?? '')); setDuration(String(p.duration ?? '60')); setSelectedEquipment((p.equipment_items || []).map((it:any)=>({id: it.id, quantity: it.quantity || 1}))); setShowModal(true) }} className="text-sm px-2 py-1 rounded border">Modifica</button>
-                <button onClick={() => remove(p.id)} className="text-red-500 hover:text-red-600 text-sm">Elimina</button>
+                {/* full text buttons on sm+ */}
+                <button onClick={() => { setEditPackage(p); setName(p.name || ''); setPrice(String(p.price ?? '')); setDuration(String(p.duration ?? '60')); setSelectedEquipment((p.equipment_items || []).map((it:any)=>({id: it.id, quantity: it.quantity || 1}))); setShowModal(true) }} className="hidden sm:inline-flex text-sm px-2 py-1 rounded border">Modifica</button>
+                <button onClick={() => remove(p.id)} className="hidden sm:inline-flex text-red-500 hover:text-red-600 text-sm px-2 py-1 rounded border">Elimina</button>
+                {/* icon-only on mobile */}
+                <button onClick={() => { setEditPackage(p); setName(p.name || ''); setPrice(String(p.price ?? '')); setDuration(String(p.duration ?? '60')); setSelectedEquipment((p.equipment_items || []).map((it:any)=>({id: it.id, quantity: it.quantity || 1}))); setShowModal(true) }} className="sm:hidden p-2 rounded border" aria-label={`Modifica ${p.name}`}>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5h6M13 7v10"/></svg>
+                </button>
+                <button onClick={() => remove(p.id)} className="sm:hidden p-2 rounded border text-red-500" aria-label={`Elimina ${p.name}`}>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
               </div>
             </div>
 
@@ -141,16 +153,16 @@ export default function Packages() {
                       })}
                       {p.equipment_items.length > 2 && <span className="text-sm text-neutral-400 ml-1">+{p.equipment_items.length - 2}</span>}
                     </div>
-                    <button onClick={() => setExpandedPackage(expandedPackage === p.id ? null : p.id)} className="text-sm px-2 py-1 rounded border">{expandedPackage === p.id ? 'Nascondi' : 'Altro'}</button>
+                    <button aria-expanded={expandedPackage === p.id} onClick={() => setExpandedPackage(expandedPackage === p.id ? null : p.id)} className="text-sm px-2 py-1 rounded border">{expandedPackage === p.id ? 'Nascondi' : 'Altro'}</button>
                   </div>
-                  {expandedPackage === p.id && (
-                    <ul className="mt-2 space-y-1 text-sm">
+                  <div className="mt-2 overflow-hidden transition-max-h" style={{ maxHeight: expandedPackage === p.id ? `${Math.min(p.equipment_items.length * 36, 240)}px` : '0px' }} aria-hidden={expandedPackage !== p.id}>
+                    <ul className="space-y-1 text-sm py-1">
                       {p.equipment_items.map((item: any, idx: number) => {
                         const eq = equipment.find(e => e.id === item.id)
                         return <li key={idx} className="text-neutral-500 dark:text-neutral-400">• {item.quantity}x {eq?.name || 'Attrezzatura'}</li>
                       })}
                     </ul>
-                  )}
+                  </div>
                 </div>
               </>
             )}
