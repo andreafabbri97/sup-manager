@@ -89,15 +89,13 @@ export default function Packages() {
     }
   }
 
-  const [expandedPackage, setExpandedPackage] = useState<string | null>(null)
-  const [compactView, setCompactView] = useState<boolean>(false)
+
 
   return (
     <section className="mt-6">
       <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-3">
+        <div>
           <PageTitle className="m-0">I tuoi pacchetti</PageTitle>
-          <button onClick={() => setCompactView(v => !v)} className={`px-2 py-1 rounded border text-sm ${compactView ? 'bg-neutral-100 dark:bg-neutral-700' : ''}`}>{compactView ? 'Compatto' : 'Normale'}</button>
         </div>
         <div className="flex items-center gap-3">
           <p className="text-sm text-neutral-500 dark:text-neutral-400 hidden sm:block">Crea pacchetti preimpostati per velocizzare le prenotazioni</p>
@@ -105,7 +103,7 @@ export default function Packages() {
         </div>
       </div>
 
-      <div className={`${compactView ? 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2' : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'}`}>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {packages.map((p) => (
           <div key={p.id} className={`bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-neutral-200 dark:border-neutral-700 ${compactView ? 'p-2 text-sm' : 'p-3 sm:p-4'} hover:shadow-lg transition-shadow interactive`}>
             <div className="flex items-start justify-between mb-2">
@@ -122,10 +120,10 @@ export default function Packages() {
                 <button onClick={() => remove(p.id)} className="hidden sm:inline-flex text-red-500 hover:text-red-600 text-sm px-2 py-1 rounded border">Elimina</button>
                 {/* icon-only on mobile */}
                 <button onClick={() => { setEditPackage(p); setName(p.name || ''); setPrice(String(p.price ?? '')); setDuration(String(p.duration ?? '60')); setSelectedEquipment((p.equipment_items || []).map((it:any)=>({id: it.id, quantity: it.quantity || 1}))); setShowModal(true) }} className="sm:hidden p-2 rounded border" aria-label={`Modifica ${p.name}`}>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5h6M13 7v10"/></svg>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536M4 13.5V17h3.5L17.868 6.633 14.366 3.131 4 13.5z"/></svg>
                 </button>
                 <button onClick={() => remove(p.id)} className="sm:hidden p-2 rounded border text-red-500" aria-label={`Elimina ${p.name}`}>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-1 12a2 2 0 01-2 2H8a2 2 0 01-2-2L5 7m5-4h4a2 2 0 012 2v0a2 2 0 01-2 2H10a2 2 0 01-2-2V5a2 2 0 012-2z"/></svg>
                 </button>
               </div>
             </div>
@@ -153,15 +151,7 @@ export default function Packages() {
                       })}
                       {p.equipment_items.length > 2 && <span className="text-sm text-neutral-400 ml-1">+{p.equipment_items.length - 2}</span>}
                     </div>
-                    <button aria-expanded={expandedPackage === p.id} onClick={() => setExpandedPackage(expandedPackage === p.id ? null : p.id)} className="text-sm px-2 py-1 rounded border">{expandedPackage === p.id ? 'Nascondi' : 'Altro'}</button>
-                  </div>
-                  <div className="mt-2 overflow-hidden transition-max-h" style={{ maxHeight: expandedPackage === p.id ? `${Math.min(p.equipment_items.length * 36, 240)}px` : '0px' }} aria-hidden={expandedPackage !== p.id}>
-                    <ul className="space-y-1 text-sm py-1">
-                      {p.equipment_items.map((item: any, idx: number) => {
-                        const eq = equipment.find(e => e.id === item.id)
-                        return <li key={idx} className="text-neutral-500 dark:text-neutral-400">• {item.quantity}x {eq?.name || 'Attrezzatura'}</li>
-                      })}
-                    </ul>
+                    {/* No expansion button by design */}
                   </div>
                 </div>
               </>
