@@ -252,7 +252,7 @@ export default function Modal({ isOpen, onClose, title, children, autoFocus = tr
         onPointerDown={(e) => e.stopPropagation()}
       >
         {/* Inner scrollable wrapper - keeps rounded corners visible while allowing internal scroll */}
-        <div ref={contentRef} className={`${isMobile && fullScreenMobile ? 'max-h-[100vh]' : 'max-h-[60vh]'} sm:max-h-[calc(100svh-20px)] overflow-y-auto touch-manipulation`} style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+        <div ref={contentRef} className={`${isMobile && fullScreenMobile ? 'max-h-[100vh]' : 'max-h-[60vh]'} sm:max-h-[90vh] overflow-y-auto touch-manipulation`} style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
           {/* Mobile handle (draggable/tap to expand) */}
           <div className="sm:hidden flex justify-center pt-4">
             <div
