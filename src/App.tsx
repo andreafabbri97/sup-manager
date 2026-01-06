@@ -44,6 +44,24 @@ export default function App() {
     return () => window.removeEventListener('navigate:booking', onNavigateReq)
   }, [])
 
+  React.useEffect(() => {
+    // Redirect non-admin users away from Reports if previously stored as current page
+    let mounted = true
+    ;(async () => {
+      try {
+        const { getCurrentUserRole } = await import('./lib/auth')
+        const role = await getCurrentUserRole()
+        if (!mounted) return
+        if (role !== 'admin' && page === 'reports') {
+          handleNav('bookings')
+        }
+      } catch (e) {
+        // ignore
+      }
+    })()
+    return () => { mounted = false }
+  }, [])
+
   return (
     <div className="min-h-screen bg-sky-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 flex">
       <Sidebar onNav={handleNav} currentPage={page} />

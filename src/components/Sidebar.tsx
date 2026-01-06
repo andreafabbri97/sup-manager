@@ -56,12 +56,23 @@ export default function Sidebar({ onNav, currentPage }: { onNav?: (page: string)
     prevMobileOpen.current = mobileOpen
   }, [mobileOpen])
 
+  const [role, setRole] = React.useState<string | null>(null)
+
+  React.useEffect(() => {
+    let mounted = true
+    import('../lib/auth').then(({ getCurrentUserRole }) => {
+      getCurrentUserRole().then(r => { if (mounted) setRole(r) })
+    })
+    return () => { mounted = false }
+  }, [])
+
   const items = [
     { id: 'equipment', label: 'Attrezzatura' },
     { id: 'bookings', label: 'Prenotazioni' },
     { id: 'packages', label: 'Pacchetti' },
     { id: 'customers', label: 'Clienti' },
-    { id: 'reports', label: 'Report & Amministrazione' },
+    // Reports page is admin-only
+    ...(role === 'admin' ? [{ id: 'reports', label: 'Report & Amministrazione' }] : []),
     { id: 'settings', label: 'Impostazioni' }
   ]
 
