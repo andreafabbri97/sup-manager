@@ -61,7 +61,7 @@ export default function Sidebar({ onNav, currentPage }: { onNav?: (page: string)
     { id: 'bookings', label: 'Prenotazioni' },
     { id: 'packages', label: 'Pacchetti' },
     { id: 'customers', label: 'Clienti' },
-    { id: 'reports', label: 'Amministrazione e Report' },
+    { id: 'reports', label: 'Report & Amministrazione' },
     { id: 'settings', label: 'Impostazioni' }
   ]
 
@@ -112,7 +112,10 @@ export default function Sidebar({ onNav, currentPage }: { onNav?: (page: string)
       case 'reports':
         return (
           <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" d="M3 3v18h18" />
+            <path strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" d="M4 20h16" />
+            <path strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" d="M7 20v-6" />
+            <path strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" d="M12 20v-12" />
+            <path strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" d="M17 20v-4" />
           </svg>
         )
       case 'settings':
