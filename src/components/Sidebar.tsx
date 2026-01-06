@@ -178,10 +178,16 @@ export default function Sidebar({ onNav, currentPage }: { onNav?: (page: string)
           </div>
 
           <div className="hidden lg:flex items-center gap-2">
-            <button onClick={() => setCollapsed((s) => !s)} aria-label="Riduci sidebar" className="p-1 rounded hover:bg-neutral-100 dark:hover:bg-neutral-800">
-              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" d="M20 12H4" />
-              </svg>
+            <button onClick={() => setCollapsed((s) => !s)} aria-label={collapsed ? 'Espandi sidebar' : 'Riduci sidebar'} className="p-1 rounded hover:bg-neutral-100 dark:hover:bg-neutral-800">
+              {collapsed ? (
+                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M9 6l6 6-6 6" />
+                </svg>
+              ) : (
+                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M15 6l-6 6 6 6" />
+                </svg>
+              )}
             </button>
           </div>
         </div>
