@@ -878,7 +878,7 @@ export default function Bookings() {
                       className={`p-3 rounded border text-center text-sm ${pressedDay === day.toDateString() ? 'scale-95 transform transition-transform duration-100' : ''} ${isToday ? 'bg-amber-50 dark:bg-amber-900/10 border-amber-200' : 'border-neutral-200 dark:border-neutral-700'} ${!isCurrentMonth ? 'opacity-50' : ''}`}>
                       <div className="text-xs text-neutral-500 mb-0.5">{day.toLocaleDateString('it-IT', { weekday: 'short' })}</div>
                       <div className="font-medium">{day.getDate()}</div>
-                      <div className={`text-lg font-semibold ${dayBookings.length > 0 ? 'text-red-500' : 'text-neutral-500'}`}>{dayBookings.length}</div>
+                      <div className={`text-lg font-semibold ${dayBookings.length === 0 ? 'text-neutral-500' : dayBookings.every(b => b.paid) ? 'text-green-600 dark:text-green-400' : 'text-amber-600 dark:text-amber-400'}`} title={dayBookings.length === 0 ? 'Nessuna prenotazione' : dayBookings.every(b => b.paid) ? 'Tutte pagate' : 'Ci sono prenotazioni non pagate'}>{dayBookings.length}</div>
                     </button>
                   )
                 })}
