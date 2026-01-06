@@ -701,6 +701,7 @@ export default function Bookings() {
                   return (
                     <div key={i} className={`p-2 border-r border-b border-neutral-200 dark:border-neutral-700 min-h-[100px] ${isToday ? 'bg-amber-50 dark:bg-amber-900/10' : ''} ${!isCurrentMonth ? 'opacity-30' : ''}`}>
                       <div className={`text-sm mb-1 ${isToday ? 'text-amber-600 dark:text-amber-400' : ''}`}>
+                        <div className="text-xs text-neutral-500 dark:text-neutral-400">{day.toLocaleDateString('it-IT', { weekday: 'short' })}</div>
                         <div className="font-medium">{day.getDate()}</div>
                       </div>
                       <div className="flex flex-wrap items-center gap-1">
