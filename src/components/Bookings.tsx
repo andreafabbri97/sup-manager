@@ -110,6 +110,14 @@ export default function Bookings() {
     return parts.join(' • ')
   }
 
+  // Compact dot indicator used in month grid
+  function compactDot(b: any) {
+    const color = b.paid ? 'bg-green-500' : b.invoiced ? 'bg-blue-500' : 'bg-amber-500'
+    return (
+      <span title={bookingTitle(b)} className={`inline-block w-2 h-2 rounded-full ${color} mr-1`}></span>
+    )
+  }
+
   function statusClass(b: any) {
     if (b.paid) return 'border-l-4 border-green-400 dark:border-green-600'
     if (b.invoiced) return 'border-l-4 border-blue-400 dark:border-blue-600'
@@ -692,24 +700,23 @@ export default function Bookings() {
                   return (
                     <div key={i} className={`p-3 border-r border-b border-neutral-200 dark:border-neutral-700 min-h-[180px] ${isToday ? 'bg-amber-50 dark:bg-amber-900/10' : ''}`}>
                       <div className={`text-base font-medium mb-3 ${isToday ? 'text-amber-600 dark:text-amber-400' : ''}`}>{day.getDate()}</div>
-                      <div className="space-y-2">
-                        {dayBookings.slice(0,3).map(b => (
-                          <Card as="button" key={b.id} title={bookingTitle(b)} onClick={() => { setSelectedBooking(b); setShowBookingDetails(true) }} className={`w-full text-left text-sm p-2.5 rounded-md bg-amber-100 dark:bg-neutral-800/60 text-neutral-900 dark:text-neutral-100 interactive ${statusClass(b)} min-h-[64px]`}>
-                            <div className="flex flex-col gap-1.5">
-                              <div className="font-medium">{new Date(b.start_time).toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'})} — {b.customer_name || 'Cliente'}</div>
-                              <div className="flex items-center gap-2 text-xs">
-                                <div className="text-neutral-600 dark:text-neutral-400">{equipmentCount(b)}×</div>
-                                {!b.paid && <button onClick={(e)=>{ e.stopPropagation(); markPaid(b.id) }} className="text-green-600 hover:text-green-700 focus-ring px-1.5 py-0.5 rounded bg-white/50 dark:bg-neutral-700/50">Registra</button>}
-                                {b.paid && <span className="text-green-600 dark:text-green-400 font-semibold">Pagato</span>}
-                                <button onClick={(e)=>{ e.stopPropagation(); removeBooking(b.id) }} className="text-red-500 hover:text-red-600 focus-ring px-1.5 py-0.5 rounded bg-white/50 dark:bg-neutral-700/50">Elimina</button>
+                              <div className="space-y-2">
+                          {/* Compact list: show up to 4 compact lines (time + name truncated) without action buttons */}
+                          {dayBookings.slice(0,4).map(b => (
+                            <button key={b.id} title={bookingTitle(b)} onClick={() => { setSelectedBooking(b); setShowBookingDetails(true) }} className={`w-full text-left text-sm p-2 rounded-md bg-transparent hover:bg-neutral-50 dark:hover:bg-neutral-800 interactive ${statusClass(b)} min-h-[40px]`}> 
+                              <div className="flex items-center justify-between">
+                                <div className="truncate text-sm">{new Date(b.start_time).toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'})} — {b.customer_name || 'Cliente'}</div>
+                                <div className="flex items-center gap-2">
+                                  {b.paid && <span className="text-green-600 text-xs font-semibold">Pagato</span>}
+                                  {b.invoiced && <span className="text-blue-600 text-xs font-semibold">Fatt.</span>}
+                                </div>
                               </div>
-                            </div>
-                          </Card>
-                        ))}
-                        {dayBookings.length > 3 && (
-                          <button onClick={() => openDayListModal(day)} className="text-xs text-neutral-500 hover:underline">+{dayBookings.length - 3} altre prenotazioni</button>
-                        )}
-                      </div>
+                            </button>
+                          ))}
+                          {dayBookings.length > 4 && (
+                            <button onClick={() => openDayListModal(day)} className="text-xs text-neutral-500 hover:underline">+{dayBookings.length - 4} altre</button>
+                          )}
+                        </div>
                     </div>
                   )
                 })}
@@ -769,21 +776,16 @@ export default function Bookings() {
                   return (
                     <div key={i} className={`p-2 border-r border-b border-neutral-200 dark:border-neutral-700 min-h-[100px] ${isToday ? 'bg-amber-50 dark:bg-amber-900/10' : ''} ${!isCurrentMonth ? 'opacity-30' : ''}`}>
                       <div className={`text-sm font-medium mb-1 ${isToday ? 'text-amber-600 dark:text-amber-400' : ''}`}>{day.getDate()}</div>
-                      <div className="space-y-1">
-                        {dayBookings.slice(0, 2).map(b => (
-                          <Card as="button" key={b.id} title={bookingTitle(b)} onClick={() => { setSelectedBooking(b); setShowBookingDetails(true) }} className={`w-full text-left text-xs p-2 rounded bg-amber-100 dark:bg-amber-900/30 truncate ${statusClass(b)} interactive`}>
-                            <div className="flex items-start justify-between">
-                              <div className="truncate">{new Date(b.start_time).toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'})} — {b.customer_name || 'Cliente'}</div>
-                              <div className="flex items-center gap-2">
-                                <div className="text-amber-600 text-xs">{b.price ? `€ ${Number(b.price).toFixed(2)}` : ''}</div>
-                                <div className="text-xs text-neutral-500">{equipmentCount(b)}×</div>
-                              </div>
-                            </div>
-                            {b.paid && <div className="text-xs text-green-500 font-semibold">Pagato</div>}
-                          </Card>
+                      <div className="flex flex-wrap items-center gap-1">
+                        {/* Render compact dots (up to 6) with tooltip; show +N if more */}
+                        {dayBookings.slice(0, 6).map(b => (
+                          <button key={b.id} title={bookingTitle(b)} onClick={() => { setSelectedBooking(b); setShowBookingDetails(true) }} className="inline-flex items-center gap-2 px-1 py-0.5 rounded bg-neutral-100 dark:bg-neutral-800 text-xs truncate">
+                            {compactDot(b)}
+                            <span className="truncate max-w-[90px]">{new Date(b.start_time).toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'})} {collapsed ? '' : `— ${b.customer_name?.slice(0,12) ?? 'Cliente'}`}</span>
+                          </button>
                         ))}
-                        {dayBookings.length > 2 && (
-                          <button onClick={() => openDayListModal(day)} className="text-xs text-neutral-500 hover:underline">+{dayBookings.length - 2} altre prenotazioni</button>
+                        {dayBookings.length > 6 && (
+                          <button onClick={() => openDayListModal(day)} className="text-xs text-neutral-500 hover:underline">+{dayBookings.length - 6}</button>
                         )}
                       </div>
                     </div>
@@ -793,37 +795,34 @@ export default function Bookings() {
             </div>
 
             {/* Mobile stacked list */}
-            <div className="sm:hidden p-2">
-              {getMonthDays(currentDate).map((day) => {
-                const dayBookings = getBookingsForDate(day)
-                const isToday = day.toDateString() === new Date().toDateString()
-                const isCurrentMonth = day.getMonth() === currentDate.getMonth()
-                return (
-                  <div key={day.toDateString()} className={`mb-3 p-3 rounded border ${isToday ? 'bg-amber-50 dark:bg-amber-900/10 border-amber-200' : 'border-neutral-200 dark:border-neutral-700'} ${!isCurrentMonth ? 'opacity-50' : ''}`}>
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="font-medium">{day.toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric', month: 'short' })}</div>
-                      <div className="text-sm text-neutral-500">{dayBookings.length} prenotazioni</div>
+            <div className="sm:hidden p-2 overflow-x-auto">
+              <div className="min-w-[700px] grid grid-cols-7 gap-1">
+                {getMonthDays(currentDate).map((day) => {
+                  const dayBookings = getBookingsForDate(day)
+                  const isToday = day.toDateString() === new Date().toDateString()
+                  const isCurrentMonth = day.getMonth() === currentDate.getMonth()
+                  return (
+                    <div key={day.toDateString()} className={`p-2 rounded border ${isToday ? 'bg-amber-50 dark:bg-amber-900/10 border-amber-200' : 'border-neutral-200 dark:border-neutral-700'} ${!isCurrentMonth ? 'opacity-50' : ''}`}>
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="font-medium text-xs">{day.toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric' })}</div>
+                        <div className="text-xs text-neutral-500">{dayBookings.length}</div>
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        {dayBookings.slice(0,4).map(b => (
+                          <button key={b.id} title={bookingTitle(b)} onClick={() => { setSelectedBooking(b); setShowBookingDetails(true) }} className="w-full text-left text-xs p-1 rounded bg-amber-100 dark:bg-amber-900/30 flex items-center justify-between">
+                            <div className="truncate">{new Date(b.start_time).toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'})} — {b.customer_name?.slice(0,12) || 'Cliente'}</div>
+                            <div className="flex items-center gap-1">
+                              {b.paid && <span className="text-green-600 text-xs">●</span>}
+                              {b.invoiced && <span className="text-blue-600 text-xs">●</span>}
+                            </div>
+                          </button>
+                        ))}
+                        {dayBookings.length > 4 && <button onClick={() => openDayListModal(day)} className="text-xs text-neutral-500 hover:underline">+{dayBookings.length - 4}</button>}
+                      </div>
                     </div>
-                    <div className="space-y-2">
-                      {dayBookings.length === 0 && <div className="text-neutral-500 text-sm">Nessuna prenotazione</div>}
-                      {dayBookings.map(b => (
-                        <button key={b.id} onClick={() => { setSelectedBooking(b); setShowBookingDetails(true) }} className="w-full text-left p-3 rounded bg-amber-100 dark:bg-amber-900/30 flex items-center justify-between">
-                          <div>
-                            <div className="font-medium text-sm">{b.customer_name || 'Cliente'}</div>
-                            <div className="text-xs text-neutral-600">{new Date(b.start_time).toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'})} – {new Date(b.end_time).toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'})}</div>
-                            {b.price && <div className="text-sm text-amber-600">€ {b.price}</div>}
-                            {b.paid && <div className="text-xs text-green-500 font-semibold">Pagato</div>}
-                          </div>
-                          <div className="flex items-center gap-2">
-                            {!b.paid && <button onClick={(e)=>{ e.stopPropagation(); markPaid(b.id) }} className="text-green-600 ml-3 focus-ring">Registra</button>}
-                            <button onClick={(e)=>{ e.stopPropagation(); removeBooking(b.id) }} className="text-red-500 ml-3">Elimina</button>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )
-              })}
+                  )
+                })}
+              </div>
             </div>
           </>
         )}
