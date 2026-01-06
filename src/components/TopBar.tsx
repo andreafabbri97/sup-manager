@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react'
-import NotificationBell from './NotificationBell'
 
 export default function TopBar() {
   const [now, setNow] = useState(new Date())
@@ -29,7 +28,7 @@ export default function TopBar() {
         </button>
         <div className="flex-1">{formatted}</div>
         <div className="flex items-center gap-3">
-          <NotificationBell />
+          {/* Notifications button removed per request */}
         </div>
       </div>
     </div>
