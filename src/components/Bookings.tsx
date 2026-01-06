@@ -1162,7 +1162,7 @@ export default function Bookings() {
 
 
       {/* Day bookings modal (all bookings for a selected date) */}
-      <Modal isOpen={showDayListModal} onClose={() => { setShowDayListModal(false); setModalDay(null) }} title={modalDay ? `Prenotazioni ${modalDay.toLocaleDateString('it-IT')}` : 'Prenotazioni'}>
+      <Modal mobileCentered autoFocus={false} isOpen={showDayListModal} onClose={() => { setShowDayListModal(false); setModalDay(null) }} title={modalDay ? `Prenotazioni ${modalDay.toLocaleDateString('it-IT')}` : 'Prenotazioni'}>
         {modalDay && (
           <div className="space-y-3 max-h-[60vh] overflow-y-auto">
             {getBookingsForDate(modalDay).length === 0 && <div className="text-neutral-500">Nessuna prenotazione</div>}
@@ -1216,19 +1216,19 @@ export default function Bookings() {
         {markPaidBooking && (
           <div className="space-y-4">
             <p>Hai emesso fattura per questa prenotazione?</p>
-            <div className="flex items-center gap-2">
-              <button onClick={() => setMarkPaidInvoiced('yes')} className={`px-3 py-2 rounded ${markPaidInvoiced === 'yes' ? 'bg-amber-600 text-white' : 'border'}`}>Sì</button>
-              <button onClick={() => setMarkPaidInvoiced('no')} className={`px-3 py-2 rounded ${markPaidInvoiced === 'no' ? 'bg-amber-600 text-white' : 'border'}`}>No</button>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+              <button onClick={() => setMarkPaidInvoiced('yes')} className={`w-full sm:w-auto px-4 py-3 rounded ${markPaidInvoiced === 'yes' ? 'bg-amber-600 text-white' : 'border'}`}>Sì</button>
+              <button onClick={() => setMarkPaidInvoiced('no')} className={`w-full sm:w-auto px-4 py-3 rounded ${markPaidInvoiced === 'no' ? 'bg-amber-600 text-white' : 'border'}`}>No</button>
             </div>
             {markPaidInvoiced === 'yes' && (
               <div>
                 <label className="block text-sm font-medium mb-1">Numero fattura (opzionale)</label>
-                <input value={markPaidInvoiceNumber ?? ''} onChange={(e)=>setMarkPaidInvoiceNumber(e.target.value || null)} className="w-full border px-2 py-2 rounded" />
+                <input value={markPaidInvoiceNumber ?? ''} onChange={(e)=>setMarkPaidInvoiceNumber(e.target.value || null)} className="w-full border px-3 py-3 rounded" />
               </div>
             )}
-            <div className="flex justify-end gap-2 pt-2">
-              <button onClick={() => { setShowMarkPaidModal(false); setMarkPaidBooking(null); setMarkPaidInvoiced(null); setMarkPaidInvoiceNumber(null) }} className="px-4 py-2 rounded border">Annulla</button>
-              <Button onClick={async () => {
+            <div className="flex flex-col sm:flex-row gap-2 pt-2">
+              <button onClick={() => { setShowMarkPaidModal(false); setMarkPaidBooking(null); setMarkPaidInvoiced(null); setMarkPaidInvoiceNumber(null) }} className="w-full sm:w-auto px-4 py-3 rounded border">Annulla</button>
+              <Button className="w-full sm:w-auto" onClick={async () => {
                 if (!markPaidBooking || markPaidInvoiced === null) return
                 const id = markPaidBooking.id
                 const paidAt = new Date().toISOString()
