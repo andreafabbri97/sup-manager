@@ -89,7 +89,7 @@ export default function Archive({ start: propStart, end: propEnd }: { start?: st
         <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h3 className="text-lg font-medium m-0">Archivio Prenotazioni</h3>
-          <p className="text-sm text-neutral-500">Cerca fatture e verifica a quali prenotazioni si riferiscono</p>
+          <p className="text-sm text-neutral-500 dark:text-neutral-300">Cerca fatture e verifica a quali prenotazioni si riferiscono</p>
         </div>
         <div className="flex flex-row gap-2 w-full">
           <Button onClick={exportCSV} className="flex-1">Esporta CSV</Button>
@@ -150,17 +150,17 @@ export default function Archive({ start: propStart, end: propEnd }: { start?: st
                 <div className="font-medium">{b.customer_name}</div>
                 <div className="text-xs text-neutral-400">{new Date(b.start_time).toLocaleString('it-IT', { day: '2-digit', month: 'short', year: 'numeric' })} • {b.invoice_number ?? (b.invoiced ? 'Fatturata' : '—')}</div>
               </div>
-              <div className="text-sm text-neutral-500">{b.paid ? 'Pagato' : 'Non pagato'}</div>
+              <div className="text-sm text-neutral-500 dark:text-neutral-300">{b.paid ? 'Pagato' : 'Non pagato'}</div>
             </div>
           </button>
         ))}
-        {paginated.length === 0 && <div className="text-neutral-500">Nessuna prenotazione</div>}
+        {paginated.length === 0 && <div className="text-neutral-500 dark:text-neutral-300">Nessuna prenotazione</div>}
       </div>
 
       <div className="overflow-x-auto hidden sm:block">
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-left text-neutral-500"><th>Data</th><th>Cliente</th><th>Fattura</th><th>Prezzo</th><th>Pagato</th><th>Azioni</th></tr>
+              <tr className="text-left text-neutral-500 dark:text-neutral-300"><th>Data</th><th>Cliente</th><th>Fattura</th><th>Prezzo</th><th>Pagato</th><th>Azioni</th></tr>
             </thead>
             <tbody>
               {paginated.map(b => (
@@ -183,7 +183,7 @@ export default function Archive({ start: propStart, end: propEnd }: { start?: st
         </div>
 
         <div className="mt-3 flex items-center justify-between">
-          <div className="text-sm text-neutral-500">Mostrando {startIdx+1}–{Math.min(startIdx+perPage, total)} di {total}</div>
+          <div className="text-sm text-neutral-500 dark:text-neutral-300">Mostrando {startIdx+1}–{Math.min(startIdx+perPage, total)} di {total}</div>
           <div className="flex items-center gap-2">
             <select value={perPage} onChange={(e)=>{ setPerPage(Number(e.target.value)); setPage(1); }} className="border px-2 py-1 rounded">
               <option value={10}>10</option>

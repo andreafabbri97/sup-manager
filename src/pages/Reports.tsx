@@ -503,13 +503,13 @@ export default function Reports() {
                   <div className="h-64 sm:h-72 lg:h-80 animate-fade-up"><div className="h-full"><Line data={revenueData} options={revenueOptions} /></div></div>
                 </div>
                 <div>
-                  <div className="text-sm text-neutral-500">Entrate per attrezzatura</div>
+                  <div className="text-sm text-neutral-500 dark:text-neutral-300">Entrate per attrezzatura</div>
 
                   {/* Table for sm+ */}
                   <div className="hidden sm:block mt-2">
                     <table className="w-full text-sm">
                       <thead>
-                        <tr className="text-left text-neutral-500"><th>Attrezzatura</th><th>Prenotazioni</th><th>Incasso</th></tr>
+                        <tr className="text-left text-neutral-500 dark:text-neutral-300"><th>Attrezzatura</th><th>Prenotazioni</th><th>Incasso</th></tr>
                       </thead>
                       <tbody>
                         {revByEquip.map((r:any)=> (

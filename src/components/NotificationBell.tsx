@@ -72,7 +72,7 @@ export default function NotificationBell() {
         {items.map(it => (
           <div key={it.id} className="p-2 border rounded">
             <div className="font-medium">{it.customer_name || 'Cliente'}</div>
-            <div className="text-xs text-neutral-500">{new Date(it.start_time).toLocaleString('it-IT')} — {it.invoice_number ? `#${it.invoice_number}` : ''}</div>
+            <div className="text-xs text-neutral-500 dark:text-neutral-300">{new Date(it.start_time).toLocaleString('it-IT')} — {it.invoice_number ? `#${it.invoice_number}` : ''}</div>
             <div className="mt-2 flex gap-2">
               <button onClick={() => { navigator.clipboard.writeText(it.id); alert('ID prenotazione copiato') }} className="px-2 py-1 rounded border text-sm">Copia ID</button>
             </div>
@@ -101,7 +101,7 @@ export default function NotificationBell() {
         {items.map(it => (
           <div key={it.id} className="p-2 border rounded">
             <div className="font-medium">{it.customer_name || 'Cliente'}</div>
-            <div className="text-xs text-neutral-500">€ {Number(it.price || 0).toFixed(2)} — {new Date(it.start_time).toLocaleDateString('it-IT')}</div>
+            <div className="text-xs text-neutral-500 dark:text-neutral-300">€ {Number(it.price || 0).toFixed(2)} — {new Date(it.start_time).toLocaleDateString('it-IT')}</div>
             <div className="mt-2 flex gap-2">
               <button onClick={async ()=>{ const { error } = await supabase.from('booking').update({ paid: true, paid_at: new Date().toISOString() }).eq('id', it.id); if (error) alert(error.message); else { alert('Segnata come pagata'); loadNotifications() } }} className="px-2 py-1 rounded border text-sm">Segna pagata</button>
             </div>
@@ -132,7 +132,7 @@ export default function NotificationBell() {
         {items.map(it => (
           <div key={it.id} className="p-2 border rounded">
             <div className="font-medium">{it.name}</div>
-            <div className="text-xs text-neutral-500">Prossima manutenzione: {it.next_maintenance ? new Date(it.next_maintenance).toLocaleDateString('it-IT') : '—'}</div>
+            <div className="text-xs text-neutral-500 dark:text-neutral-300">Prossima manutenzione: {it.next_maintenance ? new Date(it.next_maintenance).toLocaleDateString('it-IT') : '—'}</div>
             <div className="mt-2 flex gap-2">
               <button onClick={async ()=>{ const { error } = await supabase.from('equipment').update({ next_maintenance: null }).eq('id', it.id); if (error) alert(error.message); else { alert('Segnata manutenzione come completata'); loadNotifications() } }} className="px-2 py-1 rounded border text-sm">Segna completata</button>
             </div>
@@ -221,7 +221,7 @@ export default function NotificationBell() {
   const notificationItems = (
     <div className="overflow-y-auto overflow-x-hidden">
       {loading && (
-        <div className="p-4 text-center text-neutral-500">Caricamento...</div>
+        <div className="p-4 text-center text-neutral-500 dark:text-neutral-300">Caricamento...</div>
       )}
 
       {!loading && notifications.length === 0 && (

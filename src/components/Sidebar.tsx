@@ -46,11 +46,14 @@ export default function Sidebar({ onNav, currentPage }: { onNav?: (page: string)
   }, [])
 
   // When the sidebar closes, restore focus to the TopBar menu button if present
+  const prevMobileOpen = React.useRef<boolean>(mobileOpen)
   React.useEffect(() => {
-    if (!mobileOpen) {
+    // only restore focus when the sidebar was previously open and now closed
+    if (prevMobileOpen.current && !mobileOpen) {
       const btn = document.querySelector<HTMLButtonElement>('button[aria-controls="sidebar"]')
       btn?.focus()
     }
+    prevMobileOpen.current = mobileOpen
   }, [mobileOpen])
 
   const items = [

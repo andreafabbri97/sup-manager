@@ -147,7 +147,7 @@ export default function Packages() {
                     <div className="text-sm text-neutral-500">
                       {p.equipment_items.slice(0,2).map((item:any, idx:number) => {
                         const eq = equipment.find(e => e.id === item.id)
-                        return <span key={idx} className="inline-block bg-neutral-100 dark:bg-neutral-700 text-sm px-2 py-0.5 rounded mr-1">{item.quantity}x {eq?.name || 'Attrezzatura'}</span>
+                        return <span key={idx} className="inline-block bg-neutral-100 dark:bg-neutral-700 text-sm dark:text-neutral-100 px-2 py-0.5 rounded mr-1">{item.quantity}x {eq?.name || 'Attrezzatura'}</span>
                       })}
                       {p.equipment_items.length > 2 && <span className="text-sm text-neutral-400 ml-1">+{p.equipment_items.length - 2}</span>}
                     </div>
