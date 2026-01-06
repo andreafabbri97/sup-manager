@@ -216,10 +216,7 @@ export default function Archive({ start: propStart, end: propEnd }: { start?: st
             <div><strong>Fatturato:</strong> {detail.invoiced ? <span className="text-blue-600 font-semibold">Fatturata</span> : 'No'}</div>
             <div><strong>Pagato:</strong> {detail.paid ? <span className="text-green-600 font-semibold">Pagato</span> : 'No'}</div>
             <div><strong>Note:</strong> {detail.notes ?? '—'}</div>
-            <div className="mt-2 flex gap-2">
-              <Button onClick={()=>{ navigator.clipboard.writeText(JSON.stringify(detail)); alert('Copia incollata') }}>Copia JSON</Button>
-              <button onClick={()=>{ setShowDetail(false); setDetail(null); }} className="px-3 py-1 rounded border">Chiudi</button>
-            </div>
+
           </div>
         )}
       </Modal>
