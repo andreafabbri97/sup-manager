@@ -12,6 +12,7 @@ export default function Bookings() {
   const [packages, setPackages] = useState<any[]>([])
   const [bookings, setBookings] = useState<any[]>([])
   const [customers, setCustomers] = useState<any[]>([])
+  const [loadingBookings, setLoadingBookings] = useState<boolean>(true)
   const [selectedBooking, setSelectedBooking] = useState<any | null>(null)
   const [showBookingDetails, setShowBookingDetails] = useState(false)
   // detail modal local state (to avoid mutating selectedBooking directly)
@@ -158,29 +159,36 @@ export default function Bookings() {
   }
 
   async function load() {
-    // Carica solo prenotazioni degli ultimi 3 mesi e prossimi 3 mesi per velocizzare
-    const threeMonthsAgo = new Date()
-    threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3)
-    const threeMonthsAhead = new Date()
-    threeMonthsAhead.setMonth(threeMonthsAhead.getMonth() + 3)
-    
-    // Query parallele per caricare più velocemente
-    const [
-      { data: eq },
-      { data: p },
-      { data: b },
-      { data: c }
-    ] = await Promise.all([
-      supabase.from('equipment').select('*').order('name'),
-      supabase.from('package').select('*'),
-      supabase.from('booking').select('*').gte('start_time', threeMonthsAgo.toISOString()).lte('start_time', threeMonthsAhead.toISOString()).order('start_time', { ascending: true }),
-      supabase.from('customers').select('*').order('name')
-    ])
-    
-    setEquipment(eq || [])
-    setPackages(p || [])
-    setBookings(b || [])
-    setCustomers(c || [])
+    setLoadingBookings(true)
+    try {
+      // Carica solo prenotazioni degli ultimi 3 mesi e prossimi 3 mesi per velocizzare
+      const threeMonthsAgo = new Date()
+      threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3)
+      const threeMonthsAhead = new Date()
+      threeMonthsAhead.setMonth(threeMonthsAhead.getMonth() + 3)
+      
+      // Query parallele per caricare più velocemente
+      const [
+        { data: eq },
+        { data: p },
+        { data: b },
+        { data: c }
+      ] = await Promise.all([
+        supabase.from('equipment').select('*').order('name'),
+        supabase.from('package').select('*'),
+        supabase.from('booking').select('*').gte('start_time', threeMonthsAgo.toISOString()).lte('start_time', threeMonthsAhead.toISOString()).order('start_time', { ascending: true }),
+        supabase.from('customers').select('*').order('name')
+      ])
+      
+      setEquipment(eq || [])
+      setPackages(p || [])
+      setBookings(b || [])
+      setCustomers(c || [])
+    } catch (err) {
+      console.error('Errore nel caricamento prenotazioni:', err)
+    } finally {
+      setLoadingBookings(false)
+    }
   }
 
   useEffect(() => {
@@ -250,6 +258,15 @@ export default function Bookings() {
 
   // Render helper for day list to simplify inline JSX
   function renderDayList() {
+    if (loadingBookings) return (
+      <div className="text-center py-12 text-neutral-500 dark:text-neutral-400">
+        <svg className="animate-spin inline-block w-6 h-6 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+        </svg>
+        Caricamento prenotazioni…
+      </div>
+    )
     const dayList = getBookingsForDate(currentDate)
     if (dayList.length === 0) return <div className="text-center py-12 text-neutral-500 dark:text-neutral-400">Nessuna prenotazione per questa giornata</div>
     return dayList.map(b => (
