@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react'
+import React, { useEffect, useState, useCallback, useRef } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import Button from './ui/Button'
 import Modal from './ui/Modal'
@@ -158,8 +158,12 @@ export default function Bookings() {
     return 'border-l-4 border-amber-300 dark:border-amber-600'
   }
 
-  async function load() {
-    setLoadingBookings(true)
+  const loadRequestId = useRef(0)
+
+  async function load(opts?: { background?: boolean }) {
+    const isBackground = !!opts?.background
+    if (!isBackground) setLoadingBookings(true)
+    const myId = ++loadRequestId.current
     try {
       // Carica solo prenotazioni degli ultimi 3 mesi e prossimi 3 mesi per velocizzare
       const threeMonthsAgo = new Date()
@@ -179,15 +183,20 @@ export default function Bookings() {
         supabase.from('booking').select('*').gte('start_time', threeMonthsAgo.toISOString()).lte('start_time', threeMonthsAhead.toISOString()).order('start_time', { ascending: true }),
         supabase.from('customers').select('*').order('name')
       ])
-      
-      setEquipment(eq || [])
-      setPackages(p || [])
-      setBookings(b || [])
-      setCustomers(c || [])
+
+      // Applica l'aggiornamento solo se questa è l'ultima richiesta (evita race conditions)
+      if (myId === loadRequestId.current) {
+        setEquipment(eq || [])
+        setPackages(p || [])
+        setBookings(b || [])
+        setCustomers(c || [])
+      }
+      // In caso di risposta incompleta manterremo il precedente bookings (cioè non sovrascriviamo con [])
     } catch (err) {
       console.error('Errore nel caricamento prenotazioni:', err)
+      // Non svuotiamo lo stato esistente in caso di errore
     } finally {
-      setLoadingBookings(false)
+      if (!isBackground) setLoadingBookings(false)
     }
   }
 
@@ -301,75 +310,6 @@ export default function Bookings() {
       </div>
     ))
   }
-
-  useEffect(() => {
-    load()
-
-    const handler = () => load()
-    window.addEventListener('sups:changed', handler)
-
-    // realtime booking updates (debounced)
-    const realtimeTimer = { id: 0 as any }
-    const onRealtimeBooking = () => {
-      if (realtimeTimer.id) clearTimeout(realtimeTimer.id)
-      realtimeTimer.id = window.setTimeout(() => { load(); realtimeTimer.id = 0 }, 300)
-    }
-    window.addEventListener('realtime:booking', onRealtimeBooking as any)
-
-    // When a realtime booking arrives, invalidate day cache for affected day(s)
-    const onRealtimeBookingInvalidate = (ev: any) => {
-      try {
-        const b = ev?.detail
-        if (!b || !b.start_time) return
-        const d = new Date(b.start_time)
-        const key = dateKey(d)
-        setDayBookingsCache(prev => ({ ...prev, [key]: undefined }))
-      } catch (err) {
-        // ignore
-      }
-    }
-    window.addEventListener('realtime:booking:changed', onRealtimeBookingInvalidate as any)
-
-    // Listen for navigation requests from other components (e.g. NotificationBell)
-    const onNavigate = async (ev: any) => {
-      try {
-        const detail = ev?.detail || {}
-        if (detail.bookingId) {
-          // try to find booking in memory
-          const b = bookings.find((x: any) => x.id === detail.bookingId)
-          if (b) {
-            setViewMode('day')
-            setCurrentDate(new Date(b.start_time))
-            setSelectedBooking(b)
-            setShowBookingDetails(true)
-            return
-          }
-          // fallback: fetch booking then open
-          const { data } = await supabase.from('booking').select('*').eq('id', detail.bookingId).single()
-          if (data) {
-            setViewMode('day')
-            setCurrentDate(new Date(data.start_time))
-            setSelectedBooking(data)
-            setShowBookingDetails(true)
-            return
-          }
-        }
-        if (detail.date) {
-          setViewMode('day')
-          setCurrentDate(new Date(detail.date))
-        }
-      } catch (err) {
-        // ignore
-      }
-    }
-    window.addEventListener('sups:navigate', onNavigate as any)
-
-    return () => {
-      window.removeEventListener('sups:changed', handler)
-      window.removeEventListener('realtime:booking', onRealtimeBooking as any)
-      window.removeEventListener('sups:navigate', onNavigate as any)
-    }
-  }, [bookings])
 
   // Close customer dropdown when clicking outside
   useEffect(() => {
