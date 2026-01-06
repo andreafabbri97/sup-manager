@@ -179,7 +179,13 @@ export default function Archive({ start: propStart, end: propEnd }: { start?: st
                 <div className="font-medium">{b.customer_name}</div>
                 <div className="text-xs text-neutral-400">{new Date(b.start_time).toLocaleString('it-IT', { day: '2-digit', month: 'short', year: 'numeric' })} • {b.invoice_number ? <span>{b.invoice_number}{b.invoiced ? <span className="text-blue-600 font-semibold"> Fatturata</span> : null}</span> : (b.invoiced ? <span className="text-blue-600 font-semibold">Fatturata</span> : '—') }</div>
               </div>
-              <div className="text-sm">{b.paid ? <span className="text-green-600 font-semibold">Pagato</span> : <span className="text-sm text-neutral-500 dark:text-neutral-300">Non pagato</span>}</div>
+              <div className="flex flex-col items-end">
+                <div className="text-amber-500 dark:text-amber-300 font-bold">{b.price ? `€ ${Number(b.price).toFixed(2)}` : '—'}</div>
+                <div className="text-sm mt-1">
+                  {b.paid ? <span className="text-green-600 font-semibold">Pagato</span> : <span className="text-sm text-neutral-500 dark:text-neutral-300">Non pagato</span>}
+                  {b.invoiced && <span className="ml-2 text-blue-600 font-semibold">Fatturato</span>}
+                </div>
+              </div>
             </div>
           </button>
         ))}
