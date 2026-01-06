@@ -425,15 +425,15 @@ export default function Reports() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="col-span-2">
                 <div className="mb-4 sm:mb-6">
-                  <div className="text-sm text-neutral-500 mb-2">Ordini giornalieri</div>
+                  <div className="text-lg font-medium text-white mb-2">Ordini giornalieri</div>
                   <div className="h-64 sm:h-72 lg:h-80 animate-fade-up"><div className="h-full"><Line data={ordersData} options={ordersOptions} /></div></div>
                 </div>
                 <div className="mb-4 sm:mb-6">
-                  <div className="text-sm text-neutral-500 mb-2">Entrate giornaliere</div>
+                  <div className="text-lg font-medium text-white mb-2">Entrate giornaliere</div>
                   <div className="h-64 sm:h-72 lg:h-80 animate-fade-up"><div className="h-full"><Line data={revenueData} options={revenueOptions} /></div></div>
                 </div>
                 <div>
-                  <div className="text-sm text-neutral-500">Statistiche rapide</div>
+                  <div className="text-lg font-medium text-white">Statistiche rapide</div>
                   <div className="mt-2 space-y-2">
                     <Card className="p-2">
                       <div className="text-xs text-neutral-400">Valore medio prenotazione</div>
