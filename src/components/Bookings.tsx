@@ -692,7 +692,10 @@ export default function Bookings() {
                   const isCurrentMonth = day.getMonth() === currentDate.getMonth()
                   return (
                     <div key={i} className={`p-2 border-r border-b border-neutral-200 dark:border-neutral-700 min-h-[100px] ${isToday ? 'bg-amber-50 dark:bg-amber-900/10' : ''} ${!isCurrentMonth ? 'opacity-30' : ''}`}>
-                      <div className={`text-sm font-medium mb-1 ${isToday ? 'text-amber-600 dark:text-amber-400' : ''}`}>{day.getDate()}</div>
+                      <div className={`text-sm mb-1 ${isToday ? 'text-amber-600 dark:text-amber-400' : ''}`}>
+                        <div className="text-xs text-neutral-500 dark:text-neutral-400">{day.toLocaleDateString('it-IT', { weekday: 'short' })}</div>
+                        <div className="font-medium">{day.getDate()}</div>
+                      </div>
                       <div className="flex flex-wrap items-center gap-1">
                         {/* Render compact dots (up to 6) with tooltip; show +N if more */}
                         {dayBookings.slice(0, 6).map(b => (
@@ -724,6 +727,7 @@ export default function Bookings() {
                       onClick={() => { setPressedDay(day.toDateString()); window.setTimeout(()=>{ setPressedDay(null); openDayListModal(day) }, 120) }}
                       aria-label={`Apri prenotazioni ${day.toLocaleDateString('it-IT')}`}
                       className={`p-3 rounded border text-center text-sm ${pressedDay === day.toDateString() ? 'scale-95 transform transition-transform duration-100' : ''} ${isToday ? 'bg-amber-50 dark:bg-amber-900/10 border-amber-200' : 'border-neutral-200 dark:border-neutral-700'} ${!isCurrentMonth ? 'opacity-50' : ''}`}>
+                      <div className="text-xs text-neutral-500 mb-0.5">{day.toLocaleDateString('it-IT', { weekday: 'short' })}</div>
                       <div className="font-medium">{day.getDate()}</div>
                       <div className={`text-lg font-semibold ${dayBookings.length > 0 ? 'text-red-500' : 'text-neutral-500'}`}>{dayBookings.length}</div>
                     </button>
