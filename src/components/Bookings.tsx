@@ -5,7 +5,7 @@ import Modal from './ui/Modal'
 import Card from './ui/Card'
 import PageTitle from './ui/PageTitle'
 
-type ViewMode = 'day' | 'week' | 'month'
+type ViewMode = 'day' | 'month'
 
 export default function Bookings() {
   const [equipment, setEquipment] = useState<any[]>([])
@@ -532,18 +532,6 @@ export default function Bookings() {
   }
 
   // Calendar utilities
-  function getWeekDays(date: Date) {
-    const start = new Date(date)
-    // compute Monday of the week that contains `date` (Monday-first week)
-    // JS getDay(): 0 = Sunday, 1 = Monday, ...
-    const dayIndex = (start.getDay() + 6) % 7 // 0 = Monday, 6 = Sunday
-    start.setDate(start.getDate() - dayIndex)
-    return Array.from({ length: 7 }, (_, i) => {
-      const d = new Date(start)
-      d.setDate(start.getDate() + i)
-      return d
-    })
-  }
 
   function getMonthDays(date: Date) {
     const year = date.getFullYear()
@@ -584,8 +572,6 @@ export default function Bookings() {
     const newDate = new Date(currentDate)
     if (viewMode === 'day') {
       newDate.setDate(newDate.getDate() + (direction === 'next' ? 1 : -1))
-    } else if (viewMode === 'week') {
-      newDate.setDate(newDate.getDate() + (direction === 'next' ? 7 : -7))
     } else {
       newDate.setMonth(newDate.getMonth() + (direction === 'next' ? 1 : -1))
     }
@@ -595,9 +581,6 @@ export default function Bookings() {
   function getDateRangeLabel() {
     if (viewMode === 'day') {
       return currentDate.toLocaleDateString('it-IT', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
-    } else if (viewMode === 'week') {
-      const days = getWeekDays(currentDate)
-      return `${days[0].toLocaleDateString('it-IT', { day: 'numeric', month: 'short' })} - ${days[6].toLocaleDateString('it-IT', { day: 'numeric', month: 'short', year: 'numeric' })}`
     } else {
       return currentDate.toLocaleDateString('it-IT', { month: 'long', year: 'numeric' })
     }
@@ -634,19 +617,12 @@ export default function Bookings() {
 
         <div className="flex gap-1 bg-neutral-100 dark:bg-neutral-800 rounded p-1">
           <button onClick={() => setViewMode('day')} className={`px-3 py-1 text-sm rounded ${viewMode === 'day' ? 'bg-white dark:bg-neutral-700 shadow' : ''}`}>Giorno</button>
-          <button onClick={() => setViewMode('week')} className={`px-3 py-1 text-sm rounded ${viewMode === 'week' ? 'bg-white dark:bg-neutral-700 shadow' : ''}`}>Settimana</button>
           <button onClick={() => setViewMode('month')} className={`px-3 py-1 text-sm rounded ${viewMode === 'month' ? 'bg-white dark:bg-neutral-700 shadow' : ''}`}>Mese</button>
         </div>
       </div>
 
       {/* Calendar view */}
-      <div className="mb-2 flex items-center justify-start">
-        <div className="flex items-center gap-3 text-sm">
-          <div className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-green-500 inline-block" /> <span className="text-xs text-neutral-500">Pagato</span></div>
-          <div className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-blue-500 inline-block" /> <span className="text-xs text-neutral-500">Fatturato</span></div>
-          <div className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-500 inline-block" /> <span className="text-xs text-neutral-500">Non pagato</span></div>
-        </div>
-      </div>
+
       <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-neutral-200 dark:border-neutral-700">
         {viewMode === 'day' && (
           <div className="p-4">
@@ -695,80 +671,7 @@ export default function Bookings() {
           </div>
         )}
 
-        {viewMode === 'week' && (
-          <>
-            {/* Desktop / Tablet: grid */}
-            <div className="hidden sm:block">
-              <div className="grid grid-cols-7 gap-2">
-                {['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'].map((day, i) => (
-                  <div key={i} className="p-2 text-center text-sm font-medium border-b border-neutral-200 dark:border-neutral-700">
-                    {day}
-                  </div>
-                ))}
-                {getWeekDays(currentDate).map((day, i) => {
-                  const dayBookings = getBookingsForDate(day)
-                  const isToday = day.toDateString() === new Date().toDateString()
-                  return (
-                    <div key={i} className={`p-3 border-r border-b border-neutral-200 dark:border-neutral-700 min-h-[180px] ${isToday ? 'bg-amber-50 dark:bg-amber-900/10' : ''}`}>
-                      <div className={`text-base font-medium mb-3 ${isToday ? 'text-amber-600 dark:text-amber-400' : ''}`}>{day.getDate()}</div>
-                              <div className="space-y-2">
-                          {/* Compact list: show up to 4 compact lines (time + name truncated) without action buttons */}
-                          {dayBookings.slice(0,4).map(b => (
-                            <button key={b.id} title={bookingTitle(b)} onClick={() => { setSelectedBooking(b); setShowBookingDetails(true) }} className={`w-full text-left text-sm p-2 rounded-md bg-transparent hover:bg-neutral-50 dark:hover:bg-neutral-800 interactive ${statusClass(b)} min-h-[40px]`}> 
-                              <div className="flex items-center justify-between">
-                                <div className="truncate text-sm">{new Date(b.start_time).toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'})} — {b.customer_name || 'Cliente'}</div>
-                                <div className="flex items-center gap-2">
-                                  {b.paid && <span className="text-green-600 text-xs font-semibold">Pagato</span>}
-                                  {b.invoiced && <span className="text-blue-600 text-xs font-semibold">Fatt.</span>}
-                                </div>
-                              </div>
-                            </button>
-                          ))}
-                          {dayBookings.length > 4 && (
-                            <button onClick={() => openDayListModal(day)} className="text-xs text-neutral-500 hover:underline">+{dayBookings.length - 4} altre</button>
-                          )}
-                        </div>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
 
-            {/* Mobile: stacked days */}
-            <div className="sm:hidden p-2">
-              {getWeekDays(currentDate).map((day) => {
-                const dayBookings = getBookingsForDate(day)
-                const isToday = day.toDateString() === new Date().toDateString()
-                return (
-                  <div key={day.toDateString()} className={`mb-3 p-3 rounded border ${isToday ? 'bg-amber-50 dark:bg-amber-900/10 border-amber-200' : 'border-neutral-200 dark:border-neutral-700'}`}>
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="font-medium">{day.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'short' })}</div>
-                      <div className="text-sm text-neutral-500">{dayBookings.length} prenotazioni</div>
-                    </div>
-                    <div className="space-y-2">
-                      {dayBookings.length === 0 && <div className="text-neutral-500 text-sm">Nessuna prenotazione</div>}
-                      {dayBookings.map(b => (
-                        <Card as="button" key={b.id} onClick={() => { setSelectedBooking(b); setShowBookingDetails(true) }} className="w-full text-left p-3 rounded bg-amber-100 dark:bg-neutral-800/60 flex items-center justify-between interactive">
-                          <div>
-                            <div className="font-medium text-sm text-neutral-900 dark:text-neutral-100">{b.customer_name || 'Cliente'}</div>
-                            <div className="text-xs text-neutral-600 dark:text-neutral-300">{new Date(b.start_time).toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'})} – {new Date(b.end_time).toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'})}</div>
-                            {b.paid && <div className="text-xs text-green-500 dark:text-green-300 font-semibold">Pagato</div>}
-                          </div>
-                          <div className="flex flex-col items-end justify-between gap-2 min-h-[44px]">
-                            <div className="flex items-center gap-2">
-                              {!b.paid && <button onClick={(e)=>{ e.stopPropagation(); markPaid(b.id) }} className="text-green-600 ml-3 focus-ring">Registra incasso</button>}
-                              <button onClick={(e)=>{ e.stopPropagation(); removeBooking(b.id) }} className="text-red-500 ml-3 focus-ring">Elimina</button>
-                            </div>
-                          </div>
-                        </Card>
-                      ))}
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </>
-        )}
 
         {viewMode === 'month' && (
           <>
@@ -805,9 +708,9 @@ export default function Bookings() {
               </div>
             </div>
 
-            {/* Mobile stacked list */}
+            {/* Mobile grid - simplified: only day and count (larger) */}
             <div className="sm:hidden p-3">
-              <div className="grid grid-cols-7 gap-2 auto-rows-[minmax(72px,auto)]">
+              <div className="grid grid-cols-7 gap-2 auto-rows-[minmax(96px,auto)]">
                 {getMonthDays(currentDate).map((day) => {
                   const dayBookings = getBookingsForDate(day)
                   const isToday = day.toDateString() === new Date().toDateString()
@@ -817,23 +720,9 @@ export default function Bookings() {
                       key={day.toDateString()}
                       onClick={() => { setPressedDay(day.toDateString()); window.setTimeout(()=>{ setPressedDay(null); openDayListModal(day) }, 120) }}
                       aria-label={`Apri prenotazioni ${day.toLocaleDateString('it-IT')}`}
-                      className={`p-3 rounded border text-left text-[12px] ${pressedDay === day.toDateString() ? 'scale-95 transform transition-transform duration-100' : ''} ${isToday ? 'bg-amber-50 dark:bg-amber-900/10 border-amber-200' : 'border-neutral-200 dark:border-neutral-700'} ${!isCurrentMonth ? 'opacity-50' : ''}`}>
-                      <div className="flex items-center justify-between mb-1">
-                        <div className="font-medium text-sm">{day.toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric' })}</div>
-                        <div className="text-sm text-neutral-500">{dayBookings.length}</div>
-                      </div>
-                      <div className="flex flex-col gap-1">
-                        {dayBookings.slice(0,3).map(b => (
-                          <div key={b.id} title={bookingTitle(b)} className="flex items-center justify-between text-[12px] text-neutral-700 dark:text-neutral-200">
-                            <div className="flex items-center gap-2 truncate">
-                              {compactDot(b)}
-                              <span className="truncate max-w-[90px]">{new Date(b.start_time).toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'})} {(b.customer_name?.slice(0,12)) || ''}</span>
-                            </div>
-                            <div className="text-[11px] text-neutral-500">{b.paid ? '●' : b.invoiced ? '●' : ''}</div>
-                          </div>
-                        ))}
-                        {dayBookings.length > 3 && <div className="text-[12px] text-neutral-500">+{dayBookings.length - 3} altre</div>}
-                      </div>
+                      className={`p-3 rounded border text-center text-sm ${pressedDay === day.toDateString() ? 'scale-95 transform transition-transform duration-100' : ''} ${isToday ? 'bg-amber-50 dark:bg-amber-900/10 border-amber-200' : 'border-neutral-200 dark:border-neutral-700'} ${!isCurrentMonth ? 'opacity-50' : ''}`}>
+                      <div className="font-medium">{day.getDate()}</div>
+                      <div className={`text-lg font-semibold ${dayBookings.length > 0 ? 'text-red-500' : 'text-neutral-500'}`}>{dayBookings.length}</div>
                     </button>
                   )
                 })}
@@ -981,14 +870,14 @@ export default function Bookings() {
                     </div>
                     <div className="mt-1 text-sm text-neutral-600 dark:text-neutral-300">{b.notes ? (b.notes.length > 150 ? b.notes.slice(0,150) + '…' : b.notes) : ''}</div>
                     <div className="mt-2 flex items-center gap-3 text-sm">
-                      <div className="text-neutral-500">{equipmentCount(b)} attrezzatura{equipmentCount(b) > 1 ? 'e' : ''}</div>
+                      <div className="text-neutral-500">{equipmentLabel(b)}</div>
                       {b.paid && <div className="text-green-600 font-semibold">Pagato</div>}
+                      {b.invoiced && <div className="text-blue-600 font-semibold">Fatturato</div>}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <button onClick={() => { setSelectedBooking(b); setShowBookingDetails(true); setShowDayListModal(false) }} className="text-sm px-3 py-1 rounded bg-white/50 dark:bg-neutral-700/50">Dettagli</button>
                     {!b.paid && <button onClick={() => { markPaid(b.id) }} className="text-sm px-3 py-1 rounded bg-green-600 text-white">Segna come pagato</button>}
-                    <button onClick={() => { if (confirm('Eliminare questa prenotazione?')) { removeBooking(b.id); } }} className="text-sm px-3 py-1 rounded border text-red-500">Elimina</button>
                   </div>
                 </div>
               </div>
