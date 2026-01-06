@@ -428,7 +428,7 @@ export default function Reports() {
   const profitValue = (revenueSum - expensesSum - ivaAmount).toFixed(2) + ' €'
 
   return (
-    <div className="w-full px-3 sm:px-4 lg:px-6 py-4 sm:py-6">
+    <div className="w-full px-2 sm:px-4 lg:px-6 py-4 sm:py-6">
       <div className="flex items-center justify-between mb-3 sm:mb-4 flex-wrap gap-3">
         <PageTitle className="m-0">Amministrazione e Report</PageTitle>
         <div className="flex items-center gap-4">
