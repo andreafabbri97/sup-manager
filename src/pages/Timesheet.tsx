@@ -152,8 +152,19 @@ export default function TimesheetPage() {
 
   async function updateStatus(id: string, status: string) {
     const { error } = await supabase.from('shifts').update({ status }).eq('id', id)
-    if (error) return alert(error.message)
+    if (error) { window.dispatchEvent(new CustomEvent('toast', { detail: { message: error.message, type: 'error' } })); return }
     loadShifts()
+  }
+
+  async function approve(id: string, action: 'approved' | 'rejected') {
+    try {
+      const { approveShift } = await import('../lib/shifts')
+      await approveShift(id, action)
+      window.dispatchEvent(new CustomEvent('toast', { detail: { message: action === 'approved' ? 'Turno approvato' : 'Turno rifiutato', type: 'success' } }))
+      loadShifts()
+    } catch (e: any) {
+      window.dispatchEvent(new CustomEvent('toast', { detail: { message: e.message || 'Errore approvazione', type: 'error' } }))
+    }
   }
 
   async function removeShift(id: string) {
@@ -236,6 +247,13 @@ export default function TimesheetPage() {
                   {shift.status !== 'cancelled' && <Button size="sm" variant="ghost" onClick={()=>updateStatus(shift.id, 'cancelled')}>Annulla</Button>}
                   <Button size="sm" variant="secondary" onClick={()=>openEdit(shift)}>Modifica</Button>
                   <Button size="sm" variant="ghost" onClick={()=>removeShift(shift.id)}>Elimina</Button>
+                  {/* Approval controls for admins */}
+                  {isAdmin && shift.approval_status !== 'approved' && (
+                    <Button size="sm" variant="secondary" onClick={() => approve(shift.id, 'approved')}>Approva</Button>
+                  )}
+                  {isAdmin && shift.approval_status !== 'rejected' && (
+                    <Button size="sm" variant="ghost" onClick={() => approve(shift.id, 'rejected')}>Rifiuta</Button>
+                  )}
                 </div>
               </Card>
             ))}
