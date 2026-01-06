@@ -139,8 +139,8 @@ export default function Modal({ isOpen, onClose, title, children, autoFocus = tr
       openFullTriggered.current = false
     } else {
       if (contentRef.current && !userExpanded) {
-        // default opening height: if fullScreenMobile is requested we still use the '60vh' default
-        contentRef.current.style.maxHeight = fullScreenMobile ? '60vh' : ''
+        // default opening height: on mobile, if fullScreenMobile is requested we still use the '60vh' default
+        contentRef.current.style.maxHeight = (isMobile && fullScreenMobile) ? '60vh' : ''
       }
       // If caller requested opening full-screen on mobile, expand automatically ONCE
       if (isMobile && openFullMobile && contentRef.current && !openFullTriggered.current) {
