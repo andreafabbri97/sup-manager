@@ -778,10 +778,10 @@ export default function Bookings() {
           <div className="p-4">
               <div className="space-y-1">
               {getBookingsForDate(currentDate).map(b => (
-                <button key={b.id} title={bookingTitle(b)} onClick={() => { setSelectedBooking(b); setShowBookingDetails(true) }} className={`w-full text-left p-4 rounded-md bg-amber-50/70 dark:bg-neutral-800/60 interactive ${statusClass(b)} min-h-[56px] sm:min-h-[48px] ${b.paid ? 'border border-green-400 dark:border-green-600' : (b.invoiced ? 'border border-blue-400 dark:border-blue-600' : 'border border-amber-300 dark:border-amber-600')}`}>
+                <div key={b.id} role="button" tabIndex={0} title={bookingTitle(b)} onClick={() => { setSelectedBooking(b); setShowBookingDetails(true) }} className={`w-full text-left p-4 rounded-md bg-amber-50/70 dark:bg-neutral-800/60 interactive ${statusClass(b)} min-h-[56px] sm:min-h-[48px] ${b.paid ? 'border border-green-400 dark:border-green-600' : (b.invoiced ? 'border border-blue-400 dark:border-blue-600' : 'border border-amber-300 dark:border-amber-600')}`}>
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
-                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between">
+                      <div className="flex flex-col items-start justify-between">
                         <div className="flex items-center gap-2">
                           <div className="font-medium truncate text-neutral-900 dark:text-neutral-100 text-lg sm:text-base">{b.customer_name || 'Cliente'}</div>
                           {formatPhoneForWhatsApp(b.customer_phone) && (
@@ -800,7 +800,7 @@ export default function Bookings() {
                             </a>
                           )}
                         </div>
-                      <div className="text-sm text-neutral-500 mt-1 sm:mt-0 sm:ml-3 break-words booking-time">{formatTimeRange(b)}</div> 
+                      <div className="w-full text-sm text-neutral-500 mt-1 break-words booking-time">{formatTimeRange(b)}</div>
                       </div>
                       <div className="mt-1 text-sm text-neutral-600 dark:text-neutral-300">{b.notes ? (b.notes.length > 100 ? b.notes.slice(0,100) + '…' : b.notes) : ''}</div>
                       <div className="mt-1 flex items-center gap-2 text-sm">
@@ -821,7 +821,7 @@ export default function Bookings() {
                       </div>
                     </div>
                   </div>
-                </button>
+                </div>
               ))}
               {getBookingsForDate(currentDate).length === 0 && (
                 <div className="text-center py-12 text-neutral-500 dark:text-neutral-400">Nessuna prenotazione per questa giornata</div>
@@ -852,7 +852,10 @@ export default function Bookings() {
                         {dayBookings.slice(0, 6).map(b => (
                           <button key={b.id} title={bookingTitle(b)} onClick={() => { setSelectedBooking(b); setShowBookingDetails(true) }} className="inline-flex items-center gap-2 px-1 py-0.5 rounded bg-neutral-100 dark:bg-neutral-800 text-xs truncate">
                             {compactDot(b)}
-                            <span className="truncate max-w-[90px]">{new Date(b.start_time).toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'})} — {(b.customer_name || 'Cliente').slice(0,12)}</span>
+                            <div className="flex flex-col truncate max-w-[90px]">
+                              <span className="truncate font-medium">{(b.customer_name || 'Cliente').slice(0,12)}</span>
+                              <span className="text-xs text-neutral-500">{new Date(b.start_time).toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'})} — {new Date(b.end_time).toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'})}</span>
+                            </div>
                           </button>
                         ))}
                         {dayBookings.length > 6 && (
