@@ -263,7 +263,7 @@ export default function Bookings() {
       window.removeEventListener('realtime:booking', onRealtimeBooking as any)
       window.removeEventListener('sups:navigate', onNavigate as any)
     }
-  }, [bookings])
+  }, [])
 
   // Render helper for day list to simplify inline JSX
   function renderDayList() {
