@@ -19,8 +19,8 @@ export default function PWAInstallPrompt() {
     const dismissed = localStorage.getItem('pwa-install-dismissed')
     if (dismissed) {
       const ts = Number(dismissed)
-      // keep dismissed for 30 days
-      if (Number.isFinite(ts) && (Date.now() - ts) < 30 * 24 * 60 * 60 * 1000) return
+      // keep dismissed for 2 minutes
+      if (Number.isFinite(ts) && (Date.now() - ts) < 2 * 60 * 1000) return
       // otherwise let the prompt show again
     }
 
