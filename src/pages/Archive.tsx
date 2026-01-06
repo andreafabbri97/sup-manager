@@ -33,8 +33,14 @@ export default function Archive({ start: propStart, end: propEnd }: { start?: st
     let q: any = supabase.from('booking').select('*').order('start_time', { ascending: false }).limit(1000)
     if (start) q = q.gte('start_time', start + 'T00:00:00')
     if (end) q = q.lte('start_time', end + 'T23:59:59')
-    if (invoicedFilter === 'yes') q = q.not('invoice_number', 'is', null)
-    if (invoicedFilter === 'no') q = q.is('invoice_number', null)
+    if (invoicedFilter === 'yes') {
+      // consider bookings invoiced either by having an invoice number or explicit invoiced flag
+      q = q.or('invoiced.eq.true,invoice_number.not.is.null')
+    }
+    if (invoicedFilter === 'no') {
+      // neither invoiced flag nor invoice number
+      q = q.not('invoiced','eq',true).is('invoice_number', null)
+    }
     if (paidFilter === 'yes') q = q.eq('paid', true)
     if (paidFilter === 'no') q = q.eq('paid', false)
     if (qCustomer) q = q.ilike('customer_name', `%${qCustomer}%`)
@@ -142,7 +148,7 @@ export default function Archive({ start: propStart, end: propEnd }: { start?: st
             <div className="flex items-center justify-between">
               <div>
                 <div className="font-medium">{b.customer_name}</div>
-                <div className="text-xs text-neutral-400">{new Date(b.start_time).toLocaleString('it-IT', { day: '2-digit', month: 'short', year: 'numeric' })} • {b.invoice_number ?? '—'}</div>
+                <div className="text-xs text-neutral-400">{new Date(b.start_time).toLocaleString('it-IT', { day: '2-digit', month: 'short', year: 'numeric' })} • {b.invoice_number ?? (b.invoiced ? 'Fatturata' : '—')}</div>
               </div>
               <div className="text-sm text-neutral-500">{b.paid ? 'Pagato' : 'Non pagato'}</div>
             </div>
@@ -161,7 +167,7 @@ export default function Archive({ start: propStart, end: propEnd }: { start?: st
                 <tr key={b.id} role="button" tabIndex={0} onClick={(e) => { if ((e.target as HTMLElement).closest('button')) return; setDetail(b); setShowDetail(true) }} onKeyDown={(e:any) => { if (e.key === 'Enter') { setDetail(b); setShowDetail(true) } }} className="border-t border-neutral-100 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-800 cursor-pointer">
                   <td className="py-2">{new Date(b.start_time).toLocaleString('it-IT', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
                   <td>{b.customer_name}</td>
-                  <td>{b.invoice_number ?? '—'}</td>
+                  <td>{b.invoice_number ?? (b.invoiced ? 'Sì' : '—')}</td>
                   <td>{b.price ? `€ ${Number(b.price).toFixed(2)}` : '—'}</td>
                   <td>{b.paid ? 'Sì' : 'No'}</td>
                   <td>
@@ -200,6 +206,7 @@ export default function Archive({ start: propStart, end: propEnd }: { start?: st
             <div><strong>Periodo:</strong> {new Date(detail.start_time).toLocaleString('it-IT')} — {new Date(detail.end_time).toLocaleString('it-IT')}</div>
             <div><strong>Prezzo:</strong> {detail.price ? `€ ${Number(detail.price).toFixed(2)}` : '—'}</div>
             <div><strong>Fattura:</strong> {detail.invoice_number ?? '—'}</div>
+            <div><strong>Fatturato:</strong> {detail.invoiced ? 'Sì' : 'No'}</div>
             <div><strong>Pagato:</strong> {detail.paid ? 'Sì' : 'No'}</div>
             <div><strong>Note:</strong> {detail.notes ?? '—'}</div>
             <div className="mt-2 flex gap-2">
