@@ -11,6 +11,7 @@ export default function Bookings() {
   const [equipment, setEquipment] = useState<any[]>([])
   const [packages, setPackages] = useState<any[]>([])
   const [bookings, setBookings] = useState<any[]>([])
+  const [customers, setCustomers] = useState<any[]>([])
   const [selectedBooking, setSelectedBooking] = useState<any | null>(null)
   const [showBookingDetails, setShowBookingDetails] = useState(false)
   // detail modal local state (to avoid mutating selectedBooking directly)
@@ -49,6 +50,11 @@ export default function Bookings() {
   // Customer matching & suggestion modal
   const [showAddCustomerModal, setShowAddCustomerModal] = useState(false)
   const [pendingCustomerData, setPendingCustomerData] = useState<{name: string, phone: string} | null>(null)
+  const [pendingBookingData, setPendingBookingData] = useState<any | null>(null)
+  
+  // Autocomplete state
+  const [customerSearchQuery, setCustomerSearchQuery] = useState('')
+  const [showCustomerDropdown, setShowCustomerDropdown] = useState(false)
 
   // Day-list modal state (for +N overflow)
   const [showDayListModal, setShowDayListModal] = useState(false)
@@ -149,9 +155,11 @@ export default function Bookings() {
     const { data: eq } = await supabase.from('equipment').select('*').order('name')
     const { data: p } = await supabase.from('package').select('*')
     const { data: b } = await supabase.from('booking').select('*').order('start_time', { ascending: true })
+    const { data: c } = await supabase.from('customers').select('*').order('name')
     setEquipment(eq || [])
     setPackages(p || [])
     setBookings(b || [])
+    setCustomers(c || [])
   }
 
   useEffect(() => {
@@ -214,6 +222,15 @@ export default function Bookings() {
       window.removeEventListener('navigate:booking', onNavigate)
     }
   }, [])
+
+  // Close customer dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => setShowCustomerDropdown(false)
+    if (showCustomerDropdown) {
+      document.addEventListener('click', handleClickOutside)
+      return () => document.removeEventListener('click', handleClickOutside)
+    }
+  }, [showCustomerDropdown])
 
   // recompute price preview when inputs change
   useEffect(() => {
@@ -452,12 +469,26 @@ export default function Bookings() {
       if (existingCustomers && existingCustomers.length > 0) {
         customerId = existingCustomers[0].id
       } else if (customerName.trim()) {
-        // Customer not found, suggest adding to anagrafica
-        shouldAskToAddCustomer = true
+        // Customer not found - BLOCCO e chiedo conferma PRIMA di salvare
+        setPendingBookingData({
+          customer_name: customerName,
+          customer_phone: customerPhone.trim(),
+          start_time: new Date(startTime).toISOString(),
+          end_time: end_time.toISOString(),
+          price,
+          package_id: selectedPackage,
+          equipment_items: mergedEquipment,
+          mergedEquipment, // per availability check
+          duration
+        })
+        setPendingCustomerData({ name: customerName.trim(), phone: customerPhone.trim() })
+        setShowAddCustomerModal(true)
+        return // BLOCCO qui, non salvo ancora
       }
     }
 
-    const bookingData = {
+    // Se arrivo qui, procedo direttamente a salvare (cliente già in anagrafica o no telefono)
+    await completeSaveBooking({
       customer_name: customerName,
       customer_phone: customerPhone.trim() || null,
       customer_id: customerId,
@@ -465,11 +496,18 @@ export default function Bookings() {
       end_time: end_time.toISOString(),
       price,
       package_id: selectedPackage,
-      equipment_items: mergedEquipment
-    }
+      equipment_items: mergedEquipment,
+      mergedEquipment,
+      duration
+    })
+  }
+
+  async function completeSaveBooking(bookingData: any) {
+    const { mergedEquipment, duration, customer_id, ...dbData } = bookingData
+    const end_time = new Date(bookingData.start_time)
+    end_time.setMinutes(end_time.getMinutes() + (duration || durationMinutes))
 
     // --- Availability check: ensure requested quantities do not exceed available inventory ---
-    // For each selected equipment item, sum quantities from existing overlapping bookings
     function timesOverlap(aStart: string | Date, aEnd: string | Date, bStart: string | Date, bEnd: string | Date) {
       const Astart = new Date(aStart)
       const Aend = new Date(aEnd)
@@ -479,7 +517,7 @@ export default function Bookings() {
     }
 
     // check availability for merged items (package + manual selection)
-    const itemsToCheck = mergedEquipment
+    const itemsToCheck = mergedEquipment || []
 
     for (const item of itemsToCheck) {
       const eq = equipment.find(e => e.id === item.id)
@@ -491,7 +529,7 @@ export default function Bookings() {
 
       for (const b of bookings) {
         if (!b.start_time || !b.end_time) continue
-        if (!timesOverlap(startTime, end_time.toISOString(), b.start_time, b.end_time)) continue
+        if (!timesOverlap(bookingData.start_time, end_time.toISOString(), b.start_time, b.end_time)) continue
         const items = b.equipment_items || []
         for (const bi of items) {
           if (bi?.id === item.id) bookedQty += Number(bi.quantity || 1)
@@ -507,20 +545,20 @@ export default function Bookings() {
     // Use server-side RPC to ensure transactional availability checks
     try {
       const { data, error } = await supabase.rpc('create_booking', {
-        p_customer_name: bookingData.customer_name,
-        p_start: bookingData.start_time,
-        p_end: bookingData.end_time,
-        p_price: bookingData.price,
-        p_package: bookingData.package_id,
-        p_equipment_items: bookingData.equipment_items
+        p_customer_name: dbData.customer_name,
+        p_start: dbData.start_time,
+        p_end: dbData.end_time,
+        p_price: dbData.price,
+        p_package: dbData.package_id,
+        p_equipment_items: dbData.equipment_items
       })
       if (error) throw error
       // RPC returns the created booking id (table result). Update with customer_phone, customer_id, paid/invoiced if user set them
       const createdId = Array.isArray(data) ? data[0]?.id : (data?.id ?? null)
       if (createdId) {
         const payload: any = {}
-        if (bookingData.customer_phone) payload.customer_phone = bookingData.customer_phone
-        if (customerId) payload.customer_id = customerId
+        if (dbData.customer_phone) payload.customer_phone = dbData.customer_phone
+        if (customer_id) payload.customer_id = customer_id
         if (newPaid) {
           payload.paid = true
           payload.paid_at = new Date().toISOString()
@@ -533,12 +571,6 @@ export default function Bookings() {
           const { error: upErr } = await supabase.from('booking').update(payload).eq('id', createdId)
           if (upErr) throw upErr
         }
-      }
-      
-      // If customer not in anagrafica, ask user if they want to add
-      if (shouldAskToAddCustomer && customerName.trim() && customerPhone.trim()) {
-        setPendingCustomerData({ name: customerName.trim(), phone: customerPhone.trim() })
-        setShowAddCustomerModal(true)
       }
       
     } catch (err: any) {
@@ -555,10 +587,6 @@ export default function Bookings() {
     
     resetForm()
     setShowModal(false)
-    setNewPaid(false)
-    setNewInvoiced(false)
-    setNewInvoiceNumber(null)
-    setNewNotes('')
     load()
   }
 
@@ -566,18 +594,39 @@ export default function Bookings() {
     if (!pendingCustomerData) return
     
     try {
-      const { error } = await supabase.from('customers').insert({
+      const { data, error } = await supabase.from('customers').insert({
         name: pendingCustomerData.name,
         phone: pendingCustomerData.phone
-      })
+      }).select()
       
       if (error) throw error
       
-      alert('Cliente aggiunto all\'anagrafica!')
+      const newCustomerId = data?.[0]?.id || null
+      
+      // Se c'è una prenotazione in attesa, completa il salvataggio con il nuovo customer_id
+      if (pendingBookingData) {
+        await completeSaveBooking({
+          ...pendingBookingData,
+          customer_id: newCustomerId
+        })
+        setPendingBookingData(null)
+      }
+      
+      load() // ricarica anche la lista customers
     } catch (err: any) {
       alert('Errore durante l\'aggiunta del cliente: ' + (err?.message || String(err)))
     }
     
+    setShowAddCustomerModal(false)
+    setPendingCustomerData(null)
+  }
+
+  async function skipAddCustomerToAnagrafica() {
+    // Salva prenotazione senza aggiungere cliente in anagrafica
+    if (pendingBookingData) {
+      await completeSaveBooking(pendingBookingData)
+      setPendingBookingData(null)
+    }
     setShowAddCustomerModal(false)
     setPendingCustomerData(null)
   }
@@ -847,12 +896,54 @@ export default function Bookings() {
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-1">Cliente</label>
-            <input
-              value={customerName}
-              onChange={(e) => setCustomerName(e.target.value)}
-              placeholder="Nome cliente"
-              className="w-full border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-slate-700 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-amber-500"
-            />
+            <div className="relative">
+              <input
+                value={customerName}
+                onChange={(e) => {
+                  setCustomerName(e.target.value)
+                  setCustomerSearchQuery(e.target.value)
+                  setShowCustomerDropdown(true)
+                }}
+                onClick={(e) => e.stopPropagation()}
+                onFocus={() => setShowCustomerDropdown(true)}
+                placeholder="Nome cliente (inizia a digitare per cercare in anagrafica)"
+                className="w-full border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-slate-700 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-amber-500"
+              />
+              {showCustomerDropdown && customerSearchQuery && (
+                <div onClick={(e) => e.stopPropagation()} className="absolute z-50 w-full mt-1 bg-white dark:bg-slate-800 border border-neutral-300 dark:border-neutral-600 rounded shadow-lg max-h-48 overflow-y-auto">
+                  {customers.filter(c => 
+                    c.name.toLowerCase().includes(customerSearchQuery.toLowerCase()) ||
+                    c.phone?.toLowerCase().includes(customerSearchQuery.toLowerCase())
+                  ).slice(0, 5).map(customer => (
+                    <button
+                      key={customer.id}
+                      type="button"
+                      onClick={() => {
+                        setCustomerName(customer.name)
+                        setCustomerPhone(customer.phone || '')
+                        setShowCustomerDropdown(false)
+                        setCustomerSearchQuery('')
+                      }}
+                      className="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between gap-2"
+                    >
+                      <div>
+                        <div className="font-medium">{customer.name}</div>
+                        {customer.phone && <div className="text-xs text-neutral-500">{customer.phone}</div>}
+                      </div>
+                      <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </button>
+                  ))}
+                  {customers.filter(c => 
+                    c.name.toLowerCase().includes(customerSearchQuery.toLowerCase()) ||
+                    c.phone?.toLowerCase().includes(customerSearchQuery.toLowerCase())
+                  ).length === 0 && (
+                    <div className="px-3 py-2 text-sm text-neutral-500">Nessun cliente trovato in anagrafica</div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
 
           <div>
@@ -1198,7 +1289,7 @@ export default function Bookings() {
       </Modal>
 
       {/* Modal for suggesting adding customer to anagrafica */}
-      <Modal isOpen={showAddCustomerModal} onClose={() => { setShowAddCustomerModal(false); setPendingCustomerData(null) }} title="Aggiungi cliente all'anagrafica?">
+      <Modal isOpen={showAddCustomerModal} onClose={() => { skipAddCustomerToAnagrafica() }} title="Aggiungi cliente all'anagrafica?">
         {pendingCustomerData && (
           <div className="space-y-4">
             <p className="text-neutral-700 dark:text-neutral-300">
@@ -1208,10 +1299,10 @@ export default function Bookings() {
               Vuoi aggiungerlo ora per poterlo richiamare velocemente nelle prossime prenotazioni?
             </p>
             <div className="flex gap-2 justify-end">
-              <button onClick={() => { setShowAddCustomerModal(false); setPendingCustomerData(null) }} className="px-4 py-2 rounded border border-neutral-300 dark:border-neutral-600">
-                No, grazie
+              <button onClick={skipAddCustomerToAnagrafica} className="px-4 py-2 rounded border border-neutral-300 dark:border-neutral-600 hover:bg-neutral-100 dark:hover:bg-neutral-700">
+                No
               </button>
-              <button onClick={addCustomerToAnagrafica} className="bg-amber-500 text-white px-4 py-2 rounded">
+              <button onClick={addCustomerToAnagrafica} className="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded">
                 Sì, aggiungi
               </button>
             </div>
