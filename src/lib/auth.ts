@@ -37,3 +37,13 @@ export async function getCurrentUserRole() {
 export function clearCachedRole() {
   cachedRole = null
 }
+
+export async function getCurrentUserId() {
+  try {
+    const res = await supabase.auth.getUser()
+    const user = (res as any)?.data?.user
+    return user?.id ?? null
+  } catch (e) {
+    return null
+  }
+}

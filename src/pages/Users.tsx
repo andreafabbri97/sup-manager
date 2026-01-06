@@ -22,6 +22,17 @@ export default function UsersPage() {
   const [loading, setLoading] = useState(false)
   const [newUserId, setNewUserId] = useState('')
   const [newRole, setNewRole] = useState<'admin' | 'staff'>('staff')
+  const [isAdmin, setIsAdmin] = useState(false)
+
+  useEffect(() => {
+    let mounted = true
+    import('../lib/auth').then(({ getCurrentUserRole }) => {
+      getCurrentUserRole().then(r => { if (mounted) setIsAdmin(r === 'admin') })
+    })
+    const onAuthChanged = () => { import('../lib/auth').then(({ getCurrentUserRole }) => getCurrentUserRole().then(r => setIsAdmin(r === 'admin'))) }
+    window.addEventListener('auth:changed', onAuthChanged as any)
+    return () => { mounted = false; window.removeEventListener('auth:changed', onAuthChanged as any) }
+  }, [])
 
   useEffect(() => {
     load()
@@ -42,8 +53,9 @@ export default function UsersPage() {
 
   async function upsertUser(id: string, role: 'admin' | 'staff') {
     if (!id) return
+    if (!isAdmin) { window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Accesso negato', type: 'error' } })); return }
     const { error } = await supabase.from('app_user').upsert({ id, role })
-    if (error) { alert(error.message); return }
+    if (error) { window.dispatchEvent(new CustomEvent('toast', { detail: { message: error.message, type: 'error' } })); return }
     setUsers((prev) => {
       const existing = prev.find((u) => u.id === id)
       if (existing) return prev.map((u) => (u.id === id ? { ...u, role } : u))
@@ -53,9 +65,10 @@ export default function UsersPage() {
   }
 
   async function removeUser(id: string) {
+    if (!isAdmin) { window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Accesso negato', type: 'error' } })); return }
     if (!window.confirm('Rimuovere questo utente?')) return
     const { error } = await supabase.from('app_user').delete().eq('id', id)
-    if (error) { alert(error.message); return }
+    if (error) { window.dispatchEvent(new CustomEvent('toast', { detail: { message: error.message, type: 'error' } })); return }
     setUsers((prev) => prev.filter((u) => u.id !== id))
     window.dispatchEvent(new CustomEvent('auth:changed'))
   }

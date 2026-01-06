@@ -17,7 +17,7 @@ interface Shift {
   end_at: string
   status: string
   duration_hours: number
-  employee?: { name: string }
+  employee?: { name: string; auth_user_id?: string | null }
 }
 
 const statusLabels: Record<string, string> = {
@@ -51,13 +51,32 @@ export default function TimesheetPage() {
     setEmployees(data || [])
   }
 
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+  const [isAdmin, setIsAdmin] = useState(false)
+
   async function loadShifts() {
     setLoading(true)
-    const { data, error } = await supabase.from('shifts').select('id, employee_id, start_at, end_at, status, duration_hours, employees(name)').order('start_at', { ascending: false }).limit(200)
+    const { data, error } = await supabase.from('shifts').select('id, employee_id, start_at, end_at, status, duration_hours, employees(name, auth_user_id)').order('start_at', { ascending: false }).limit(200)
     setLoading(false)
     if (error) { window.dispatchEvent(new CustomEvent('toast', { detail: { message: error.message, type: 'error' } })); return }
     setShifts((data as any) || [])
   }
+
+  useEffect(() => {
+    ;(async () => {
+      try {
+        const { data } = await supabase.auth.getUser()
+        const user = (data as any)?.user
+        setCurrentUserId(user?.id ?? null)
+        const { getCurrentUserRole } = await import('../lib/auth')
+        const role = await getCurrentUserRole()
+        setIsAdmin(role === 'admin')
+      } catch (e) {
+        setCurrentUserId(null)
+        setIsAdmin(false)
+      }
+    })()
+  }, [])
 
   function openNew() {
     const now = new Date()
@@ -212,8 +231,8 @@ export default function TimesheetPage() {
                   </div>
                 </div>
                 <div className="flex gap-2 flex-wrap">
-                  {shift.status !== 'completed' && <Button size="sm" variant="secondary" onClick={()=>confirm(shift.id)}>Conferma</Button>}
-                  {shift.end_at === shift.start_at && <Button size="sm" variant="secondary" onClick={()=>stopShift(shift.id)}>Termina</Button>}
+                  {(shift.status !== 'completed' && (shift.employee?.auth_user_id === currentUserId || isAdmin)) && <Button size="sm" variant="secondary" onClick={()=>confirm(shift.id)}>Conferma</Button>}
+                  {(shift.end_at === shift.start_at && (shift.employee?.auth_user_id === currentUserId || isAdmin)) && <Button size="sm" variant="secondary" onClick={()=>stopShift(shift.id)}>Termina</Button>}
                   {shift.status !== 'cancelled' && <Button size="sm" variant="ghost" onClick={()=>updateStatus(shift.id, 'cancelled')}>Annulla</Button>}
                   <Button size="sm" variant="secondary" onClick={()=>openEdit(shift)}>Modifica</Button>
                   <Button size="sm" variant="ghost" onClick={()=>removeShift(shift.id)}>Elimina</Button>

@@ -9,7 +9,8 @@
     "lint": "eslint . --ext .ts,.tsx",
     "format": "prettier --write .",
     "test": "vitest",
-    "generate-icons": "node scripts/generate-icons.js"
+    "generate-icons": "node scripts/generate-icons.js",
+    "create:dev-admin": "node scripts/create_dev_admin.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.36.0",

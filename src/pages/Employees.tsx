@@ -37,6 +37,19 @@ export default function EmployeesPage() {
   const [roles, setRoles] = useState<Record<string, string>>({})
   const [availableUsers, setAvailableUsers] = useState<{id: string; role: string}[]>([])
   const [authWarning, setAuthWarning] = useState('')
+  const [isAdmin, setIsAdmin] = useState(false)
+
+  useEffect(() => {
+    let mounted = true
+    import('../lib/auth').then(({ getCurrentUserRole }) => {
+      getCurrentUserRole().then(r => { if (mounted) setIsAdmin(r === 'admin') })
+    })
+    const onAuthChanged = () => {
+      import('../lib/auth').then(({ getCurrentUserRole }) => getCurrentUserRole().then(r => setIsAdmin(r === 'admin')))
+    }
+    window.addEventListener('auth:changed', onAuthChanged as any)
+    return () => { mounted = false; window.removeEventListener('auth:changed', onAuthChanged as any) }
+  }, [])
 
   useEffect(() => {
     load()
@@ -199,16 +212,16 @@ export default function EmployeesPage() {
                 {emp.notes && <div className="text-sm mt-1 text-neutral-600 dark:text-neutral-300">{emp.notes}</div>}
               </div>
               <div className="flex gap-2 flex-wrap justify-end">
-                {emp.auth_user_id && (
+                {isAdmin && emp.auth_user_id && (
                   <>
                     <Button size="sm" variant="secondary" onClick={() => setRole(emp, 'admin')}>Rendi admin</Button>
                     <Button size="sm" variant="ghost" onClick={() => setRole(emp, 'staff')}>Rendi staff</Button>
                   </>
                 )}
                 <Button size="sm" variant="secondary" onClick={() => openEdit(emp)}>Modifica</Button>
-                <Button size="sm" variant="ghost" onClick={() => remove(emp.id)}>Elimina</Button>
+                {isAdmin ? <Button size="sm" variant="ghost" onClick={() => remove(emp.id)}>Elimina</Button> : null}
                 <div className="w-full sm:w-auto" />
-                <Button size="sm" variant="secondary" onClick={() => startShift(emp)}>Inizia turno</Button>
+                {isAdmin ? <Button size="sm" variant="secondary" onClick={() => startShift(emp)}>Inizia turno</Button> : null}
               </div>
             </Card>
           ))}
