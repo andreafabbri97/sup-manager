@@ -105,9 +105,9 @@ export default function Packages() {
       <div className="flex items-center justify-between mb-4">
         <div>
           <PageTitle className="m-0">I tuoi pacchetti</PageTitle>
+          <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">Crea pacchetti preimpostati per velocizzare le prenotazioni</p>
         </div>
         <div className="flex items-center gap-3">
-          <p className="text-sm text-neutral-500 dark:text-neutral-400 hidden sm:block">Crea pacchetti preimpostati per velocizzare le prenotazioni</p>
           <Button onClick={() => setShowModal(true)}>+ Nuovo Pacchetto</Button>
         </div>
       </div>
