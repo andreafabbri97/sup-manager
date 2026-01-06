@@ -17,6 +17,7 @@ export default function NotificationBell() {
   const [showPopup, setShowPopup] = useState(false)
   const [loading, setLoading] = useState(false)
   const [readIds, setReadIds] = useState<string[]>(() => JSON.parse(localStorage.getItem('notifs:read') || '[]'))
+  const [deletedIds, setDeletedIds] = useState<string[]>(() => JSON.parse(localStorage.getItem('notifs:deleted') || '[]'))
   const [selected, setSelected] = useState<Notification | null>(null)
   const [showDetail, setShowDetail] = useState(false)
   const [isMobile, setIsMobile] = useState<boolean>(() => {
@@ -26,19 +27,26 @@ export default function NotificationBell() {
       return mq.matches || Boolean(navigator?.maxTouchPoints) || ('ontouchstart' in window)
     } catch { return window.innerWidth < 768 }
   })
+  // ref to bell button (used to ignore clicks on the bell itself when closing on outside)
+  const bellRef = useRef<HTMLButtonElement | null>(null)
 
   // Ref for the popup element so we can detect outside clicks/touches
   const popupRef = useRef<HTMLDivElement | null>(null)
 
-  // Close popup when pointerdown / touchstart happens outside the popup (desktop only)
+  // Close popup when pointerdown / touchstart happens outside the popup
   useEffect(() => {
-    if (!showPopup || isMobile) return
+    if (!showPopup) return
     const onOutside = (ev: PointerEvent | TouchEvent) => {
       const target = ev.target as Node | null
-      if (!popupRef.current) return
-      if (!popupRef.current.contains(target)) {
-        setShowPopup(false)
+      // ignore clicks on the bell button itself
+      if (bellRef.current && bellRef.current.contains(target)) return
+      // if popupRef exists (desktop dropdown), close only when clicked outside it
+      if (popupRef.current) {
+        if (!popupRef.current.contains(target)) setShowPopup(false)
+        return
       }
+      // otherwise (mobile modal), any click outside (not stopped by modal stopPropagation) will bubble here and close
+      setShowPopup(false)
     }
     document.addEventListener('pointerdown', onOutside)
     document.addEventListener('touchstart', onOutside)
@@ -46,7 +54,7 @@ export default function NotificationBell() {
       document.removeEventListener('pointerdown', onOutside)
       document.removeEventListener('touchstart', onOutside)
     }
-  }, [showPopup, isMobile])
+  }, [showPopup])
 
   useEffect(() => {
     loadNotifications()
@@ -181,7 +189,7 @@ export default function NotificationBell() {
     )
   }
 
-  async function loadNotifications() {
+  async function loadNotifications(forceShowDeleted = false) {
     setLoading(true)
     const notifs: Notification[] = []
 
@@ -247,7 +255,9 @@ export default function NotificationBell() {
         })
       }
 
-      setNotifications(notifs)
+      // Filter out locally-deleted notifications unless a forced refresh was requested
+      const filtered = forceShowDeleted ? notifs : notifs.filter(n => !deletedIds.includes(n.id))
+      setNotifications(filtered)
     } catch (error) {
       console.error('Errore caricamento notifiche:', error)
     }
@@ -333,7 +343,15 @@ export default function NotificationBell() {
               </button>
 
               <button
-                onClick={() => { setNotifications(ns => ns.filter(n => n.id !== notif.id)); if (readIds.includes(notif.id)) { const ids = readIds.filter(i => i !== notif.id); setReadIds(ids); localStorage.setItem('notifs:read', JSON.stringify(ids)); } }}
+                onClick={() => {
+                  // persist deletion locally
+                  setNotifications(ns => ns.filter(n => n.id !== notif.id));
+                  const nextDeleted = Array.from(new Set([...deletedIds, notif.id]))
+                  setDeletedIds(nextDeleted)
+                  localStorage.setItem('notifs:deleted', JSON.stringify(nextDeleted))
+                  // also remove from readIds if present
+                  if (readIds.includes(notif.id)) { const ids = readIds.filter(i => i !== notif.id); setReadIds(ids); localStorage.setItem('notifs:read', JSON.stringify(ids)); }
+                }}
                 title="Elimina"
                 className="w-9 h-9 flex items-center justify-center rounded text-red-600 border"
               >
@@ -368,7 +386,7 @@ export default function NotificationBell() {
 
       <div className="p-2 border-t border-neutral-200 dark:border-neutral-700">
         <button
-          onClick={loadNotifications}
+          onClick={() => { localStorage.removeItem('notifs:deleted'); setDeletedIds([]); loadNotifications(true) }}
           className="w-full text-sm text-center py-2 text-blue-600 dark:text-blue-400 hover:bg-neutral-50 dark:hover:bg-neutral-700/50 rounded"
         >
           Ricarica
@@ -380,6 +398,7 @@ export default function NotificationBell() {
   return (
     <div className="relative">
       <button
+        ref={bellRef}
         onClick={() => {
             let mobile = false
             try {
@@ -416,7 +435,7 @@ export default function NotificationBell() {
               {notificationItems}
               <div className="pt-3 border-t border-neutral-200 dark:border-neutral-700">
                 <button
-                  onClick={loadNotifications}
+                  onClick={() => { localStorage.removeItem('notifs:deleted'); setDeletedIds([]); loadNotifications(true) }}
                   className="w-full text-sm text-center py-2 text-blue-600 dark:text-blue-400 hover:bg-neutral-50 dark:hover:bg-neutral-700/50 rounded"
                 >
                   Ricarica
@@ -454,7 +473,16 @@ export default function NotificationBell() {
             </div>
             <div className="flex gap-2">
               <button onClick={() => { const ids = [...readIds.filter(i => i !== selected.id), selected.id]; setReadIds(ids); localStorage.setItem('notifs:read', JSON.stringify(ids)); }} className="px-3 py-1 rounded border">Segna come letto</button>
-              <button onClick={() => { setNotifications(ns => ns.filter(n => n.id !== selected.id)); setShowDetail(false); setSelected(null); }} className="px-3 py-1 rounded text-red-600">Elimina</button>
+              <button onClick={() => {
+                if (selected?.id) {
+                  const nextDeleted = Array.from(new Set([...deletedIds, selected.id]))
+                  setDeletedIds(nextDeleted)
+                  localStorage.setItem('notifs:deleted', JSON.stringify(nextDeleted))
+                  setNotifications(ns => ns.filter(n => n.id !== selected.id))
+                  if (readIds.includes(selected.id)) { const ids = readIds.filter(i => i !== selected.id); setReadIds(ids); localStorage.setItem('notifs:read', JSON.stringify(ids)); }
+                }
+                setShowDetail(false); setSelected(null);
+              }} className="px-3 py-1 rounded text-red-600">Elimina</button>
             </div>
           </div>
         )}
