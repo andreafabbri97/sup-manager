@@ -1093,7 +1093,7 @@ export default function Bookings() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <div className="font-medium truncate">{formatTimeRange(b)} — {b.customer_name || 'Cliente'}</div>
+                        <div className="font-medium truncate">{formatTimeRange(b)} <span className="ml-2 inline">{b.customer_name || 'Cliente'}</span></div>
                         {formatPhoneForWhatsApp(b.customer_phone) && (
                           <a
                             href={`https://wa.me/${formatPhoneForWhatsApp(b.customer_phone)}`}
@@ -1109,7 +1109,6 @@ export default function Bookings() {
                           </a>
                         )}
                       </div>
-                      <div className="text-sm text-neutral-500">{b.price ? `€ ${Number(b.price).toFixed(2)}` : ''}</div>
                     </div>
                     <div className="mt-1 text-sm text-neutral-600 dark:text-neutral-300">{b.notes ? (b.notes.length > 150 ? b.notes.slice(0,150) + '…' : b.notes) : ''}</div>
                     <div className="mt-2 flex items-center gap-3 text-sm">
@@ -1119,8 +1118,13 @@ export default function Bookings() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <button onClick={() => { setSelectedBooking(b); setShowBookingDetails(true); setShowDayListModal(false) }} className="text-sm px-3 py-1 rounded bg-white/50 dark:bg-neutral-700/50">Dettagli</button>
-                    {!b.paid && <button onClick={() => { markPaid(b.id) }} className="text-sm px-3 py-1 rounded bg-green-600 text-white">Segna come pagato</button>}
+                    <div className="flex flex-col items-end">
+                      <div className="flex items-center gap-2">
+                        <button onClick={() => { setSelectedBooking(b); setShowBookingDetails(true); setShowDayListModal(false) }} className="text-sm px-3 py-1 rounded bg-white/50 dark:bg-neutral-700/50">Dettagli</button>
+                        {!b.paid && <button onClick={() => { markPaid(b.id) }} className="text-sm px-3 py-1 rounded bg-green-600 text-white">Segna come pagato</button>}
+                      </div>
+                      {b.price && <div className="text-sm text-neutral-500 mt-1">€ {Number(b.price).toFixed(2)}</div>}
+                    </div>
                   </div>
                 </div>
               </div>
