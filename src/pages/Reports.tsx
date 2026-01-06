@@ -53,7 +53,6 @@ export default function Reports() {
     return window.localStorage.getItem('reports_end') || new Date().toISOString().slice(0,10)
   })
 
-  const [revByEquip, setRevByEquip] = useState<any[]>([])
   const [daily, setDaily] = useState<any[]>([])
   const [dailyOrders, setDailyOrders] = useState<any[]>([])
   const [summary, setSummary] = useState<any[]>([])
@@ -73,7 +72,6 @@ export default function Reports() {
   // Metrics
   const [ivaPercent, setIvaPercent] = useState<number>(22)
   const [bookingsCount, setBookingsCount] = useState<number>(0)
-  const [topProducts, setTopProducts] = useState<any[]>([])
 
 
   // Admin (expenses)
@@ -131,8 +129,6 @@ export default function Reports() {
   async function loadReports() {
     setLoading(true)
     setUsedFallbackAggregation(false)
-    const { data: rev } = await supabase.rpc('report_revenue_by_equipment', { start_date: start, end_date: end })
-    setRevByEquip(rev ?? [])
     const { data: d } = await supabase.rpc('report_daily_revenue', { start_date: start, end_date: end })
     setDaily(d ?? [])
     try {
@@ -194,82 +190,7 @@ export default function Reports() {
       setBookingsCount(Number(finalBc))
     } catch (e) { setBookingsCount(Number(currentOrders)) }
 
-    // top products
-    try {
-      const { data: top } = await supabase.rpc('report_top_products', { start_date: start, end_date: end, p_limit: 10 })
-      const topArr = top ?? []
-      setTopProducts(topArr)
-      // Fallback: if revenue-by-equipment returned no rows, use top products data (merge equipment + packages)
-      if ((!rev || (Array.isArray(rev) && rev.length === 0)) && topArr.length > 0) {
-        const mapped = topArr.map((t:any) => ({ equipment: t.name, bookings_count: t.bookings_count, revenue: t.revenue }))
-        setRevByEquip(mapped)
-      }
 
-      // Additional fallback: if both rev and top products are empty but there are bookings,
-      // aggregate from the bookings table as a best-effort fallback so users still see stats.
-      if ((!rev || (Array.isArray(rev) && rev.length === 0)) && topArr.length === 0) {
-        try {
-          const { data: bookings } = await supabase
-            .from('booking')
-            .select('id, price, package_id, package(name), equipment_items')
-            .gte('start_time', start)
-            .lte('start_time', end)
-
-          if (bookings && bookings.length > 0) {
-            // collect equipment ids referenced in bookings
-            const equipIds = new Set<any>()
-            bookings.forEach((b:any) => {
-              if (Array.isArray(b.equipment_items)) b.equipment_items.forEach((it:any) => equipIds.add(it.id))
-            })
-
-            // fetch equipment names for mapping
-            const equipmentMap: Record<string,string> = {}
-            if (equipIds.size > 0) {
-              const { data: equips } = await supabase.from('equipment').select('id, name').in('id', Array.from(equipIds))
-              (equips || []).forEach((e:any) => { equipmentMap[String(e.id)] = e.name })
-            }
-
-            // aggregate counts and revenue (distribute booking price across referenced items)
-            const prodMap: Record<string, { bookings_count: number, revenue: number }> = {}
-            for (const b of bookings) {
-              const price = Number(b.price ?? 0)
-              const pkgName = b.package?.name
-              const equipItems = Array.isArray(b.equipment_items) ? b.equipment_items : []
-
-              const itemsCount = (pkgName ? 1 : 0) + equipItems.reduce((s:any, it:any) => s + Number(it.quantity || 1), 0) || 1
-              const share = itemsCount > 0 ? price / itemsCount : 0
-
-              if (pkgName) {
-                const name = pkgName || 'Pacchetto'
-                prodMap[name] = prodMap[name] || { bookings_count: 0, revenue: 0 }
-                prodMap[name].bookings_count += 1
-                prodMap[name].revenue += share
-              }
-
-              // count each equipment as one booking occurrence (not multiplied by quantity) but revenue by qty
-              const seenEquip = new Set<any>()
-              for (const it of equipItems) {
-                const id = it.id
-                const qty = Number(it.quantity || 1)
-                const name = equipmentMap[String(id)] || `Attrezzatura ${id}`
-                prodMap[name] = prodMap[name] || { bookings_count: 0, revenue: 0 }
-                if (!seenEquip.has(id)) { prodMap[name].bookings_count += 1; seenEquip.add(id) }
-                prodMap[name].revenue += share * qty
-              }
-            }
-
-            const topFromBookings = Object.entries(prodMap).map(([name, v]) => ({ name, bookings_count: v.bookings_count, revenue: Number(v.revenue.toFixed(2)) }))
-            // set both topProducts and revByEquip so UI shows meaningful data
-            setTopProducts(topFromBookings.sort((a:any,b:any)=>b.revenue - a.revenue))
-            setRevByEquip(topFromBookings.map((t:any)=>({ equipment: t.name, bookings_count: t.bookings_count, revenue: t.revenue })))
-            setUsedFallbackAggregation(true)
-          }
-        } catch (err) {
-          // ignore and keep arrays empty
-          console.warn('Fallback aggregation from bookings failed', err)
-        }
-      }
-    } catch (e) { setTopProducts([]) }
 
     setLoading(false)
   }
@@ -512,44 +433,6 @@ export default function Reports() {
                   <div className="h-64 sm:h-72 lg:h-80 animate-fade-up"><div className="h-full"><Line data={revenueData} options={revenueOptions} /></div></div>
                 </div>
                 <div>
-                  <div className="text-sm text-neutral-500 dark:text-neutral-300">Entrate per attrezzatura</div>
-
-                  {/* Table for sm+ */}
-                  <div className="hidden sm:block mt-2">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="text-left text-neutral-500 dark:text-neutral-300"><th>Attrezzatura</th><th>Prenotazioni</th><th>Incasso</th></tr>
-                      </thead>
-                      <tbody>
-                        {revByEquip.map((r:any)=> (
-                          <tr key={r.equipment} className="border-t border-neutral-100 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors">
-                            <td className="py-2">{r.equipment}</td>
-                            <td className="py-2">{r.bookings_count}</td>
-                            <td className="py-2">{Number(r.revenue).toFixed(2)} €</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-
-                  {/* Stacked cards for mobile */}
-                  <div className="sm:hidden mt-2 space-y-2">
-                    {revByEquip.map((r:any)=> (
-                      <Card key={r.equipment} className="interactive">
-                        <div className="flex items-center justify-between">
-                          <div className="font-medium">{r.equipment}</div>
-                          <div className="text-sm text-neutral-500">{Number(r.revenue).toFixed(2)} €</div>
-                        </div>
-                        <div className="text-xs text-neutral-400 mt-1">Prenotazioni: {r.bookings_count}</div>
-                      </Card>
-                    ))}
-                    {revByEquip.length === 0 && <div className="text-neutral-500">Nessuna entrata</div>}
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <div className="mb-4">
                   <div className="text-sm text-neutral-500">Statistiche rapide</div>
                   <div className="mt-2 space-y-2">
                     <Card className="p-2">
@@ -566,55 +449,11 @@ export default function Reports() {
                     </div>
                   </div>
                 </div>
-                <div>
-                  <div className="text-sm text-neutral-500">Top attrezzature (incasso)</div>
-                  <div className="mt-2">
-                    {revByEquip.slice(0,3).map((r:any)=> (
-                      <div key={r.equipment} className="py-2 border-b border-neutral-100 dark:border-neutral-800 flex justify-between">
-                        <div className="font-medium">{r.equipment}</div>
-                        <div className="text-sm text-neutral-500">{Number(r.revenue).toFixed(2)} €</div>
-                      </div>
-                    ))}
-                    {revByEquip.length === 0 && <div className="text-neutral-500 mt-2">Nessuna entrata</div>}
-                  </div>
-                </div>
               </div>
             </div>
           </Card>
 
-          <Card>
-            <div className="mb-3 flex items-center justify-between">
-                <div className="text-lg font-medium">Attrezzature / Pacchetti più richiesti</div>
-              <div>
-                <Button onClick={()=>downloadCSV(topProducts,'top-products.csv')}>Esporta CSV</Button>
-              </div>
-            </div>
-            <div className="hidden sm:block">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="text-left text-neutral-500"><th>Prodotto</th><th>Prenotazioni</th><th>Incasso</th></tr>
-                </thead>
-                <tbody>
-                  {topProducts.map((p:any, idx:number)=> (
-                    <tr key={p.name||idx} className="border-t border-neutral-100 dark:border-neutral-800"><td className="py-2">{p.name ?? '—'}</td><td>{p.bookings_count}</td><td>{Number(p.revenue).toFixed(2)} €</td></tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
 
-            <div className="sm:hidden space-y-2">
-              {topProducts.map((p:any, idx:number)=> (
-                <div key={p.name||idx} className="p-3 rounded border bg-white/5 dark:bg-slate-800">
-                  <div className="flex items-center justify-between">
-                    <div className="font-medium">{p.name ?? '—'}</div>
-                    <div className="text-sm text-neutral-500">€ {Number(p.revenue).toFixed(2)}</div>
-                  </div>
-                  <div className="text-xs text-neutral-400 mt-1">Prenotazioni: {p.bookings_count}</div>
-                </div>
-              ))}
-              {topProducts.length === 0 && <div className="text-neutral-500">Nessun prodotto</div>}
-            </div>
-          </Card>
         </>
       )}
 
@@ -625,7 +464,7 @@ export default function Reports() {
               <h3 className="text-lg font-medium">Gestione Spese</h3>
             </div>
             <div className="flex flex-row gap-2 w-full">
-                <Button onClick={() => { setEditExpense(null); setExpenseDate(new Date().toISOString().slice(0,10)); setShowExpenseModal(true) }} className="flex-1">Aggiungi spesa</Button>
+                <Button onClick={() => { setEditExpense(null); setExpenseDate(new Date().toISOString().slice(0,10)); setShowExpenseModal(true) }} className="flex-1">+ Spesa</Button>
                 <Button onClick={() => loadExpenses(expenseFilterStart, expenseFilterEnd)} className="bg-gray-600 flex-1">Applica filtro</Button>
                 <Button onClick={() => { setExpenseFilterStart(new Date(new Date().setMonth(new Date().getMonth()-1)).toISOString().slice(0,10)); setExpenseFilterEnd(new Date().toISOString().slice(0,10)); loadExpenses(); }} className="bg-gray-600 flex-1">Reset</Button>
               </div>
@@ -688,7 +527,7 @@ export default function Reports() {
             <Archive start={expenseFilterStart} end={expenseFilterEnd} />
           </div>
 
-          <Modal isOpen={showExpenseModal} onClose={handleCloseExpenseModal} title={editExpense ? 'Modifica Spesa' : 'Aggiungi Spesa'}>
+          <Modal isOpen={showExpenseModal} onClose={handleCloseExpenseModal} title={editExpense ? 'Modifica Spesa' : '+ Spesa'}>
             <form onSubmit={(e)=>{ createExpense(e); setShowExpenseModal(false); }} className="space-y-4">
               <div>
                 <Input label="Importo" value={amount} onChange={(e)=>setAmount(e.target.value)} placeholder="Importo" />
@@ -707,11 +546,11 @@ export default function Reports() {
                 <input type="file" onChange={(e:any)=>setReceiptFile(e.target.files?.[0]??null)} />
               </div>
               <div className="flex gap-2 justify-end">
-                <Button type="submit">{editExpense ? 'Salva Modifiche' : 'Aggiungi spesa'}</Button>
+                <Button type="submit">{editExpense ? 'Salva Modifiche' : '+ Spesa'}</Button>
                 <button type="button" onClick={() => { setShowExpenseModal(false); setAmount(''); setCategory(''); setNotes(''); setReceiptFile(null); setExpenseDate(new Date().toISOString().slice(0,10)); setEditExpense(null) }} className="px-3 py-1 rounded border">Annulla</button>
               </div>
             </form>
-          </Modal>
+          </Modal> 
 
           {/* Expense detail modal */}
           <Modal isOpen={showExpenseDetail} onClose={() => setShowExpenseDetail(false)} title={detailExpense ? `Spesa ${detailExpense.id}` : 'Dettaglio Spesa'}>

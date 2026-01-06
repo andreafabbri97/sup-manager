@@ -155,9 +155,9 @@ export default function Archive({ start: propStart, end: propEnd }: { start?: st
             <div className="flex items-center justify-between">
               <div>
                 <div className="font-medium">{b.customer_name}</div>
-                <div className="text-xs text-neutral-400">{new Date(b.start_time).toLocaleString('it-IT', { day: '2-digit', month: 'short', year: 'numeric' })} • {b.invoice_number ?? (b.invoiced ? 'Fatturata' : '—')}</div>
+                <div className="text-xs text-neutral-400">{new Date(b.start_time).toLocaleString('it-IT', { day: '2-digit', month: 'short', year: 'numeric' })} • {b.invoice_number ?? (b.invoiced ? <span className="text-blue-600 font-semibold">Fatturata</span> : '—')}</div>
               </div>
-              <div className="text-sm text-neutral-500 dark:text-neutral-300">{b.paid ? 'Pagato' : 'Non pagato'}</div>
+              <div className="text-sm">{b.paid ? <span className="text-green-600 font-semibold">Pagato</span> : <span className="text-sm text-neutral-500 dark:text-neutral-300">Non pagato</span>}</div>
             </div>
           </button>
         ))}
@@ -174,9 +174,9 @@ export default function Archive({ start: propStart, end: propEnd }: { start?: st
                 <tr key={b.id} role="button" tabIndex={0} onClick={(e) => { if ((e.target as HTMLElement).closest('button')) return; setDetail(b); setShowDetail(true) }} onKeyDown={(e:any) => { if (e.key === 'Enter') { setDetail(b); setShowDetail(true) } }} className="border-t border-neutral-100 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-800 cursor-pointer">
                   <td className="py-2">{new Date(b.start_time).toLocaleString('it-IT', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
                   <td>{b.customer_name}</td>
-                  <td>{b.invoice_number ?? (b.invoiced ? 'Sì' : '—')}</td>
+                  <td>{b.invoice_number ?? (b.invoiced ? <span className="text-blue-600 font-semibold">Fatturata</span> : '—')}</td>
                   <td>{b.price ? `€ ${Number(b.price).toFixed(2)}` : '—'}</td>
-                  <td>{b.paid ? 'Sì' : 'No'}</td>
+                  <td>{b.paid ? <span className="text-green-600 font-semibold">Pagato</span> : 'No'}</td>
                   <td>
                     <div className="flex items-center gap-2">
                       <button onClick={(e)=>{ e.stopPropagation(); setDetail(b); setShowDetail(true) }} className="text-sm px-2 py-1 rounded border">Dettagli</button>
@@ -213,8 +213,8 @@ export default function Archive({ start: propStart, end: propEnd }: { start?: st
             <div><strong>Periodo:</strong> {new Date(detail.start_time).toLocaleString('it-IT')} — {new Date(detail.end_time).toLocaleString('it-IT')}</div>
             <div><strong>Prezzo:</strong> {detail.price ? `€ ${Number(detail.price).toFixed(2)}` : '—'}</div>
             <div><strong>Fattura:</strong> {detail.invoice_number ?? '—'}</div>
-            <div><strong>Fatturato:</strong> {detail.invoiced ? 'Sì' : 'No'}</div>
-            <div><strong>Pagato:</strong> {detail.paid ? 'Sì' : 'No'}</div>
+            <div><strong>Fatturato:</strong> {detail.invoiced ? <span className="text-blue-600 font-semibold">Fatturata</span> : 'No'}</div>
+            <div><strong>Pagato:</strong> {detail.paid ? <span className="text-green-600 font-semibold">Pagato</span> : 'No'}</div>
             <div><strong>Note:</strong> {detail.notes ?? '—'}</div>
             <div className="mt-2 flex gap-2">
               <Button onClick={()=>{ navigator.clipboard.writeText(JSON.stringify(detail)); alert('Copia incollata') }}>Copia JSON</Button>
