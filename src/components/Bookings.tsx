@@ -1190,10 +1190,8 @@ export default function Bookings() {
                       </div>
                     </div>
                     <div className="mt-1 text-sm text-neutral-600 dark:text-neutral-300">{b.notes ? (b.notes.length > 150 ? b.notes.slice(0,150) + '…' : b.notes) : ''}</div>
-                    <div className="mt-2 flex items-center gap-3 text-sm">
+                    <div className="mt-2 text-sm">
                       <div className="text-neutral-500">{equipmentLabel(b)}</div>
-                      {b.paid && <div className="text-green-600 font-semibold">Pagato</div>}
-                      {b.invoiced && <div className="text-blue-600 font-semibold">Fatturato</div>}
                     </div>
                   </div>
                   <div className="flex-shrink-0 flex flex-col items-end gap-2">
@@ -1230,7 +1228,7 @@ export default function Bookings() {
             )}
             <div className="flex flex-col sm:flex-row gap-2 pt-2">
               <button onClick={() => { setShowMarkPaidModal(false); setMarkPaidBooking(null); setMarkPaidInvoiced(null); setMarkPaidInvoiceNumber(null) }} className="w-full sm:w-auto px-3 py-2 rounded-md border">Annulla</button>
-              <Button className="w-full sm:w-auto px-3 py-2" onClick={async () => {
+              <Button className="w-full sm:w-auto px-3 py-2 justify-center" onClick={async () => {
                 if (!markPaidBooking || markPaidInvoiced === null) return
                 const id = markPaidBooking.id
                 const paidAt = new Date().toISOString()
