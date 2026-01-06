@@ -58,6 +58,14 @@ export default function NotificationBell() {
     }
   }, [])
 
+  // Close desktop popup with Escape key
+  useEffect(() => {
+    if (!showPopup) return
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setShowPopup(false) }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [showPopup])
+
   // --- Details components ---
   function BookingDetails() {
     const [items, setItems] = useState<any[] | null>(null)
