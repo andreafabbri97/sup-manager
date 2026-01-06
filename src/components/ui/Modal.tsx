@@ -46,6 +46,8 @@ export default function Modal({ isOpen, onClose, title, children, autoFocus = tr
   const [isDragging, setIsDragging] = useState(false)
   const [userExpanded, setUserExpanded] = useState(false)
   const dragState = React.useRef({ startY: 0, startHeight: 0 })
+  // ensure we only auto-open full mobile once per open cycle
+  const openFullTriggered = React.useRef(false)
 
   const animateSetMaxHeight = (target: string) => {
     const el = contentRef.current || dialogRef.current
@@ -85,11 +87,13 @@ export default function Modal({ isOpen, onClose, title, children, autoFocus = tr
     const el = contentRef.current
     if (!el) return
     const finalHeight = el.getBoundingClientRect().height
-    if (finalHeight > window.innerHeight * 0.8) {
+    // Use a slightly lower threshold so users can shrink without automatic re-expansion
+    const threshold = window.innerHeight * 0.6
+    if (finalHeight > threshold) {
       animateSetMaxHeight('100vh')
       setUserExpanded(true)
     } else {
-      // snap back to default
+      // snap back to default (60vh)
       animateSetMaxHeight(fullScreenMobile ? '60vh' : '60vh')
       setUserExpanded(false)
     }
@@ -130,16 +134,18 @@ export default function Modal({ isOpen, onClose, title, children, autoFocus = tr
       }
       setIsDragging(false)
       setUserExpanded(false)
+      openFullTriggered.current = false
     } else {
       if (contentRef.current && !userExpanded) {
         // default opening height: if fullScreenMobile is requested we still use the '60vh' default
         contentRef.current.style.maxHeight = fullScreenMobile ? '60vh' : ''
       }
-      // If caller requested opening full-screen on mobile, expand automatically
-      if (isMobile && openFullMobile && contentRef.current) {
+      // If caller requested opening full-screen on mobile, expand automatically ONCE
+      if (isMobile && openFullMobile && contentRef.current && !openFullTriggered.current) {
         // expand to full viewport height on mobile
         animateSetMaxHeight('100vh')
         setUserExpanded(true)
+        openFullTriggered.current = true
       }
     }
   }, [isOpen, fullScreenMobile, userExpanded, isMobile, openFullMobile])
