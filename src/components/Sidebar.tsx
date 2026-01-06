@@ -76,7 +76,9 @@ export default function Sidebar({ onNav, currentPage }: { onNav?: (page: string)
       case 'equipment':
         return (
           <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" d="M9 3h6v4H9V3zM4 8h16v13H4V8z" />
+            {/* Surfboard icon: elongated oval rotated with central stripe */}
+            <ellipse cx="12" cy="12" rx="9" ry="3" transform="rotate(-45 12 12)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M8.5 7.5L15.5 14.5" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         )
       case 'bookings':
