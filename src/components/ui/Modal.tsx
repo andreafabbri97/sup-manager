@@ -34,19 +34,20 @@ export default function Modal({ isOpen, onClose, title, children, autoFocus = tr
 
   // Drag-to-resize state for mobile bottom-sheet
   const handleRef = React.useRef<HTMLDivElement | null>(null)
+  const contentRef = React.useRef<HTMLDivElement | null>(null) // inner scrollable wrapper used for sizing
   const [isDragging, setIsDragging] = useState(false)
   const [userExpanded, setUserExpanded] = useState(false)
   const dragState = React.useRef({ startY: 0, startHeight: 0 })
 
   const animateSetMaxHeight = (target: string) => {
-    const el = dialogRef.current
+    const el = contentRef.current || dialogRef.current
     if (!el) return
     // add transition class, force reflow, then set target height so transition animates
     el.classList.add('transition-max-h')
     // force reflow
     // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     el.offsetHeight
-    el.style.maxHeight = target
+    ;(el as HTMLElement).style.maxHeight = target
     const onEnd = () => {
       el.classList.remove('transition-max-h')
       el.removeEventListener('transitionend', onEnd)
@@ -56,15 +57,16 @@ export default function Modal({ isOpen, onClose, title, children, autoFocus = tr
 
   const onPointerMove = (ev: PointerEvent) => {
     ev.preventDefault()
-    if (!dialogRef.current) return
+    const el = contentRef.current
+    if (!el) return
     const delta = (dragState.current.startY || 0) - (ev.clientY || 0)
     const max = Math.max(120, window.innerHeight - 20)
     const min = Math.max(120, Math.round(window.innerHeight * 0.25))
     let newHeight = (dragState.current.startHeight || 0) + delta
     newHeight = Math.max(min, Math.min(max, newHeight))
     // while dragging, avoid transition
-    dialogRef.current.style.transition = 'none'
-    dialogRef.current.style.maxHeight = `${newHeight}px`
+    el.style.transition = 'none'
+    el.style.maxHeight = `${newHeight}px`
   }
 
   const endDrag = () => {
@@ -72,8 +74,9 @@ export default function Modal({ isOpen, onClose, title, children, autoFocus = tr
     window.removeEventListener('pointermove', onPointerMove)
     window.removeEventListener('pointerup', endDrag)
     document.body.style.userSelect = ''
-    if (!dialogRef.current) return
-    const finalHeight = dialogRef.current.getBoundingClientRect().height
+    const el = contentRef.current
+    if (!el) return
+    const finalHeight = el.getBoundingClientRect().height
     if (finalHeight > window.innerHeight * 0.8) {
       animateSetMaxHeight('100vh')
       setUserExpanded(true)
@@ -83,16 +86,17 @@ export default function Modal({ isOpen, onClose, title, children, autoFocus = tr
       setUserExpanded(false)
     }
     // restore transition property after small delay
-    setTimeout(() => { if (dialogRef.current) dialogRef.current.style.transition = '' }, 300)
+    setTimeout(() => { if (el) el.style.transition = '' }, 300)
   }
 
   const onPointerDown = (e: React.PointerEvent) => {
-    if (!dialogRef.current) return
+    const el = contentRef.current
+    if (!el) return
     if ((e.target as Element).closest('.no-drag')) return
     (e.target as Element).setPointerCapture?.(e.pointerId)
     setIsDragging(true)
     dragState.current.startY = e.clientY
-    dragState.current.startHeight = dialogRef.current.getBoundingClientRect().height
+    dragState.current.startHeight = el.getBoundingClientRect().height
     document.body.style.userSelect = 'none'
     window.addEventListener('pointermove', onPointerMove)
     window.addEventListener('pointerup', endDrag)
@@ -113,14 +117,14 @@ export default function Modal({ isOpen, onClose, title, children, autoFocus = tr
   useEffect(() => {
     // reset any inline styles when modal closes or opens
     if (!isOpen) {
-      if (dialogRef.current) {
-        dialogRef.current.style.maxHeight = ''
+      if (contentRef.current) {
+        contentRef.current.style.maxHeight = ''
       }
       setIsDragging(false)
       setUserExpanded(false)
     } else {
-      if (dialogRef.current && !userExpanded) {
-        dialogRef.current.style.maxHeight = fullScreenMobile ? '60vh' : ''
+      if (contentRef.current && !userExpanded) {
+        contentRef.current.style.maxHeight = fullScreenMobile ? '60vh' : ''
       }
     }
   }, [isOpen, fullScreenMobile, userExpanded])
@@ -233,7 +237,7 @@ export default function Modal({ isOpen, onClose, title, children, autoFocus = tr
         onClick={(e) => e.stopPropagation()}
       >
         {/* Inner scrollable wrapper - keeps rounded corners visible while allowing internal scroll */}
-        <div className={`${isMobile && fullScreenMobile ? 'max-h-[100vh]' : 'max-h-[60vh]'} sm:max-h-[calc(100svh-20px)] overflow-y-auto touch-manipulation`} style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+        <div ref={contentRef} className={`${isMobile && fullScreenMobile ? 'max-h-[100vh]' : 'max-h-[60vh]'} sm:max-h-[calc(100svh-20px)] overflow-y-auto touch-manipulation`} style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
           {/* Mobile handle (draggable/tap to expand) */}
           <div className="sm:hidden flex justify-center pt-4">
             <div
