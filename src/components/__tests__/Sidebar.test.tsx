@@ -3,10 +3,11 @@ import '@testing-library/jest-dom'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import Sidebar from '../Sidebar'
+import TopBar from '../TopBar'
 
 describe('Sidebar (mobile)', () => {
   test('hamburger opens and closes sidebar, backdrop closes and ESC closes', async () => {
-    render(<Sidebar onNav={() => {}} />)
+    render(<><TopBar /><Sidebar onNav={() => {}} /></>)
     const user = userEvent.setup()
 
     const burger = screen.getByRole('button', { name: /Apri menu|Chiudi menu/i })

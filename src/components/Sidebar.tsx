@@ -151,18 +151,6 @@ export default function Sidebar({ onNav, currentPage }: { onNav?: (page: string)
   return (
     <>
 
-      {/* Mobile burger visible for tests and as alternate control */}
-      <button
-        onClick={() => setMobileOpen(true)}
-        aria-controls="sidebar"
-        aria-label="Apri menu"
-        className="lg:hidden p-2 rounded-md bg-white/90 dark:bg-neutral-900/90 backdrop-blur shadow"
-      >
-        <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <path strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-        </svg>
-      </button>
-
       {/* (removed duplicate top-right theme toggle — theme control available in the sidebar) */}
 
       {/* Backdrop for mobile when menu open */}
