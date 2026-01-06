@@ -90,7 +90,8 @@ export default function Modal({ isOpen, onClose, title, children, autoFocus = tr
     // Use a slightly lower threshold so users can shrink without automatic re-expansion
     const threshold = window.innerHeight * 0.6
     if (finalHeight > threshold) {
-      animateSetMaxHeight('100vh')
+      // expand to full viewport height on mobile, or to nearly full viewport on desktop
+      animateSetMaxHeight(isMobile ? '100vh' : 'calc(100vh-48px)')
       setUserExpanded(true)
     } else {
       // snap back to default (60vh)
@@ -121,7 +122,8 @@ export default function Modal({ isOpen, onClose, title, children, autoFocus = tr
       animateSetMaxHeight(fullScreenMobile ? '60vh' : '60vh')
       setUserExpanded(false)
     } else {
-      animateSetMaxHeight('100vh')
+      // expand to full viewport on mobile, or nearly full on desktop
+      animateSetMaxHeight(isMobile ? '100vh' : 'calc(100vh-48px)')
       setUserExpanded(true)
     }
   }
@@ -252,7 +254,7 @@ export default function Modal({ isOpen, onClose, title, children, autoFocus = tr
         onPointerDown={(e) => e.stopPropagation()}
       >
         {/* Inner scrollable wrapper - keeps rounded corners visible while allowing internal scroll */}
-        <div ref={contentRef} className={`${isMobile && fullScreenMobile ? 'max-h-[100vh]' : 'max-h-[60vh]'} sm:max-h-[90vh] overflow-y-auto touch-manipulation`} style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+        <div ref={contentRef} className={`${isMobile && fullScreenMobile ? 'max-h-[100vh]' : 'max-h-[calc(100vh-48px)]'} sm:max-h-[calc(100vh-48px)] overflow-y-auto touch-manipulation`} style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
           {/* Mobile handle (draggable/tap to expand) */}
           <div className="sm:hidden flex justify-center pt-4">
             <div
