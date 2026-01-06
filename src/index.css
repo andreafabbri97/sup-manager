@@ -106,7 +106,9 @@ html, body, #root {
 
 /* Prevent accidental horizontal overflow on small screens (mobile) */
 @media (max-width: 640px) {
-  body { overflow-x: hidden; }
+  body { overflow-x: hidden; padding-bottom: env(safe-area-inset-bottom, 12px); -webkit-text-size-adjust: 100%; }
+  /* Allow booking time to wrap on very narrow devices to avoid overlap */
+  .booking-time { overflow-wrap: anywhere; }
 }
 
 /* Micro-interactions and small helpers */

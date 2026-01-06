@@ -26,7 +26,7 @@ export default function TopBar() {
             <path strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
-        <div className="flex-1">{formatted}</div>
+        <div className="flex-1 min-w-0 truncate">{formatted}</div>
         <div className="flex items-center gap-3">
           {/* Notifications button removed per request */}
         </div>
