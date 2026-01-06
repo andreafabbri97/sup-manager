@@ -156,9 +156,9 @@ export default function Equipment() {
 
         {items.length === 0 && <p className="text-sm text-neutral-500">Nessun elemento</p>}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-3">
           {items.map(it => (
-            <Card key={it.id} className="flex flex-col justify-between hover:shadow-lg transition-shadow p-3">
+            <Card key={it.id} className="flex flex-col justify-between hover:shadow-lg transition-shadow p-2 bg-white dark:bg-slate-700">
                 <>
                   <div>
                     <div className="flex items-start justify-between gap-3">

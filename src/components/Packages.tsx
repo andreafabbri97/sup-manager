@@ -105,7 +105,7 @@ export default function Packages() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {packages.map((p) => (
-          <div key={p.id} className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-neutral-200 dark:border-neutral-700 p-3 sm:p-4 hover:shadow-lg transition-shadow interactive">
+          <div key={p.id} className="bg-white dark:bg-slate-700 rounded-lg shadow-sm border border-neutral-200 dark:border-neutral-700 p-3 sm:p-4 hover:shadow-lg transition-shadow interactive">
             <div className="flex items-start justify-between mb-2">
               <div className="font-semibold text-lg truncate sm:max-w-[60%]">{p.name}</div>
               <div className="flex items-center gap-2">
