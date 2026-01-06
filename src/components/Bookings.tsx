@@ -295,17 +295,18 @@ export default function Bookings() {
             </div>
             <div className="text-sm text-neutral-600 dark:text-neutral-300 mt-1">{formatTimeRange(b)}</div>
             <div className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">{equipmentLabel(b)}</div>
-            <div className="flex items-center gap-2 mt-2">
+            <div className="text-sm text-neutral-600 dark:text-neutral-300 mt-1">{b.notes ? (b.notes.length > 150 ? b.notes.slice(0,150) + '…' : b.notes) : ''}</div>
+          </div>
+          <div className="flex-shrink-0 flex flex-col items-end gap-2">
+            {b.price && <div className="text-amber-500 dark:text-amber-300 font-bold text-xl whitespace-nowrap">€ {Number(b.price).toFixed(2)}</div>}
+            <div className="flex flex-col items-end gap-2 mt-1">
               {!b.paid && (
-                <button onClick={(e)=>{ e.stopPropagation(); setMarkPaidBooking(b); setMarkPaidInvoiced(null); setMarkPaidInvoiceNumber(null); setShowMarkPaidModal(true) }} className="text-sm px-3 py-1 rounded bg-green-600 text-white" title="Segna come pagato">
-                  Segna come pagato
-                </button>
+                <button onClick={(e)=>{ e.stopPropagation(); setMarkPaidBooking(b); setMarkPaidInvoiced(null); setMarkPaidInvoiceNumber(null); setShowMarkPaidModal(true) }} className="text-sm px-3 py-1 rounded bg-green-600 text-white" title="Segna come pagato">Segna come pagato</button>
               )}
               {b.paid && <div className="text-sm text-green-600 font-semibold">Pagato</div>}
               {b.invoiced && <div className="text-sm text-blue-600 font-semibold">Fatturato</div>}
             </div>
           </div>
-          {b.price && <div className="text-amber-500 dark:text-amber-300 font-bold text-xl whitespace-nowrap flex-shrink-0">€ {Number(b.price).toFixed(2)}</div>}
         </div>
       </div>
     ))
@@ -1184,7 +1185,7 @@ export default function Bookings() {
                       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full">
                         {!b.paid && <button onClick={(e)=>{ e.stopPropagation(); setMarkPaidBooking(b); setMarkPaidInvoiced(null); setMarkPaidInvoiceNumber(null); setShowMarkPaidModal(true) }} className="text-sm px-3 py-1 rounded bg-green-600 text-white w-full sm:w-auto">Segna come pagato</button>}
                       </div>
-                      {b.price && <div className="text-sm text-neutral-500 mt-2 sm:mt-1">€ {Number(b.price).toFixed(2)}</div>}
+                      {b.price && <div className="text-amber-500 dark:text-amber-300 font-bold text-lg mt-2 sm:mt-1">€ {Number(b.price).toFixed(2)}</div>}
                     </div>
                   </div>
                 </div>
