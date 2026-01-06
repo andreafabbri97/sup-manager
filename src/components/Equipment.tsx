@@ -152,7 +152,7 @@ export default function Equipment() {
           <Button onClick={openAdd}>Aggiungi attrezzatura</Button>
         </div>
       </div>
-      <Card>
+      <div>
 
         {items.length === 0 && <p className="text-sm text-neutral-500">Nessun elemento</p>}
 
@@ -200,7 +200,7 @@ export default function Equipment() {
             </Card>
           ))}
         </div>
-      </Card>
+      </div>
 
       <Modal isOpen={isAddOpen} onClose={closeAdd} title="Aggiungi attrezzatura">
         <form onSubmit={(e)=>{ createItem(e); closeAdd() }} className="flex flex-col sm:flex-row gap-2 mb-4">
