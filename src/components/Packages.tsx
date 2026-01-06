@@ -103,11 +103,11 @@ export default function Packages() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {packages.map((p) => (
-          <div key={p.id} className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-neutral-200 dark:border-neutral-700 p-4 hover:shadow-lg transition-shadow">
+          <div key={p.id} className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-neutral-200 dark:border-neutral-700 p-3 sm:p-4 hover:shadow-lg transition-shadow interactive">
             <div className="flex items-start justify-between mb-2">
-              <div className="font-semibold text-lg truncate max-w-[60%]">{p.name}</div>
+              <div className="font-semibold text-lg truncate sm:max-w-[60%]">{p.name}</div>
               <div className="flex items-center gap-2">
-                <div className="text-2xl font-bold text-amber-500">€ {Number(p.price).toFixed(2)}</div>
+                <div className="text-xl sm:text-2xl font-bold text-amber-500 whitespace-nowrap">€ {Number(p.price).toFixed(2)}</div>
               </div>
             </div>
             <div className="flex items-center justify-between mb-2">
@@ -134,8 +134,14 @@ export default function Packages() {
 
                 <div className="sm:hidden mt-3">
                   <div className="flex items-center justify-between">
-                    <div className="text-sm text-neutral-500">Include: {p.equipment_items.length} elementi</div>
-                    <button onClick={() => setExpandedPackage(expandedPackage === p.id ? null : p.id)} className="text-sm px-2 py-1 rounded border">{expandedPackage === p.id ? 'Nascondi' : 'Mostra'}</button>
+                    <div className="text-sm text-neutral-500">
+                      {p.equipment_items.slice(0,2).map((item:any, idx:number) => {
+                        const eq = equipment.find(e => e.id === item.id)
+                        return <span key={idx} className="inline-block bg-neutral-100 dark:bg-neutral-700 text-sm px-2 py-0.5 rounded mr-1">{item.quantity}x {eq?.name || 'Attrezzatura'}</span>
+                      })}
+                      {p.equipment_items.length > 2 && <span className="text-sm text-neutral-400 ml-1">+{p.equipment_items.length - 2}</span>}
+                    </div>
+                    <button onClick={() => setExpandedPackage(expandedPackage === p.id ? null : p.id)} className="text-sm px-2 py-1 rounded border">{expandedPackage === p.id ? 'Nascondi' : 'Altro'}</button>
                   </div>
                   {expandedPackage === p.id && (
                     <ul className="mt-2 space-y-1 text-sm">
