@@ -26,7 +26,15 @@ export default function Equipment() {
   const [editNextMaintenance, setEditNextMaintenance] = useState('')
   const [editMaintenanceNotes, setEditMaintenanceNotes] = useState('')
 
-  useEffect(() => { fetchItems() }, [])
+  useEffect(() => { fetchItems()
+    const timer: { id:any } = { id: 0 }
+    const onEquip = () => { if (timer.id) clearTimeout(timer.id); timer.id = window.setTimeout(() => fetchItems(), 300) }
+    const onSups = () => { if (timer.id) clearTimeout(timer.id); timer.id = window.setTimeout(() => fetchItems(), 300) }
+    window.addEventListener('realtime:equipment', onEquip as any)
+    window.addEventListener('realtime:sup', onSups as any)
+    window.addEventListener('sups:changed', onSups as any)
+    return () => { window.removeEventListener('realtime:equipment', onEquip as any); window.removeEventListener('realtime:sup', onSups as any); window.removeEventListener('sups:changed', onSups as any) }
+  }, [])
 
   async function fetchItems(){
     const { data, error } = await supabase.from('equipment').select('*').order('created_at', { ascending: false })

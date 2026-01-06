@@ -40,11 +40,21 @@ export default function NotificationBell() {
       }
     }
     window.addEventListener('resize', onResize)
+
+    // Realtime listeners (debounced)
+    const timer: { id?: any } = {}
+    const onBookingRealtime = () => { if (timer.id) clearTimeout(timer.id); timer.id = window.setTimeout(()=> loadNotifications(), 300) }
+    const onEquipmentRealtime = () => { if (timer.id) clearTimeout(timer.id); timer.id = window.setTimeout(()=> loadNotifications(), 300) }
+    window.addEventListener('realtime:booking', onBookingRealtime as any)
+    window.addEventListener('realtime:equipment', onEquipmentRealtime as any)
+
     // initial set
     onResize()
     return () => {
       clearInterval(interval)
       window.removeEventListener('resize', onResize)
+      window.removeEventListener('realtime:booking', onBookingRealtime as any)
+      window.removeEventListener('realtime:equipment', onEquipmentRealtime as any)
     }
   }, [])
 

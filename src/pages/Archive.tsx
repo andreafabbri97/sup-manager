@@ -22,7 +22,14 @@ export default function Archive({ start: propStart, end: propEnd }: { start?: st
   const [showDetail, setShowDetail] = useState(false)
 
   // load on mount and whenever start/end change
-  useEffect(() => { load(); }, [start, end])
+  useEffect(() => { load(); 
+    const timer: { id:any } = { id: 0 }
+    const onBooking = () => { if (timer.id) clearTimeout(timer.id); timer.id = window.setTimeout(()=> load(), 300) }
+    const onExpense = () => { if (timer.id) clearTimeout(timer.id); timer.id = window.setTimeout(()=> load(), 300) }
+    window.addEventListener('realtime:booking', onBooking as any)
+    window.addEventListener('realtime:expense', onExpense as any)
+    return () => { window.removeEventListener('realtime:booking', onBooking as any); window.removeEventListener('realtime:expense', onExpense as any) }
+  }, [start, end])
 
   // Sync parent-provided filter props into the local state so Archive reflects Admin filters
   useEffect(() => { if (propStart !== undefined && propStart !== start) setStart(propStart) }, [propStart])

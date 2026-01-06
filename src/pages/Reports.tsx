@@ -106,7 +106,16 @@ export default function Reports() {
   useEffect(() => { loadReports()
     const onSettings = () => loadReports()
     window.addEventListener('settings:changed', onSettings as any)
-    return () => window.removeEventListener('settings:changed', onSettings as any)
+
+    const timer:{ id:any } = { id: 0 }
+    const onBooking = () => { if (timer.id) clearTimeout(timer.id); timer.id = window.setTimeout(()=> loadReports(), 500) }
+    const onExpense = () => { if (timer.id) clearTimeout(timer.id); timer.id = window.setTimeout(()=> loadReports(), 500) }
+    const onPackage = () => { if (timer.id) clearTimeout(timer.id); timer.id = window.setTimeout(()=> loadReports(), 500) }
+    window.addEventListener('realtime:booking', onBooking as any)
+    window.addEventListener('realtime:expense', onExpense as any)
+    window.addEventListener('realtime:package', onPackage as any)
+
+    return () => { window.removeEventListener('settings:changed', onSettings as any); window.removeEventListener('realtime:booking', onBooking as any); window.removeEventListener('realtime:expense', onExpense as any); window.removeEventListener('realtime:package', onPackage as any) }
   }, [])
 
   // Persist selected tab across page reloads

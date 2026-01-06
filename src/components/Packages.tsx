@@ -27,6 +27,15 @@ export default function Packages() {
   useEffect(() => {
     load()
     loadEquipment()
+
+    // realtime subscriptions
+    const timer: { id: any } = { id: 0 }
+    const onPackage = () => { if (timer.id) clearTimeout(timer.id); timer.id = window.setTimeout(()=>{ load(); }, 300) }
+    const onEquip = () => { if (timer.id) clearTimeout(timer.id); timer.id = window.setTimeout(()=>{ loadEquipment(); }, 300) }
+    window.addEventListener('realtime:package', onPackage as any)
+    window.addEventListener('realtime:equipment', onEquip as any)
+
+    return () => { window.removeEventListener('realtime:package', onPackage as any); window.removeEventListener('realtime:equipment', onEquip as any) }
   }, [])
 
   async function create() {

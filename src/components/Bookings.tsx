@@ -143,6 +143,14 @@ export default function Bookings() {
     const handler = () => load()
     window.addEventListener('sups:changed', handler)
 
+    // realtime booking updates (debounced)
+    const realtimeTimer = { id: 0 as any }
+    const onRealtimeBooking = () => {
+      if (realtimeTimer.id) clearTimeout(realtimeTimer.id)
+      realtimeTimer.id = window.setTimeout(() => { load(); realtimeTimer.id = 0 }, 300)
+    }
+    window.addEventListener('realtime:booking', onRealtimeBooking as any)
+
     // Listen for navigation requests from other components (e.g. NotificationBell)
     const onNavigate = async (ev: any) => {
       try {
@@ -177,6 +185,12 @@ export default function Bookings() {
     }
 
     window.addEventListener('navigate:booking', onNavigate)
+
+    return () => {
+      window.removeEventListener('sups:changed', handler)
+      window.removeEventListener('navigate:booking', onNavigate)
+      window.removeEventListener('realtime:booking', onRealtimeBooking as any)
+    }
 
     return () => {
       window.removeEventListener('sups:changed', handler)
