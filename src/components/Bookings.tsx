@@ -1132,7 +1132,7 @@ export default function Bookings() {
       </Modal>
 
       {/* Mark as paid confirmation modal */}
-      <Modal isOpen={showMarkPaidModal} onClose={() => { setShowMarkPaidModal(false); setMarkPaidBooking(null); setMarkPaidInvoiced(null); setMarkPaidInvoiceNumber(null) }} title="Segna come pagato">
+      <Modal mobileCentered isOpen={showMarkPaidModal} onClose={() => { setShowMarkPaidModal(false); setMarkPaidBooking(null); setMarkPaidInvoiced(null); setMarkPaidInvoiceNumber(null) }} title="Segna come pagato">
         {markPaidBooking && (
           <div className="space-y-4">
             <p>Hai emesso fattura per questa prenotazione?</p>

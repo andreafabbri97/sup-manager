@@ -18,9 +18,13 @@ interface ModalProps {
    * When true, on mobile the modal will use full screen height instead of 60vh.
    */
   fullScreenMobile?: boolean
+  /**
+   * When true, the modal will be centered on mobile (instead of bottom sheet).
+   */
+  mobileCentered?: boolean
 }
 
-export default function Modal({ isOpen, onClose, title, children, autoFocus = true, mobileDropdown = false, fullScreenMobile = false }: ModalProps) {
+export default function Modal({ isOpen, onClose, title, children, autoFocus = true, mobileDropdown = false, fullScreenMobile = false, mobileCentered = false }: ModalProps) {
   const dialogRef = useRef<HTMLDivElement | null>(null)
   const [isMobile, setIsMobile] = useState(false)
 
@@ -231,14 +235,18 @@ export default function Modal({ isOpen, onClose, title, children, autoFocus = tr
     )
   }
 
+  // choose alignment and border radius based on mobileCentered option
+  const containerAlignment = mobileCentered ? 'items-center' : 'items-end sm:items-center'
+  const dialogRadius = mobileCentered ? 'rounded-lg' : 'rounded-t-3xl sm:rounded-lg'
+
   return (
-    <div className={`fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 sm:bg-black/40 backdrop-blur-sm ${isClosing ? 'opacity-0' : 'opacity-100'} transition-opacity duration-200`} onClick={requestClose} onPointerDown={requestClose}>
+    <div className={`fixed inset-0 z-50 flex ${containerAlignment} justify-center p-0 sm:p-4 bg-black/50 sm:bg-black/40 backdrop-blur-sm ${isClosing ? 'opacity-0' : 'opacity-100'} transition-opacity duration-200`} onClick={requestClose} onPointerDown={requestClose}>
       <div
         ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className={`bg-white dark:bg-slate-800 rounded-t-3xl sm:rounded-lg shadow-2xl w-full sm:max-w-2xl overflow-hidden transform transition-transform duration-300 ease-out scale-100 sm:animate-modal-open ${isClosing ? 'animate-slide-down' : 'animate-modal-open'} touch-manipulation`}
+        className={`bg-white dark:bg-slate-800 ${dialogRadius} shadow-2xl w-full sm:max-w-2xl overflow-hidden transform transition-transform duration-300 ease-out scale-100 sm:animate-modal-open ${isClosing ? 'animate-slide-down' : 'animate-modal-open'} touch-manipulation`}
         onClick={(e) => e.stopPropagation()}
         onPointerDown={(e) => e.stopPropagation()}
       >

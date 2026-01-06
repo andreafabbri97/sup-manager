@@ -229,7 +229,7 @@ export default function Archive({ start: propStart, end: propEnd }: { start?: st
       </Card>
 
       {/* Mark as paid modal */}
-      <Modal isOpen={showMarkPaidModal} onClose={() => { setShowMarkPaidModal(false); setMarkPaidBookingId(null); setMarkPaidInvoiced(null); setMarkPaidInvoiceNumber(null) }} title="Segna come pagato">
+      <Modal mobileCentered isOpen={showMarkPaidModal} onClose={() => { setShowMarkPaidModal(false); setMarkPaidBookingId(null); setMarkPaidInvoiced(null); setMarkPaidInvoiceNumber(null) }} title="Segna come pagato">
         <div className="space-y-4">
           <p>Hai emesso fattura per questa prenotazione?</p>
           <div className="flex items-center gap-2">
