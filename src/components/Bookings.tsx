@@ -611,7 +611,7 @@ export default function Bookings() {
       </div>
 
       {/* View controls */}
-      <div className="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="mb-4 flex flex-col gap-3">
         <div className="flex items-center gap-2">
           <button onClick={() => navigateDate('prev')} className="p-2 rounded hover:bg-neutral-100 dark:hover:bg-neutral-800">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -631,7 +631,7 @@ export default function Bookings() {
           </button>
         </div>
 
-        <div className="flex gap-1 bg-neutral-100 dark:bg-neutral-800 rounded p-1 mt-2 sm:mt-0">
+        <div className="flex gap-1 bg-neutral-100 dark:bg-neutral-800 rounded p-1 mt-2 self-start">
           <button onClick={() => setViewMode('day')} aria-pressed={viewMode === 'day'} className={`w-20 text-center px-3 py-1 text-sm rounded ${viewMode === 'day' ? 'bg-white dark:bg-neutral-700 shadow' : ''}`}>Giorno</button>
           <button onClick={() => setViewMode('month')} aria-pressed={viewMode === 'month'} className={`w-20 text-center px-3 py-1 text-sm rounded ${viewMode === 'month' ? 'bg-white dark:bg-neutral-700 shadow' : ''}`}>Mese</button>
         </div>
