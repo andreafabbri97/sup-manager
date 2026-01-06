@@ -1219,18 +1219,18 @@ export default function Bookings() {
           <div className="space-y-4">
             <p>Hai emesso fattura per questa prenotazione?</p>
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-              <button onClick={() => setMarkPaidInvoiced('yes')} className={`w-full sm:w-auto px-4 py-3 rounded ${markPaidInvoiced === 'yes' ? 'bg-amber-600 text-white' : 'border'}`}>Sì</button>
-              <button onClick={() => setMarkPaidInvoiced('no')} className={`w-full sm:w-auto px-4 py-3 rounded ${markPaidInvoiced === 'no' ? 'bg-amber-600 text-white' : 'border'}`}>No</button>
+              <button onClick={() => setMarkPaidInvoiced('yes')} className={`w-full sm:w-auto px-3 py-2 rounded-md ${markPaidInvoiced === 'yes' ? 'bg-amber-600 text-white' : 'border'}`}>Sì</button>
+              <button onClick={() => setMarkPaidInvoiced('no')} className={`w-full sm:w-auto px-3 py-2 rounded-md ${markPaidInvoiced === 'no' ? 'bg-amber-600 text-white' : 'border'}`}>No</button>
             </div>
             {markPaidInvoiced === 'yes' && (
               <div>
                 <label className="block text-sm font-medium mb-1">Numero fattura (opzionale)</label>
-                <input value={markPaidInvoiceNumber ?? ''} onChange={(e)=>setMarkPaidInvoiceNumber(e.target.value || null)} className="w-full border px-3 py-3 rounded" />
+                <input value={markPaidInvoiceNumber ?? ''} onChange={(e)=>setMarkPaidInvoiceNumber(e.target.value || null)} className="w-full border px-3 py-2 rounded" />
               </div>
             )}
             <div className="flex flex-col sm:flex-row gap-2 pt-2">
-              <button onClick={() => { setShowMarkPaidModal(false); setMarkPaidBooking(null); setMarkPaidInvoiced(null); setMarkPaidInvoiceNumber(null) }} className="w-full sm:w-auto px-4 py-3 rounded border">Annulla</button>
-              <Button className="w-full sm:w-auto" onClick={async () => {
+              <button onClick={() => { setShowMarkPaidModal(false); setMarkPaidBooking(null); setMarkPaidInvoiced(null); setMarkPaidInvoiceNumber(null) }} className="w-full sm:w-auto px-3 py-2 rounded-md border">Annulla</button>
+              <Button className="w-full sm:w-auto px-3 py-2" onClick={async () => {
                 if (!markPaidBooking || markPaidInvoiced === null) return
                 const id = markPaidBooking.id
                 const paidAt = new Date().toISOString()
