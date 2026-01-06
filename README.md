@@ -45,6 +45,13 @@ Se la query restituisce `false`, contattami e verifico il progetto Supabase (pos
 
 ## Nuove funzionalità e aggiornamenti
 
+### Modifiche recenti (Gen 2026)
+- UI/notifiche: il pannello notifiche ora si chiude cliccando o toccando **fuori** dal pannello (desktop e mobile) e supporta anche la chiusura con `Escape`. Il comportamento touch è stato reso robusto evitando chiusure accidentali durante l'interazione interna.
+- Modal: fix per evitare la chiusura immediata al primo tocco (gestione pointer/touch migliorata) e backdrop più affidabile su mobile.
+- Calendario (vista Giorno): rimosso il numero fattura inline accanto all'attrezzatura nelle card per evitare confusione; il dettaglio fattura rimane disponibile nell'Archivio e nel dettaglio prenotazione.
+- Sidebar: voce aggiornata a **"Report & Amministrazione"** con icona grafico a colonne per maggiore chiarezza.
+- Reports: titolo della pagina aggiornato in **"Report & Amministrazione"**.
+
 ### Sistema di Pacchetti
 La sezione **Pacchetti** ora supporta:
 - Creazione pacchetti con modal "Nuovo Pacchetto"
