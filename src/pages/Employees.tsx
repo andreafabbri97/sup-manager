@@ -217,12 +217,7 @@ export default function EmployeesPage() {
                 {emp.notes && <div className="text-sm mt-1 text-neutral-600 dark:text-neutral-300">{emp.notes}</div>}
               </div>
               <div className="flex gap-2 flex-wrap justify-end">
-                {isAdmin && emp.auth_user_id && (
-                  <>
-                    <Button size="sm" variant="secondary" onClick={() => setRole(emp, 'admin')}>Rendi admin</Button>
-                    <Button size="sm" variant="ghost" onClick={() => setRole(emp, 'staff')}>Rendi staff</Button>
-                  </>
-                )}
+
                 <Button size="sm" variant="secondary" onClick={() => openEdit(emp)}>Modifica</Button>
                 {isAdmin ? <Button size="sm" variant="ghost" onClick={() => remove(emp.id)}>Elimina</Button> : null}
                 <div className="w-full sm:w-auto" />

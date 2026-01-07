@@ -56,12 +56,33 @@ export default function TimesheetPage() {
 
   async function loadShifts() {
     setLoading(true)
-    const { data, error } = await supabase.from('shifts').select('id, employee_id, start_at, end_at, status, duration_hours, employees(name, auth_user_id)').order('start_at', { ascending: false }).limit(200)
-    setLoading(false)
-    if (error) { window.dispatchEvent(new CustomEvent('toast', { detail: { message: error.message, type: 'error' } })); return }
-    setShifts((data as any) || [])
-  }
+    try {
+      const { getCurrentUserRole, getCurrentUserId } = await import('../lib/auth')
+      const role = await getCurrentUserRole()
+      const uid = await getCurrentUserId()
 
+      // If staff, show only their shifts (if associated employee exists)
+      if (role === 'staff') {
+        if (!uid) { setShifts([]); setLoading(false); return }
+        const { data: emp } = await supabase.from('employees').select('id').eq('auth_user_id', uid).single()
+        if (!emp || !emp.id) { setShifts([]); setLoading(false); return }
+        const { data, error } = await supabase.from('shifts').select('id, employee_id, start_at, end_at, status, duration_hours, employees(name, auth_user_id)').eq('employee_id', emp.id).order('start_at', { ascending: false }).limit(200)
+        setLoading(false)
+        if (error) { window.dispatchEvent(new CustomEvent('toast', { detail: { message: error.message, type: 'error' } })); return }
+        setShifts((data as any) || [])
+        return
+      }
+
+      // admin/other roles: load wide view
+      const { data, error } = await supabase.from('shifts').select('id, employee_id, start_at, end_at, status, duration_hours, employees(name, auth_user_id)').order('start_at', { ascending: false }).limit(200)
+      setLoading(false)
+      if (error) { window.dispatchEvent(new CustomEvent('toast', { detail: { message: error.message, type: 'error' } })); return }
+      setShifts((data as any) || [])
+    } catch (e: any) {
+      setLoading(false)
+      window.dispatchEvent(new CustomEvent('toast', { detail: { message: e.message || 'Errore caricamento turni', type: 'error' } }))
+    }
+  }
   useEffect(() => {
     ;(async () => {
       try {
