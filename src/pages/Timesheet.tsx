@@ -321,14 +321,6 @@ export default function TimesheetPage() {
                       {statusLabels[shift.status] || shift.status}
                     </span>
                     {shift.duration_hours ? <span>{shift.duration_hours.toFixed(2)} h</span> : null}
-
-                    {/* Approval status badge visible to staff */}
-                    {shift.approval_status === 'approved' && (
-                      <span className="inline-flex items-center px-2 py-1 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-200">Approvato</span>
-                    )}
-                    {shift.approval_status === 'rejected' && (
-                      <span className="inline-flex items-center px-2 py-1 rounded-full bg-rose-100 text-rose-700 dark:bg-rose-900/50 dark:text-rose-200">Rifiutato</span>
-                    )}
                   </div>
                 </div>
                 <div className="flex gap-2 flex-wrap">
