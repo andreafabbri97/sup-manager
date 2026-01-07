@@ -84,49 +84,40 @@ export default function UsersPage() {
     <div className="w-full px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <PageTitle className="m-0">Utenti</PageTitle>
-        <div className="text-xs text-neutral-500">{users.length} utenti</div>
+        <Button onClick={() => setShowNewModal(true)} disabled={!isAdmin}>Nuovo utente</Button>
       </div>
 
-      <Card className="p-4 sm:p-6 space-y-3">
-        <div className="font-semibold">Utenti interni</div>
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-neutral-500">Crea e gestisci gli utenti interni dell'app.</p>
-          <Button onClick={() => setShowNewModal(true)} disabled={!isAdmin}>Nuovo utente</Button>
-        </div>
-        <p className="text-xs text-neutral-500 mt-2">Suggerimento: collega gli utenti alle anagrafiche dipendenti modificando il campo <code>auth_user_id</code> sull'anagrafica Dipendenti.</p>
-
-        {/* New User Modal */}
-        <Modal isOpen={showNewModal} onClose={() => { setShowNewModal(false); setNewUsername(''); setNewPassword(''); setNewRole('staff') }} title="Nuovo utente" mobileCentered autoFocus={false}>
-          <div className="grid grid-cols-1 gap-3">
-            <div>
-              <label className="text-sm block mb-1">Username</label>
-              <input className="w-full border rounded px-3 py-2" value={newUsername} onChange={(e)=>setNewUsername(e.target.value)} placeholder="username" autoCapitalize="off" autoCorrect="off" spellCheck={false} autoComplete="username" inputMode="text" />
-            </div>
-            <div>
-              <label className="text-sm block mb-1">Password</label>
-              <input className="w-full border rounded px-3 py-2" value={newPassword} onChange={(e)=>setNewPassword(e.target.value)} placeholder="password" />
-            </div>
-            <div>
-              <label className="text-sm block mb-1">Ruolo</label>
-              <select className="w-full border rounded px-3 py-2" value={newRole} onChange={(e)=>setNewRole(e.target.value as any)}>
-                <option value="admin">Admin</option>
-                <option value="staff">Staff</option>
-              </select>
-            </div>
-            <div className="flex gap-2 justify-end">
-              <Button onClick={async ()=>{
-                if (!newUsername || !newPassword) return window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Inserisci username e password', type: 'error' } }))
-                const token = window.localStorage.getItem('app_session_token') || null
-                const { data, error } = await supabase.rpc('create_internal_user', { p_username: newUsername, p_password: newPassword, p_role: newRole, p_session_token: token })
-                if (error) return window.dispatchEvent(new CustomEvent('toast', { detail: { message: error.message, type: 'error' } }))
-                window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Utente creato', type: 'success' } }))
-                setNewUsername(''); setNewPassword(''); setNewRole('staff'); setShowNewModal(false); load()
-              }} disabled={!newUsername || !newPassword}>Crea</Button>
-              <Button variant="ghost" onClick={()=>{ setNewUsername(''); setNewPassword(''); setNewRole('staff') }}>Reset</Button>
-            </div>
+      {/* New User Modal */}
+      <Modal isOpen={showNewModal} onClose={() => { setShowNewModal(false); setNewUsername(''); setNewPassword(''); setNewRole('staff') }} title="Nuovo utente" mobileCentered autoFocus={false}>
+        <div className="grid grid-cols-1 gap-3">
+          <div>
+            <label className="text-sm block mb-1">Username</label>
+            <input className="w-full border rounded px-3 py-2" value={newUsername} onChange={(e)=>setNewUsername(e.target.value)} placeholder="username" autoCapitalize="off" autoCorrect="off" spellCheck={false} autoComplete="username" inputMode="text" />
           </div>
-        </Modal>
-      </Card>
+          <div>
+            <label className="text-sm block mb-1">Password</label>
+            <input className="w-full border rounded px-3 py-2" value={newPassword} onChange={(e)=>setNewPassword(e.target.value)} placeholder="password" />
+          </div>
+          <div>
+            <label className="text-sm block mb-1">Ruolo</label>
+            <select className="w-full border rounded px-3 py-2" value={newRole} onChange={(e)=>setNewRole(e.target.value as any)}>
+              <option value="admin">Admin</option>
+              <option value="staff">Staff</option>
+            </select>
+          </div>
+          <div className="flex gap-2 justify-end">
+            <Button onClick={async ()=>{
+              if (!newUsername || !newPassword) return window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Inserisci username e password', type: 'error' } }))
+              const token = window.localStorage.getItem('app_session_token') || null
+              const { data, error } = await supabase.rpc('create_internal_user', { p_username: newUsername, p_password: newPassword, p_role: newRole, p_session_token: token })
+              if (error) return window.dispatchEvent(new CustomEvent('toast', { detail: { message: error.message, type: 'error' } }))
+              window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Utente creato', type: 'success' } }))
+              setNewUsername(''); setNewPassword(''); setNewRole('staff'); setShowNewModal(false); load()
+            }} disabled={!newUsername || !newPassword}>Crea</Button>
+            <Button variant="ghost" onClick={()=>{ setNewUsername(''); setNewPassword(''); setNewRole('staff') }}>Reset</Button>
+          </div>
+        </div>
+      </Modal>
 
       {loading && <div className="text-sm text-neutral-500">Caricamento...</div>}
 
