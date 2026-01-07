@@ -182,7 +182,14 @@ export default function TimesheetPage() {
   }
 
   async function confirm(id: string) {
-    const { error } = await supabase.rpc('confirm_shift', { p_shift_id: id })
+    // pass internal app session token when present so server-side ownership checks succeed
+    const token = (() => {
+      try { return window.localStorage.getItem('app_session_token') } catch (e) { return null }
+    })()
+    const payload: any = { p_shift_id: id }
+    if (token) payload.p_session_token = token
+
+    const { error } = await supabase.rpc('confirm_shift', payload)
     if (error) {
       window.dispatchEvent(new CustomEvent('toast', { detail: { message: error.message, type: 'error' } }))
       return
@@ -199,7 +206,12 @@ export default function TimesheetPage() {
       return
     }
     // try to confirm via RPC (may fail if not owner/admin), ignore if RPC errors
-    const { error: confErr } = await supabase.rpc('confirm_shift', { p_shift_id: id })
+    const token = (() => {
+      try { return window.localStorage.getItem('app_session_token') } catch (e) { return null }
+    })()
+    const payload: any = { p_shift_id: id }
+    if (token) payload.p_session_token = token
+    const { error: confErr } = await supabase.rpc('confirm_shift', payload)
     if (!confErr) {
       window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Turno terminato e confermato', type: 'success' } }))
     } else {
