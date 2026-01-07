@@ -134,7 +134,7 @@ export default function UsersPage() {
         {users.map((u) => {
           const emp = employeeByAuth[u.id]
           return (
-            <Card key={u.id} className="p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <Card key={u.id} className="p-4 flex items-center gap-3 flex-wrap">
               <div className="flex-1 min-w-0">
                 <div className="font-semibold break-all">{u.username || u.id}</div>
                 <div className="text-xs mt-1">
@@ -145,9 +145,9 @@ export default function UsersPage() {
                 {emp && <div className="text-xs text-neutral-600 dark:text-neutral-300">Dipendente: {emp.name}</div>}
                 {u.created_at && <div className="text-xs text-neutral-400">Creato: {new Date(u.created_at).toLocaleString('it-IT')}</div>}
               </div>
-              <div className="flex gap-2 flex-wrap">
+              <div className="flex gap-2 flex-wrap ml-auto items-center">
                 <Button size="sm" variant="secondary" onClick={()=>{ setEditingUserId(u.id); setNewUsername(u.username || ''); setNewRole(u.role); setNewPassword(''); setShowNewModal(true); }}>Modifica</Button>
-                <Button size="sm" variant="ghost" className="text-rose-600 hover:bg-rose-50" onClick={()=>removeUser(u.id)}>Rimuovi</Button>
+                <Button size="sm" variant="ghost" className="text-rose-600 dark:text-rose-400 hover:bg-rose-50" onClick={()=>removeUser(u.id)}>Rimuovi</Button>
               </div>
             </Card>
           )
