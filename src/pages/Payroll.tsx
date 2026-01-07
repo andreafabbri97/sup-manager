@@ -17,6 +17,7 @@ export default function PayrollPage({ lockedEmployeeId }: PayrollProps) {
   const [creating, setCreating] = useState(false)
   const [lastRunId, setLastRunId] = useState<string | null>(null)
   const [lastRunName, setLastRunName] = useState<string | null>(null)
+  const [lastRunTotal, setLastRunTotal] = useState<number | null>(null)
   const [creatingExpenses, setCreatingExpenses] = useState(false)
   const [expensesCreated, setExpensesCreated] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
@@ -67,6 +68,14 @@ export default function PayrollPage({ lockedEmployeeId }: PayrollProps) {
         setLastRunId(runId)
         setLastRunName(runName)
         setExpensesCreated(false)
+        // fetch run row to get totals
+        try {
+          const { data: runRow } = await supabase.from('payroll_runs').select('id, name, total_amount').eq('id', runId).single()
+          if (runRow) {
+            setLastRunName(runRow.name || runName)
+            setLastRunTotal(runRow.total_amount ?? null)
+          }
+        } catch (e) {}
         window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Payroll run creata', type: 'success' } }))
       } else {
         window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Run creata (nessun id restituito)', type: 'success' } }))
@@ -157,9 +166,13 @@ export default function PayrollPage({ lockedEmployeeId }: PayrollProps) {
           {lastRunId && (
             <Card className="p-4 sm:p-6">
               <div className="flex items-center justify-between">
-                <div className="text-sm">Ultima payroll run: {lastRunName || lastRunId}</div>
+                <div className="text-sm">
+                  <div>Ultima payroll run: {lastRunName || lastRunId}</div>
+                  {lastRunTotal !== null && <div className="text-xs text-neutral-600">Totale: {Number(lastRunTotal).toFixed(2)} €</div>}
+                </div>
                 <div className="flex gap-2">
-                  {isAdmin && <Button onClick={()=>onCreateExpenses(lastRunId!)} disabled={creatingExpenses || expensesCreated}>{creatingExpenses ? 'Creazione...' : expensesCreated ? 'Spese create' : 'Aggiungi paghe alle spese'}</Button>}
+                  {isAdmin && <Button onClick={()=>onCreateExpenses(lastRunId!)} disabled={creatingExpenses || expensesCreated}>{creatingExpenses ? 'Creazione...' : expensesCreated ? 'Spese create' : 'Aggiungi alle spese'}</Button>}
+                  {isAdmin && <Button variant="ghost" className="text-rose-600" onClick={() => { if (confirm('Eliminare questa payroll run?')) { (async ()=>{ const { error } = await supabase.from('payroll_runs').delete().eq('id', lastRunId); if (error) { window.dispatchEvent(new CustomEvent('toast', { detail: { message: error.message, type: 'error' } })) } else { window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Payroll run eliminata', type: 'success' } })); setLastRunId(null); setLastRunName(null); setLastRunTotal(null); } })() } }}>Elimina payroll run</Button>}
                 </div>
               </div>
             </Card>

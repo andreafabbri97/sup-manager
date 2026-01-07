@@ -135,6 +135,13 @@ export default function Modal({ isOpen, onClose, title, children, autoFocus = fa
   }
 
   useEffect(() => {
+    // prevent background scrolling when modal is open
+    if (isOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+
     // reset any inline styles when modal closes or opens
     if (!isOpen) {
       if (contentRef.current) {
@@ -164,6 +171,11 @@ export default function Modal({ isOpen, onClose, title, children, autoFocus = fa
         setUserExpanded(true)
         openFullTriggered.current = true
       }
+    }
+
+    return () => {
+      // ensure we always restore body overflow when component unmounts
+      document.body.style.overflow = ''
     }
   }, [isOpen, fullScreenMobile, userExpanded, isMobile, openFullMobile, mobileCentered])
 
