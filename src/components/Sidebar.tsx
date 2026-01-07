@@ -153,6 +153,14 @@ export default function Sidebar({ onNav, currentPage }: { onNav?: (page: string)
             <path strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" d="M4 21v-1a5 5 0 015-5h6a5 5 0 015 5v1" />
           </svg>
         )
+      case 'help':
+        return (
+          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <circle cx="12" cy="12" r="10" strokeWidth="1.5" />
+            <path strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" />
+            <circle cx="12" cy="17" r="0.5" fill="currentColor" strokeWidth="1" />
+          </svg>
+        )
       case 'timesheet':
         return (
           <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
