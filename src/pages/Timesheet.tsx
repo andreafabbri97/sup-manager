@@ -300,7 +300,8 @@ export default function TimesheetPage() {
             {list.map((shift) => (
               <Card key={shift.id} className="p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                 <div className="flex-1">
-                  <div className="font-semibold">{shift.employee?.name || 'Dipendente'}</div>
+                  {/* show actual employee name if available, fallback to lookup by id, otherwise a short dash */}
+                  <div className="font-semibold">{shift.employee?.name || employees.find(e => e.id === shift.employee_id)?.name || '—'}</div>
                   <div className="text-sm text-neutral-600 dark:text-neutral-300">
                     {fmtTime(shift.start_at)} → {fmtTime(shift.end_at)} ({shift.duration_hours?.toFixed(2)} h)
                   </div>
@@ -312,21 +313,27 @@ export default function TimesheetPage() {
                   </div>
                 </div>
                 <div className="flex gap-2 flex-wrap">
-                  {(shift.status !== 'completed' && (shift.employee?.auth_user_id === currentUserId || isAdmin)) && <Button size="sm" variant="secondary" onClick={()=>confirm(shift.id)}>Conferma</Button>}
-                  {(shift.end_at === shift.start_at && (shift.employee?.auth_user_id === currentUserId || isAdmin)) && <Button size="sm" variant="secondary" onClick={()=>stopShift(shift.id)}>Termina</Button>}
-                  {shift.status !== 'cancelled' && <Button size="sm" variant="ghost" onClick={()=>updateStatus(shift.id, 'cancelled')}>Annulla</Button>}
-                  {(shift.employee?.auth_user_id === currentUserId || isAdmin) && (
-                    <>
+                  {/* Determine ownership once */}
+                  {(shift.employee?.auth_user_id === currentUserId) && (
+                    <> {/* Owner actions (staff) */}
+                      {shift.status !== 'completed' && (shift.end_at === shift.start_at ? (
+                        <Button size="sm" variant="secondary" onClick={()=>stopShift(shift.id)}>Termina</Button>
+                      ) : (
+                        <Button size="sm" variant="secondary" onClick={()=>confirm(shift.id)}>Conferma</Button>
+                      ))}
                       <Button size="sm" variant="secondary" onClick={()=>openEdit(shift)}>Modifica</Button>
                       <Button size="sm" variant="ghost" onClick={()=>removeShift(shift.id)}>Elimina</Button>
                     </>
                   )}
-                  {/* Approval controls for admins */}
-                  {isAdmin && shift.approval_status !== 'approved' && (
-                    <Button size="sm" variant="secondary" onClick={() => approve(shift.id, 'approved')}>Approva</Button>
-                  )}
-                  {isAdmin && shift.approval_status !== 'rejected' && (
-                    <Button size="sm" variant="ghost" onClick={() => approve(shift.id, 'rejected')}>Rifiuta</Button>
+
+                  {/* Admin actions */}
+                  {isAdmin && (
+                    <>
+                      <Button size="sm" variant="secondary" onClick={()=>openEdit(shift)}>Modifica</Button>
+                      <Button size="sm" variant="ghost" onClick={()=>removeShift(shift.id)}>Elimina</Button>
+                      {shift.approval_status !== 'approved' && <Button size="sm" variant="secondary" onClick={() => approve(shift.id, 'approved')}>Approva</Button>}
+                      {shift.approval_status !== 'rejected' && <Button size="sm" variant="ghost" onClick={() => approve(shift.id, 'rejected')}>Rifiuta</Button>}
+                    </>
                   )}
                 </div>
               </Card>
