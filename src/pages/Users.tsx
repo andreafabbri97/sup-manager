@@ -96,7 +96,7 @@ export default function UsersPage() {
           </div>
           <div>
             <label className="text-sm block mb-1">Password</label>
-            <input className="w-full border rounded px-3 py-2" value={newPassword} onChange={(e)=>setNewPassword(e.target.value)} placeholder="password" />
+            <input className="w-full border rounded px-3 py-2" value={newPassword} onChange={(e)=>setNewPassword(e.target.value)} placeholder="password" autoCapitalize="off" autoCorrect="off" spellCheck={false} autoComplete="new-password" inputMode="text" type="password" />
           </div>
           <div>
             <label className="text-sm block mb-1">Ruolo</label>

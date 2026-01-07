@@ -37,12 +37,12 @@ export default function PeoplePage() {
       </div>
 
       <Card className="p-3 mb-4">
-        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 rounded bg-neutral-100 dark:bg-neutral-800 p-1" role="tablist">
+        <div className="flex flex-row gap-2 rounded bg-neutral-100 dark:bg-neutral-800 p-1" role="tablist">
           {role !== 'staff' && (
-            <button role="tab" aria-selected={tab==='employees'} onClick={()=>setTab('employees')} className={`w-full sm:w-auto px-4 py-3 rounded ${tab==='employees' ? 'bg-white dark:bg-neutral-700 shadow' : ''}`}>Dipendenti</button>
+            <button role="tab" aria-selected={tab==='employees'} onClick={()=>setTab('employees')} className={`flex-1 px-3 py-2 text-sm rounded ${tab==='employees' ? 'bg-white dark:bg-neutral-700 shadow' : ''}`}>Dipendenti</button>
           )}
-          <button role="tab" aria-selected={tab==='timesheet'} onClick={()=>setTab('timesheet')} className={`w-full sm:w-auto px-4 py-3 rounded ${tab==='timesheet' ? 'bg-white dark:bg-neutral-700 shadow' : ''}`}>Turni</button>
-          <button role="tab" aria-selected={tab==='payroll'} onClick={()=>setTab('payroll')} className={`w-full sm:w-auto px-4 py-3 rounded ${tab==='payroll' ? 'bg-white dark:bg-neutral-700 shadow' : ''}`}>Paghe</button>
+          <button role="tab" aria-selected={tab==='timesheet'} onClick={()=>setTab('timesheet')} className={`flex-1 px-3 py-2 text-sm rounded ${tab==='timesheet' ? 'bg-white dark:bg-neutral-700 shadow' : ''}`}>Turni</button>
+          <button role="tab" aria-selected={tab==='payroll'} onClick={()=>setTab('payroll')} className={`flex-1 px-3 py-2 text-sm rounded ${tab==='payroll' ? 'bg-white dark:bg-neutral-700 shadow' : ''}`}>Paghe</button>
         </div>
       </Card>
 
