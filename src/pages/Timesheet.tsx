@@ -53,6 +53,32 @@ export default function TimesheetPage() {
 
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const [isAdmin, setIsAdmin] = useState(false)
+  const [staffEmployeeId, setStaffEmployeeId] = useState<string | null>(null)
+  const [role, setRole] = useState<string | null>(null)
+
+  useEffect(() => {
+    ;(async () => {
+      try {
+        const { data } = await supabase.auth.getUser()
+        const user = (data as any)?.user
+        setCurrentUserId(user?.id ?? null)
+        const { getCurrentUserRole, getCurrentUserId } = await import('../lib/auth')
+        const r = await getCurrentUserRole()
+        setRole(r)
+        setIsAdmin(r === 'admin')
+        if (r === 'staff') {
+          const uid = await getCurrentUserId()
+          if (uid) {
+            const { data: emp } = await supabase.from('employees').select('id').eq('auth_user_id', uid).maybeSingle()
+            if (emp && (emp as any).id) setStaffEmployeeId((emp as any).id)
+          }
+        }
+      } catch (e) {
+        setCurrentUserId(null)
+        setIsAdmin(false)
+      }
+    })()
+  }, [])
 
   async function loadShifts() {
     setLoading(true)
@@ -102,7 +128,18 @@ export default function TimesheetPage() {
   function openNew() {
     const now = new Date()
     const later = new Date(now.getTime() + 60 * 60 * 1000)
-    setForm({ employee_id: employees[0]?.id || '', start_at: now.toISOString().slice(0,16), end_at: later.toISOString().slice(0,16), status: 'scheduled' })
+
+    // If staff, force employee to their own employee id and prevent if missing
+    if (role === 'staff') {
+      if (!staffEmployeeId) {
+        window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Il tuo account non è associato ad un dipendente; contatta un admin.', type: 'error' } }))
+        return
+      }
+      setForm({ employee_id: staffEmployeeId, start_at: now.toISOString().slice(0,16), end_at: later.toISOString().slice(0,16), status: 'scheduled' })
+    } else {
+      setForm({ employee_id: employees[0]?.id || '', start_at: now.toISOString().slice(0,16), end_at: later.toISOString().slice(0,16), status: 'scheduled' })
+    }
+
     setEditing(null)
     setShowModal(true)
   }
@@ -266,8 +303,12 @@ export default function TimesheetPage() {
                   {(shift.status !== 'completed' && (shift.employee?.auth_user_id === currentUserId || isAdmin)) && <Button size="sm" variant="secondary" onClick={()=>confirm(shift.id)}>Conferma</Button>}
                   {(shift.end_at === shift.start_at && (shift.employee?.auth_user_id === currentUserId || isAdmin)) && <Button size="sm" variant="secondary" onClick={()=>stopShift(shift.id)}>Termina</Button>}
                   {shift.status !== 'cancelled' && <Button size="sm" variant="ghost" onClick={()=>updateStatus(shift.id, 'cancelled')}>Annulla</Button>}
-                  <Button size="sm" variant="secondary" onClick={()=>openEdit(shift)}>Modifica</Button>
-                  <Button size="sm" variant="ghost" onClick={()=>removeShift(shift.id)}>Elimina</Button>
+                  {(shift.employee?.auth_user_id === currentUserId || isAdmin) && (
+                    <>
+                      <Button size="sm" variant="secondary" onClick={()=>openEdit(shift)}>Modifica</Button>
+                      <Button size="sm" variant="ghost" onClick={()=>removeShift(shift.id)}>Elimina</Button>
+                    </>
+                  )}
                   {/* Approval controls for admins */}
                   {isAdmin && shift.approval_status !== 'approved' && (
                     <Button size="sm" variant="secondary" onClick={() => approve(shift.id, 'approved')}>Approva</Button>
@@ -286,9 +327,13 @@ export default function TimesheetPage() {
         <form onSubmit={save} className="space-y-3">
           <div>
             <label className="text-sm block mb-1">Dipendente</label>
-            <select className="w-full border rounded px-3 py-2" value={form.employee_id} onChange={(e)=>setForm(f=>({...f, employee_id: e.target.value}))}>
-              {employees.map((e)=>(<option key={e.id} value={e.id}>{e.name}</option>))}
-            </select>
+            {role === 'staff' ? (
+              <div className="px-3 py-2 border rounded bg-neutral-50">{employees.find(e => e.id === staffEmployeeId)?.name || '—'}</div>
+            ) : (
+              <select className="w-full border rounded px-3 py-2" value={form.employee_id} onChange={(e)=>setForm(f=>({...f, employee_id: e.target.value}))}>
+                {employees.map((e)=>(<option key={e.id} value={e.id}>{e.name}</option>))}
+              </select>
+            )}
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
