@@ -165,16 +165,21 @@ export default function TimesheetPage() {
     if (isNaN(start.getTime()) || isNaN(end.getTime())) { window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Date non valide', type: 'error' } })); return }
     if (end <= start) { window.dispatchEvent(new CustomEvent('toast', { detail: { message: "La fine deve essere dopo l'\'inizio", type: 'error' } })); return }
     setSaving(true)
+
+    // If staff, force status to 'scheduled' regardless of form input
+    const forcedStatus = role === 'staff' ? 'scheduled' : form.status
+
     const payload = {
       employee_id: form.employee_id,
       start_at: start.toISOString(),
       end_at: end.toISOString(),
-      status: form.status
+      status: forcedStatus
     }
 
     const { error } = editing
       ? await supabase.from('shifts').update(payload).eq('id', editing.id)
       : await supabase.from('shifts').insert(payload)
+
     setSaving(false)
     if (error) return alert(error.message)
     setShowModal(false)
@@ -316,6 +321,14 @@ export default function TimesheetPage() {
                       {statusLabels[shift.status] || shift.status}
                     </span>
                     {shift.duration_hours ? <span>{shift.duration_hours.toFixed(2)} h</span> : null}
+
+                    {/* Approval status badge visible to staff */}
+                    {shift.approval_status === 'approved' && (
+                      <span className="inline-flex items-center px-2 py-1 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-200">Approvato</span>
+                    )}
+                    {shift.approval_status === 'rejected' && (
+                      <span className="inline-flex items-center px-2 py-1 rounded-full bg-rose-100 text-rose-700 dark:bg-rose-900/50 dark:text-rose-200">Rifiutato</span>
+                    )}
                   </div>
                 </div>
                 <div className="flex gap-2 flex-wrap">
@@ -380,11 +393,15 @@ export default function TimesheetPage() {
           </div>
           <div>
             <label className="text-sm block mb-1">Stato</label>
-            <select className="w-full border rounded px-3 py-2" value={form.status} onChange={(e)=>setForm(f=>({...f, status: e.target.value}))}>
-              <option value="scheduled">Programmato</option>
-              <option value="completed">Completato</option>
-              <option value="cancelled">Annullato</option>
-            </select>
+            {role === 'staff' ? (
+              <div className="px-3 py-2 border rounded bg-neutral-50">Programmato</div>
+            ) : (
+              <select className="w-full border rounded px-3 py-2" value={form.status} onChange={(e)=>setForm(f=>({...f, status: e.target.value}))}>
+                <option value="scheduled">Programmato</option>
+                <option value="completed">Completato</option>
+                <option value="cancelled">Annullato</option>
+              </select>
+            )}
           </div>
           <div className="flex justify-end gap-2 pt-2">
             <Button type="button" variant="ghost" onClick={()=>setShowModal(false)}>Annulla</Button>

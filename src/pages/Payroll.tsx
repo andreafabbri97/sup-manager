@@ -21,13 +21,31 @@ export default function PayrollPage({ lockedEmployeeId }: PayrollProps) {
   const [creatingExpenses, setCreatingExpenses] = useState(false)
   const [expensesCreated, setExpensesCreated] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
+  const [role, setRole] = useState<string | null>(null)
+  const [staffEmployeeId, setStaffEmployeeId] = useState<string | null>(null)
 
   useEffect(() => { 
     loadEmployees()
     loadLastPayrollRun()
   }, [])
   useEffect(() => {
-    import('../lib/auth').then(({ getCurrentUserRole }) => getCurrentUserRole().then(r => setIsAdmin(r === 'admin')))
+    ;(async () => {
+      const { getCurrentUserRole, getCurrentUserId } = await import('../lib/auth')
+      const r = await getCurrentUserRole()
+      setRole(r)
+      setIsAdmin(r === 'admin')
+      if (r === 'staff') {
+        const uid = await getCurrentUserId()
+        if (uid) {
+          const { data: emp } = await supabase.from('employees').select('id').eq('auth_user_id', uid).maybeSingle()
+          if (emp && (emp as any).id) {
+            setStaffEmployeeId((emp as any).id)
+            setEmployeeId((emp as any).id)
+          }
+        }
+      }
+    })()
+
     const onAuth = () => import('../lib/auth').then(({ getCurrentUserRole }) => getCurrentUserRole().then(r => setIsAdmin(r === 'admin')))
     window.addEventListener('auth:changed', onAuth as any)
     return () => window.removeEventListener('auth:changed', onAuth as any)
@@ -154,7 +172,48 @@ export default function PayrollPage({ lockedEmployeeId }: PayrollProps) {
         <div className="text-xs text-neutral-500 mt-2 mb-4">Calcola e crea payroll run</div>
       </div>
 
-      {!isAdmin ? (
+      {role === 'staff' ? (
+        // Staff: allow calculation only for themselves
+        <>
+          <Card className="p-4 sm:p-6">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
+              <div>
+                <label className="text-sm block mb-1">Periodo inizio</label>
+                <input type="date" className="w-full border rounded px-3 py-2" value={start} onChange={(e)=>setStart(e.target.value)} />
+              </div>
+              <div>
+                <label className="text-sm block mb-1">Periodo fine</label>
+                <input type="date" className="w-full border rounded px-3 py-2" value={end} onChange={(e)=>setEnd(e.target.value)} />
+              </div>
+              <div className="flex gap-2">
+                <Button onClick={onCalculate} disabled={loading}>{loading? 'Calcolo...' : 'Calcola'}</Button>
+              </div>
+            </div>
+          </Card>
+
+          {result && (
+            <Card className="p-4 sm:p-6 mt-4">
+              <div className="font-semibold mb-2">I tuoi risultati</div>
+              <div className="text-sm text-neutral-700 dark:text-neutral-300">Totale ore: {result?.totals?.total_hours ?? 0}</div>
+              <div className="text-sm text-neutral-700 dark:text-neutral-300 mb-2">Totale importo: {result?.totals?.total_amount ?? 0} €</div>
+              <div className="grid gap-2">
+                {result?.items && result.items.map((it: any) => (
+                  <div key={it.shift_id} className="p-2 border rounded flex items-center justify-between">
+                    <div>
+                      <div className="font-semibold">{it.employee_name}</div>
+                      <div className="text-xs">{new Date(it.start_at).toLocaleString('it-IT')} → {new Date(it.end_at).toLocaleString('it-IT')}</div>
+                      <div className="text-xs">Ore: {it.duration_hours} → Pagate: {it.hours_paid} @ {it.rate}€</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-semibold">{it.amount} €</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          )}
+        </>
+      ) : !isAdmin ? (
         <Card>
           <div className="text-sm text-neutral-500">Accesso riservato agli amministratori. Se sei un admin, accedi e ricarica la pagina per gestire le paghe.</div>
         </Card>
