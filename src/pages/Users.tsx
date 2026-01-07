@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
+import Modal from '../components/ui/Modal'
 import PageTitle from '../components/ui/PageTitle'
 import { supabase } from '../lib/supabaseClient'
 

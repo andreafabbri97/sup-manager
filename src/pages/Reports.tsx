@@ -505,44 +505,119 @@ export default function Reports() {
 
       {tab === 'admin' && (
         <Card>
-          <h3 className="text-lg font-medium mb-2">Amministrazione</h3>
-          {!isAdmin ? (
-            <div className="text-sm text-neutral-500">Accesso riservato agli amministratori. Se sei un admin, accedi e ricarica la pagina.</div>
-          ) : (
-            <div className="space-y-3">
-              <div className="text-sm text-neutral-600">Calcola le paghe per un periodo selezionato.</div>
-              <div className="flex flex-wrap gap-2 items-center">
-                <label className="text-sm">Da</label>
-                <input type="date" value={start} onChange={(e)=>setStart(e.target.value)} className="border px-2 py-1 rounded" />
-                <label className="text-sm">A</label>
-                <input type="date" value={end} onChange={(e)=>setEnd(e.target.value)} className="border px-2 py-1 rounded" />
-                <Button onClick={async () => {
-                  try {
-                    setIsRefreshing(true)
-                    const res = await (await import('../lib/payroll')).calculatePayroll(start, end, undefined)
-                    window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Calcolo paghe completato', type: 'success' } }))
-                    // show a short summary in toast and console
-                    console.debug('Payroll calculation result', res)
-                    setIsRefreshing(false)
-                  } catch (e:any) {
-                    setIsRefreshing(false)
-                    window.dispatchEvent(new CustomEvent('toast', { detail: { message: e.message || 'Errore calcolo paghe', type: 'error' } }))
-                  }
-                }} disabled={isRefreshing}>{isRefreshing ? 'Calcolando...' : 'Calcola'}</Button>
-                <Button variant="secondary" onClick={async () => {
-                  if (!confirm('Creare una payroll run per questo periodo?')) return
-                  try {
-                    const data = await (await import('../lib/payroll')).createPayrollRun(start, end, undefined, undefined)
-                    const runId = Array.isArray(data) ? (data[0]?.payroll_run_id || data[0]?.id) : (data?.payroll_run_id || data?.id)
-                    window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Payroll run creata', type: 'success' } }))
-                    console.debug('Created payroll run', runId)
-                  } catch (e:any) {
-                    window.dispatchEvent(new CustomEvent('toast', { detail: { message: e.message || 'Errore creazione payroll run', type: 'error' } }))
-                  }
-                }}>{'Crea payroll run'}</Button>
-              </div>
+          <div className="mb-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <h3 className="text-lg font-medium">Gestione Spese</h3>
             </div>
-          )}
+            <div className="flex flex-row gap-2 w-full">
+                <Button onClick={() => { setEditExpense(null); setExpenseDate(new Date().toISOString().slice(0,10)); setShowExpenseModal(true) }} className="px-4 py-2">+ Spesa</Button>
+                <Button onClick={() => loadExpenses(expenseFilterStart, expenseFilterEnd)} className="bg-gray-600 px-4 py-2">Applica filtro</Button>
+                <Button onClick={() => { setExpenseFilterStart(new Date(new Date().setMonth(new Date().getMonth()-1)).toISOString().slice(0,10)); setExpenseFilterEnd(new Date().toISOString().slice(0,10)); loadExpenses(); }} className="bg-gray-600 px-4 py-2">Reset</Button>
+              </div>
+          </div>
+
+          <div className="mb-3 flex items-center gap-2">
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-neutral-500">Da</label>
+              <input type="date" value={expenseFilterStart} onChange={(e)=>setExpenseFilterStart(e.target.value)} className="border px-2 py-1 rounded" />
+            </div>
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-neutral-500">A</label>
+              <input type="date" value={expenseFilterEnd} onChange={(e)=>setExpenseFilterEnd(e.target.value)} className="border px-2 py-1 rounded" />
+            </div>
+          </div>
+
+          <div className="mt-2">
+            {/* Mobile stacked cards */}
+            <div className="sm:hidden space-y-2">
+              {expenses.map((ex:any) => (
+                <button key={ex.id} onClick={() => { setShowExpenseDetail(true); setDetailExpense(ex) }} className="w-full text-left p-3 rounded border bg-white/5 dark:bg-slate-800 flex items-start justify-between">
+                  <div>
+                    <div className="font-medium">{ex.category}</div>
+                    <div className="text-xs text-neutral-400">{ex.date}</div>
+                    {ex.receipt_url && <div className="text-xs text-amber-500 mt-1">Ricevuta disponibile</div>}
+                  </div>
+                  <div className="flex flex-col items-end">
+                    <div className="text-amber-500 dark:text-amber-300 font-bold">{ex.amount ? `€ ${Number(ex.amount).toFixed(2)}` : '—'}</div>
+                    <div className="text-sm text-neutral-500 mt-1">Dettagli →</div>
+                  </div>
+                </button>
+              ))}
+              {expenses.length === 0 && <div className="text-neutral-500">Nessuna spesa</div>}
+            </div>
+
+            {/* Table for sm+ */}
+            <div className="hidden sm:block">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left text-neutral-500"><th>Data</th><th>Categoria</th><th>Importo</th><th>Ricevuta</th><th></th></tr>
+                </thead>
+                <tbody>
+                  {expenses.map((ex:any)=> (
+                    <tr key={ex.id} role="button" tabIndex={0} onClick={(e) => { if ((e.target as HTMLElement).closest('button')) return; setShowExpenseDetail(true); setDetailExpense(ex) }} onKeyDown={(e:any) => { if (e.key === 'Enter') { setShowExpenseDetail(true); setDetailExpense(ex) } }} className="border-t border-neutral-100 dark:border-neutral-800 hover:bg-white/5 dark:hover:bg-neutral-700/60 transition-colors cursor-pointer">
+                      <td className="py-2 lg:py-1">{ex.date}</td>
+                      <td className="lg:py-1">{ex.category}</td>
+                      <td className="lg:py-1 text-amber-500 dark:text-amber-300 font-bold text-right">{Number(ex.amount).toFixed(2)} €</td>
+                      <td className="lg:py-1">{ex.receipt_url ? <a href={ex.receipt_url} target="_blank" rel="noreferrer">Ricevuta</a> : '—'}</td>
+                      <td className="py-2 lg:py-1">
+                        <div className="flex gap-2">
+                          <button onClick={(e)=>{ e.stopPropagation(); openEditExpense(ex) }} className="text-sm px-2 py-1 rounded border">Modifica</button>
+                          <button onClick={(e)=>{ e.stopPropagation(); deleteExpense(ex.id) }} className="text-sm px-2 py-1 rounded border text-red-600">Elimina</button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div className="mt-6">
+            <Archive start={expenseFilterStart} end={expenseFilterEnd} />
+          </div>
+
+          <Modal isOpen={showExpenseModal} onClose={handleCloseExpenseModal} title={editExpense ? 'Modifica Spesa' : '+ Spesa'}>
+            <form onSubmit={(e)=>{ createExpense(e); setShowExpenseModal(false); }} className="space-y-4">
+              <div>
+                <Input label="Importo" value={amount} onChange={(e)=>setAmount(e.target.value)} placeholder="Importo" />
+              </div>
+              <div>
+                <Input label="Data" type="date" value={expenseDate} onChange={(e)=>setExpenseDate(e.target.value)} />
+              </div>
+              <div>
+                <Input label="Categoria" value={category} onChange={(e)=>setCategory(e.target.value)} placeholder="Categoria" />
+              </div>
+              <div>
+                <Input label="Note" value={notes} onChange={(e)=>setNotes(e.target.value)} placeholder="Note" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Ricevuta (opzionale)</label>
+                <input type="file" onChange={(e:any)=>setReceiptFile(e.target.files?.[0]??null)} />
+              </div>
+              <div className="flex gap-2 justify-end">
+                <Button type="submit">{editExpense ? 'Salva Modifiche' : '+ Spesa'}</Button>
+                <button type="button" onClick={() => { setShowExpenseModal(false); setAmount(''); setCategory(''); setNotes(''); setReceiptFile(null); setExpenseDate(new Date().toISOString().slice(0,10)); setEditExpense(null) }} className="px-3 py-1 rounded border">Annulla</button>
+              </div>
+            </form>
+          </Modal>
+
+          {/* Expense detail modal */}
+          <Modal isOpen={showExpenseDetail} onClose={() => setShowExpenseDetail(false)} title={detailExpense ? `Spesa ${detailExpense.id}` : 'Dettaglio Spesa'}>
+            {detailExpense && (
+              <div className="space-y-3">
+                <div><strong>Data:</strong> {detailExpense.date}</div>
+                <div><strong>Categoria:</strong> {detailExpense.category}</div>
+                <div><strong>Importo:</strong> € {Number(detailExpense.amount).toFixed(2)}</div>
+                <div><strong>Note:</strong> {detailExpense.notes || '—'}</div>
+                <div><strong>Ricevuta:</strong> {detailExpense.receipt_url ? (<a href={detailExpense.receipt_url} target="_blank" rel="noreferrer" className="text-amber-600">Apri ricevuta</a>) : '—'}</div>
+                <div className="flex gap-2 justify-end">
+                  <Button onClick={() => { setShowExpenseDetail(false); openEditExpense(detailExpense); }}>Modifica</Button>
+                  <button onClick={() => { if (confirm('Eliminare questa spesa?')) { deleteExpense(detailExpense.id); setShowExpenseDetail(false) } }} className="px-3 py-1 rounded border text-red-600">Elimina</button>
+                  <button onClick={() => setShowExpenseDetail(false)} className="px-3 py-1 rounded border">Chiudi</button>
+                </div>
+              </div>
+            )}
+          </Modal>
         </Card>
       )}
     </div>

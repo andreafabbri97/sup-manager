@@ -16,7 +16,14 @@ export default function PayrollPage() {
   const [lastRunId, setLastRunId] = useState<string | null>(null)
   const [creatingExpenses, setCreatingExpenses] = useState(false)
   const [expensesCreated, setExpensesCreated] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
   useEffect(() => { loadEmployees() }, [])
+  useEffect(() => {
+    import('../lib/auth').then(({ getCurrentUserRole }) => getCurrentUserRole().then(r => setIsAdmin(r === 'admin')))
+    const onAuth = () => import('../lib/auth').then(({ getCurrentUserRole }) => getCurrentUserRole().then(r => setIsAdmin(r === 'admin')))
+    window.addEventListener('auth:changed', onAuth as any)
+    return () => window.removeEventListener('auth:changed', onAuth as any)
+  }, [])
 
   async function loadEmployees() {
     const { data, error } = await supabase.from('employees').select('id, name').order('name')
@@ -76,61 +83,69 @@ export default function PayrollPage() {
         <div className="text-xs text-neutral-500 mt-2 mb-4">Calcola e crea payroll run</div>
       </div>
 
-      <Card className="p-4 sm:p-6">
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
-          <div>
-            <label className="text-sm block mb-1">Periodo inizio</label>
-            <input type="date" className="w-full border rounded px-3 py-2" value={start} onChange={(e)=>setStart(e.target.value)} />
-          </div>
-          <div>
-            <label className="text-sm block mb-1">Periodo fine</label>
-            <input type="date" className="w-full border rounded px-3 py-2" value={end} onChange={(e)=>setEnd(e.target.value)} />
-          </div>
-          <div>
-            <label className="text-sm block mb-1">Dipendente (opzionale)</label>
-            <select className="w-full border rounded px-3 py-2" value={employeeId} onChange={(e)=>setEmployeeId(e.target.value)}>
-              <option value="">Tutti i dipendenti</option>
-              {employees.map(e=> (<option key={e.id} value={e.id}>{e.name}</option>))}
-            </select>
-          </div>
-          <div className="flex gap-2">
-            <Button onClick={onCalculate} disabled={loading}>{loading? 'Calcolo...' : 'Calcola'}</Button>
-            <Button variant="secondary" disabled={creating} onClick={onCreateRun}>{creating? 'Creazione...' : 'Crea payroll run'}</Button>
-          </div>
-        </div>
-      </Card>
+      {!isAdmin ? (
+        <Card>
+          <div className="text-sm text-neutral-500">Accesso riservato agli amministratori. Se sei un admin, accedi e ricarica la pagina per gestire le paghe.</div>
+        </Card>
+      ) : (
+        <>
+          <Card className="p-4 sm:p-6">
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
+              <div>
+                <label className="text-sm block mb-1">Periodo inizio</label>
+                <input type="date" className="w-full border rounded px-3 py-2" value={start} onChange={(e)=>setStart(e.target.value)} />
+              </div>
+              <div>
+                <label className="text-sm block mb-1">Periodo fine</label>
+                <input type="date" className="w-full border rounded px-3 py-2" value={end} onChange={(e)=>setEnd(e.target.value)} />
+              </div>
+              <div>
+                <label className="text-sm block mb-1">Dipendente (opzionale)</label>
+                <select className="w-full border rounded px-3 py-2" value={employeeId} onChange={(e)=>setEmployeeId(e.target.value)}>
+                  <option value="">Tutti i dipendenti</option>
+                  {employees.map(e=> (<option key={e.id} value={e.id}>{e.name}</option>))}
+                </select>
+              </div>
+              <div className="flex gap-2">
+                <Button onClick={onCalculate} disabled={loading}>{loading? 'Calcolo...' : 'Calcola'}</Button>
+                <Button variant="secondary" disabled={creating} onClick={onCreateRun}>{creating? 'Creazione...' : 'Crea payroll run'}</Button>
+              </div>
+            </div>
+          </Card>
 
-      {result && (
-        <Card className="p-4 sm:p-6 mt-4">
-          <div className="font-semibold mb-2">Risultati</div>
-          <div className="text-sm text-neutral-600">Totale ore: {result?.totals?.total_hours ?? 0}</div>
-          <div className="text-sm text-neutral-600 mb-2">Totale importo: {result?.totals?.total_amount ?? 0} €</div>
-          <div className="grid gap-2">
-            {result?.items && result.items.map((it: any) => (
-              <div key={it.shift_id} className="p-2 border rounded flex items-center justify-between">
-                <div>
-                  <div className="font-semibold">{it.employee_name}</div>
-                  <div className="text-xs">{new Date(it.start_at).toLocaleString('it-IT')} → {new Date(it.end_at).toLocaleString('it-IT')}</div>
-                  <div className="text-xs">Ore: {it.duration_hours} → Pagate: {it.hours_paid} @ {it.rate}€</div>
-                </div>
-                <div className="text-right">
-                  <div className="font-semibold">{it.amount} €</div>
+          {result && (
+            <Card className="p-4 sm:p-6 mt-4">
+              <div className="font-semibold mb-2">Risultati</div>
+              <div className="text-sm text-neutral-600">Totale ore: {result?.totals?.total_hours ?? 0}</div>
+              <div className="text-sm text-neutral-600 mb-2">Totale importo: {result?.totals?.total_amount ?? 0} €</div>
+              <div className="grid gap-2">
+                {result?.items && result.items.map((it: any) => (
+                  <div key={it.shift_id} className="p-2 border rounded flex items-center justify-between">
+                    <div>
+                      <div className="font-semibold">{it.employee_name}</div>
+                      <div className="text-xs">{new Date(it.start_at).toLocaleString('it-IT')} → {new Date(it.end_at).toLocaleString('it-IT')}</div>
+                      <div className="text-xs">Ore: {it.duration_hours} → Pagate: {it.hours_paid} @ {it.rate}€</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-semibold">{it.amount} €</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          )}
+
+          {lastRunId && (
+            <Card className="p-4 sm:p-6">
+              <div className="flex items-center justify-between">
+                <div className="text-sm">Ultima payroll run: {lastRunId}</div>
+                <div className="flex gap-2">
+                  <Button onClick={()=>onCreateExpenses(lastRunId!)} disabled={creatingExpenses || expensesCreated}>{creatingExpenses ? 'Creazione...' : expensesCreated ? 'Spese create' : 'Aggiungi paghe alle spese'}</Button>
                 </div>
               </div>
-            ))}
-          </div>
-        </Card>
-      )}
-
-      {lastRunId && (
-        <Card className="p-4 sm:p-6">
-          <div className="flex items-center justify-between">
-            <div className="text-sm">Ultima payroll run: {lastRunId}</div>
-            <div className="flex gap-2">
-              <Button onClick={()=>onCreateExpenses(lastRunId!)} disabled={creatingExpenses || expensesCreated}>{creatingExpenses ? 'Creazione...' : expensesCreated ? 'Spese create' : 'Aggiungi paghe alle spese'}</Button>
-            </div>
-          </div>
-        </Card>
+            </Card>
+          )}
+        </>
       )}
 
     </div>
