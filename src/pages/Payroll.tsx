@@ -129,17 +129,18 @@ export default function PayrollPage({ lockedEmployeeId }: PayrollProps) {
     setCreatingExpenses(true)
     try {
       await createExpensesFromPayrollRun(runId)
-      // Mark the run as paid and hide it
-      await supabase.from('payroll_runs').update({ paid: true }).eq('id', runId)
-      setExpensesCreated(true)
-      window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Spese create', type: 'success' } }))
-      // Hide the payroll run card after expenses are created
-      setTimeout(() => {
+      // Mark the run as paid
+      const { error } = await supabase.from('payroll_runs').update({ paid: true }).eq('id', runId)
+      if (error) {
+        window.dispatchEvent(new CustomEvent('toast', { detail: { message: error.message || 'Errore aggiornamento payroll run', type: 'error' } }))
+      } else {
+        // Hide the payroll run card immediately
         setLastRunId(null)
         setLastRunName(null)
         setLastRunTotal(null)
-        setExpensesCreated(false)
-      }, 1500)
+        setExpensesCreated(true)
+        window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Spese create', type: 'success' } }))
+      }
     } catch (e: any) {
       window.dispatchEvent(new CustomEvent('toast', { detail: { message: e.message || 'Errore creazione spese', type: 'error' } }))
     }
@@ -213,7 +214,7 @@ export default function PayrollPage({ lockedEmployeeId }: PayrollProps) {
             <Card className="p-4 sm:p-6">
               <div className="flex items-center justify-between">
                 <div className="text-sm">
-                  <div>Ultima payroll run: {lastRunName || lastRunId}</div>
+                  <div className="font-medium">{lastRunName || lastRunId}</div>
                   {lastRunTotal !== null && <div className="text-xs text-neutral-700 dark:text-neutral-300">Totale: {Number(lastRunTotal).toFixed(2)} €</div>}
                 </div>
                 <div className="flex gap-2">
