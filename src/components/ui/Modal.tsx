@@ -285,7 +285,7 @@ export default function Modal({ isOpen, onClose, title, children, autoFocus = fa
   // When mobileCentered we rely on flex alignment to vertically center the dialog.
   // Avoid adding extra padding that pushes the dialog down.
 
-  return (
+  const modalContent = (
     <div className={`fixed inset-0 z-[99999] flex ${containerAlignment} justify-center p-0 sm:p-4 bg-black/50 sm:bg-black/40 backdrop-blur-sm ${isClosing ? 'opacity-0' : 'opacity-100'} transition-opacity duration-200`} style={containerStyle} onClick={requestClose} onPointerDown={requestClose}>
       <div
         ref={dialogRef}
@@ -323,5 +323,14 @@ export default function Modal({ isOpen, onClose, title, children, autoFocus = fa
       </div>
     </div>
   )
+
+  // Use a portal so modal content is attached to document.body and not affected by ancestor transforms
+  if (typeof document !== 'undefined' && document.body) {
+    // eslint-disable-next-line react/no-danger
+    return (window.React && (window.React as any).createPortal) ? (window.React as any).createPortal(modalContent, document.body) : modalContent
+  }
+
+  return modalContent
+
 }
 
