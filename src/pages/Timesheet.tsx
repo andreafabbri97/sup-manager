@@ -4,6 +4,7 @@ import Button from '../components/ui/Button'
 import Modal from '../components/ui/Modal'
 import PageTitle from '../components/ui/PageTitle'
 import { supabase } from '../lib/supabaseClient'
+import { formatDatePretty } from '../lib/format'
 
 interface EmployeeOption {
   id: string
@@ -301,15 +302,7 @@ export default function TimesheetPage() {
 
   const fmtDayDisplay = (isoDay: string) => {
     if (!isoDay || isoDay === 'sconosciuta') return 'sconosciuta'
-    // expect YYYY-MM-DD key
-    if (/^\d{4}-\d{2}-\d{2}$/.test(isoDay)) {
-      const [y, m, d] = isoDay.split('-')
-      return `${d}-${m}-${y}`
-    }
-    const dd = new Date(isoDay)
-    if (isNaN(dd.getTime())) return isoDay
-    const pad = (n:number)=>String(n).padStart(2,'0')
-    return `${pad(dd.getDate())}-${pad(dd.getMonth()+1)}-${dd.getFullYear()}`
+    return formatDatePretty(isoDay)
   }
 
   return (

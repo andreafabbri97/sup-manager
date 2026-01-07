@@ -9,6 +9,7 @@ import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement
 import StatCard from '../components/ui/StatCard'
 import PageTitle from '../components/ui/PageTitle'
 import Archive from './Archive'
+import { formatDatePretty } from '../lib/format'
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend)
 
@@ -292,16 +293,7 @@ export default function Reports() {
   const isDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark')
 
   const fmtDate = (d?: string) => {
-    if (!d) return '—'
-    const s = (d || '').slice(0,10)
-    if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
-      const [y,m,dd] = s.split('-')
-      return `${dd}-${m}-${y}`
-    }
-    const dt = new Date(d)
-    if (isNaN(dt.getTime())) return d
-    const pad = (n:number) => String(n).padStart(2,'0')
-    return `${pad(dt.getDate())}-${pad(dt.getMonth()+1)}-${dt.getFullYear()}`
+    return formatDatePretty(d)
   }
   const axisColor = isDark ? '#9CA3AF' : '#374151'
   const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
+import { formatDatePretty } from '../lib/format'
 
 export default function Expenses() {
   const [expenses, setExpenses] = useState<any[]>([])
@@ -50,7 +51,7 @@ export default function Expenses() {
           <li key={e.id} className="flex items-center justify-between border p-2 rounded">
             <div>
               <div className="font-medium">{e.category || 'Senza categoria'}</div>
-              <div className="text-xs text-slate-500">€ {e.amount} • {e.date}</div>
+              <div className="text-xs text-slate-500">€ {e.amount} • {formatDatePretty(e.date)}</div>
             </div>
             <div>
               <button onClick={() => remove(e.id)} className="text-red-600 text-sm">Elimina</button>
