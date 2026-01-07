@@ -22,7 +22,10 @@ export default function PayrollPage({ lockedEmployeeId }: PayrollProps) {
   const [expensesCreated, setExpensesCreated] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
 
-  useEffect(() => { loadEmployees() }, [])
+  useEffect(() => { 
+    loadEmployees()
+    loadLastPayrollRun()
+  }, [])
   useEffect(() => {
     import('../lib/auth').then(({ getCurrentUserRole }) => getCurrentUserRole().then(r => setIsAdmin(r === 'admin')))
     const onAuth = () => import('../lib/auth').then(({ getCurrentUserRole }) => getCurrentUserRole().then(r => setIsAdmin(r === 'admin')))
@@ -38,6 +41,40 @@ export default function PayrollPage({ lockedEmployeeId }: PayrollProps) {
     const { data, error } = await supabase.from('employees').select('id, name').order('name')
     if (error) return
     setEmployees(data || [])
+  }
+
+  async function loadLastPayrollRun() {
+    // Load the most recent payroll run that hasn't been paid yet
+    const { data, error } = await supabase
+      .from('payroll_runs')
+      .select('id, name, total_amount, paid')
+      .eq('paid', false)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single()
+    
+    if (error || !data) {
+      // No unpaid run found, clear state
+      setLastRunId(null)
+      setLastRunName(null)
+      setLastRunTotal(null)
+      setExpensesCreated(false)
+      return
+    }
+
+    // Check if expenses have been created for this run by looking at payroll_items
+    const { data: items } = await supabase
+      .from('payroll_items')
+      .select('expense_created')
+      .eq('payroll_run_id', data.id)
+      .limit(1)
+
+    const hasExpenses = items && items.length > 0 && items[0]?.expense_created === true
+
+    setLastRunId(data.id)
+    setLastRunName(data.name || data.id)
+    setLastRunTotal(data.total_amount ?? null)
+    setExpensesCreated(hasExpenses)
   }
 
   async function onCalculate() {
@@ -92,8 +129,17 @@ export default function PayrollPage({ lockedEmployeeId }: PayrollProps) {
     setCreatingExpenses(true)
     try {
       await createExpensesFromPayrollRun(runId)
+      // Mark the run as paid and hide it
+      await supabase.from('payroll_runs').update({ paid: true }).eq('id', runId)
       setExpensesCreated(true)
       window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Spese create', type: 'success' } }))
+      // Hide the payroll run card after expenses are created
+      setTimeout(() => {
+        setLastRunId(null)
+        setLastRunName(null)
+        setLastRunTotal(null)
+        setExpensesCreated(false)
+      }, 1500)
     } catch (e: any) {
       window.dispatchEvent(new CustomEvent('toast', { detail: { message: e.message || 'Errore creazione spese', type: 'error' } }))
     }
