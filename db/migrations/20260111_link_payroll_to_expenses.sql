@@ -24,7 +24,10 @@ BEGIN
           r.amount,
           now()::date,
           CONCAT('Payroll - ', r.name),
-          CONCAT('Paga ', r.name, ', periodo ', to_char(r.period_start, 'DD/MM/YYYY'), ' - ', to_char(r.period_end, 'DD/MM/YYYY'))
+          CONCAT(
+            'Paga ', r.name, ', periodo ', to_char(r.period_start, 'DD/MM/YYYY'), ' - ', to_char(r.period_end, 'DD/MM/YYYY'),
+            ' (', regexp_replace(r.hours::text, '\\.?0+$', ''), ' ore)'
+          )
         )
         RETURNING id INTO expense_id;
 
