@@ -27,6 +27,7 @@ export default function UsersPage() {
   const [newUsername, setNewUsername] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [showNewModal, setShowNewModal] = useState(false)
+  const [editingUserId, setEditingUserId] = useState<string | null>(null)
 
   useEffect(() => {
     let mounted = true
@@ -88,7 +89,7 @@ export default function UsersPage() {
       </div>
 
       {/* New User Modal */}
-      <Modal isOpen={showNewModal} onClose={() => { setShowNewModal(false); setNewUsername(''); setNewPassword(''); setNewRole('staff') }} title="Nuovo utente" mobileCentered autoFocus={false}>
+      <Modal isOpen={showNewModal} onClose={() => { setShowNewModal(false); setNewUsername(''); setNewPassword(''); setNewRole('staff'); setEditingUserId(null) }} title={editingUserId ? 'Modifica utente' : 'Nuovo utente'} mobileCentered autoFocus={false}>
         <div className="grid grid-cols-1 gap-3">
           <div>
             <label className="text-sm block mb-1">Username</label>
@@ -107,14 +108,22 @@ export default function UsersPage() {
           </div>
           <div className="flex gap-2 justify-end">
             <Button onClick={async ()=>{
-              if (!newUsername || !newPassword) return window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Inserisci username e password', type: 'error' } }))
+              if (!newUsername) return window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Inserisci username', type: 'error' } }))
               const token = window.localStorage.getItem('app_session_token') || null
-              const { data, error } = await supabase.rpc('create_internal_user', { p_username: newUsername, p_password: newPassword, p_role: newRole, p_session_token: token })
-              if (error) return window.dispatchEvent(new CustomEvent('toast', { detail: { message: error.message, type: 'error' } }))
-              window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Utente creato', type: 'success' } }))
+              if (editingUserId) {
+                const { error } = await supabase.rpc('update_internal_user', { p_user_id: editingUserId, p_username: newUsername, p_password: newPassword || null, p_role: newRole, p_session_token: token })
+                if (error) return window.dispatchEvent(new CustomEvent('toast', { detail: { message: error.message, type: 'error' } }))
+                window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Utente aggiornato', type: 'success' } }))
+                setEditingUserId(null)
+              } else {
+                if (!newPassword) return window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Inserisci password', type: 'error' } }))
+                const { data, error } = await supabase.rpc('create_internal_user', { p_username: newUsername, p_password: newPassword, p_role: newRole, p_session_token: token })
+                if (error) return window.dispatchEvent(new CustomEvent('toast', { detail: { message: error.message, type: 'error' } }))
+                window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Utente creato', type: 'success' } }))
+              }
               setNewUsername(''); setNewPassword(''); setNewRole('staff'); setShowNewModal(false); load()
-            }} disabled={!newUsername || !newPassword}>Crea</Button>
-            <Button variant="ghost" onClick={()=>{ setNewUsername(''); setNewPassword(''); setNewRole('staff') }}>Reset</Button>
+            }} disabled={!newUsername}>{editingUserId ? 'Aggiorna' : 'Crea'}</Button>
+            <Button variant="ghost" onClick={()=>{ setNewUsername(''); setNewPassword(''); setNewRole('staff'); setEditingUserId(null) }}>Reset</Button>
           </div>
         </div>
       </Modal>
@@ -128,14 +137,17 @@ export default function UsersPage() {
             <Card key={u.id} className="p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div className="flex-1 min-w-0">
                 <div className="font-semibold break-all">{u.username || u.id}</div>
-                <div className="text-xs text-neutral-500">Ruolo: {u.role}</div>
+                <div className="text-xs mt-1">
+                  <span className={`inline-flex items-center px-2 py-1 rounded-full ${u.role === 'admin' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-200' : 'bg-sky-100 text-sky-700 dark:bg-sky-900/60 dark:text-sky-200'}`}>
+                    Ruolo: {u.role}
+                  </span>
+                </div>
                 {emp && <div className="text-xs text-neutral-600 dark:text-neutral-300">Dipendente: {emp.name}</div>}
                 {u.created_at && <div className="text-xs text-neutral-400">Creato: {new Date(u.created_at).toLocaleString('it-IT')}</div>}
               </div>
-              <div className="flex gap-2 flex-wrap justify-end">
-                <Button size="sm" variant="secondary" onClick={()=>upsertUser(u.id, 'admin')}>Rendi admin</Button>
-                <Button size="sm" variant="ghost" onClick={()=>upsertUser(u.id, 'staff')}>Rendi staff</Button>
-                <Button size="sm" variant="ghost" onClick={()=>removeUser(u.id)}>Rimuovi</Button>
+              <div className="flex gap-2 flex-wrap">
+                <Button size="sm" variant="secondary" onClick={()=>{ setEditingUserId(u.id); setNewUsername(u.username || ''); setNewRole(u.role); setNewPassword(''); setShowNewModal(true); }}>Modifica</Button>
+                <Button size="sm" variant="ghost" className="text-rose-600 hover:bg-rose-50" onClick={()=>removeUser(u.id)}>Rimuovi</Button>
               </div>
             </Card>
           )
