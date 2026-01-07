@@ -3,12 +3,12 @@
 exports[`Modal > renders content and matches snapshot 1`] = `
 <div>
   <div
-    class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 sm:bg-black/40 backdrop-blur-sm opacity-100 transition-opacity duration-200"
+    class="fixed inset-0 z-[99999] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 sm:bg-black/40 backdrop-blur-sm opacity-100 transition-opacity duration-200"
   >
     <div
       aria-label="Test Modal"
       aria-modal="true"
-      class="bg-white dark:bg-slate-800 rounded-t-3xl sm:rounded-lg shadow-2xl w-full sm:max-w-2xl overflow-hidden transform transition-transform duration-300 ease-out scale-100 sm:animate-modal-open animate-modal-open touch-manipulation"
+      class="bg-white dark:bg-slate-800 rounded-t-3xl sm:rounded-lg shadow-2xl w-full sm:max-w-2xl overflow-hidden transform transition-transform duration-300 ease-out scale-100 sm:animate-modal-open animate-modal-open touch-manipulation z-[100000]"
       role="dialog"
     >
       <div

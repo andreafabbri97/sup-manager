@@ -96,7 +96,7 @@ export default function UsersPage() {
         <p className="text-xs text-neutral-500 mt-2">Suggerimento: collega gli utenti alle anagrafiche dipendenti modificando il campo <code>auth_user_id</code> sull'anagrafica Dipendenti.</p>
 
         {/* New User Modal */}
-        <Modal isOpen={showNewModal} onClose={() => { setShowNewModal(false); setNewUsername(''); setNewPassword(''); setNewRole('staff') }} title="Nuovo utente" mobileCentered>
+        <Modal isOpen={showNewModal} onClose={() => { setShowNewModal(false); setNewUsername(''); setNewPassword(''); setNewRole('staff') }} title="Nuovo utente" mobileCentered autoFocus={false}>
           <div className="grid grid-cols-1 gap-3">
             <div>
               <label className="text-sm block mb-1">Username</label>

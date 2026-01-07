@@ -270,16 +270,17 @@ export default function Modal({ isOpen, onClose, title, children, autoFocus = fa
   const dialogRadius = mobileCentered ? 'rounded-lg' : 'rounded-t-3xl sm:rounded-lg'
 
   const containerStyle: any = {}
-  if (isMobile && mobileCentered) containerStyle.paddingTop = '12vh'
+  // When mobileCentered we rely on flex alignment to vertically center the dialog.
+  // Avoid adding extra padding that pushes the dialog down.
 
   return (
-    <div className={`fixed inset-0 z-[9999] flex ${containerAlignment} justify-center p-0 sm:p-4 bg-black/50 sm:bg-black/40 backdrop-blur-sm ${isClosing ? 'opacity-0' : 'opacity-100'} transition-opacity duration-200`} style={containerStyle} onClick={requestClose} onPointerDown={requestClose}>
+    <div className={`fixed inset-0 z-[99999] flex ${containerAlignment} justify-center p-0 sm:p-4 bg-black/50 sm:bg-black/40 backdrop-blur-sm ${isClosing ? 'opacity-0' : 'opacity-100'} transition-opacity duration-200`} style={containerStyle} onClick={requestClose} onPointerDown={requestClose}>
       <div
         ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className={`bg-white dark:bg-slate-800 ${dialogRadius} shadow-2xl w-full sm:max-w-2xl overflow-hidden transform transition-transform duration-300 ease-out scale-100 sm:animate-modal-open ${isClosing ? 'animate-slide-down' : 'animate-modal-open'} touch-manipulation z-[10000]`}
+        className={`bg-white dark:bg-slate-800 ${dialogRadius} shadow-2xl w-full sm:max-w-2xl overflow-hidden transform transition-transform duration-300 ease-out scale-100 sm:animate-modal-open ${isClosing ? 'animate-slide-down' : 'animate-modal-open'} touch-manipulation z-[100000]`}
         onClick={(e) => e.stopPropagation()}
         onPointerDown={(e) => e.stopPropagation()}
       >
