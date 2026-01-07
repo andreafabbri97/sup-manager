@@ -16,6 +16,7 @@ export default function PayrollPage({ lockedEmployeeId }: PayrollProps) {
   const [result, setResult] = useState<any>(null)
   const [creating, setCreating] = useState(false)
   const [lastRunId, setLastRunId] = useState<string | null>(null)
+  const [lastRunName, setLastRunName] = useState<string | null>(null)
   const [creatingExpenses, setCreatingExpenses] = useState(false)
   const [expensesCreated, setExpensesCreated] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
@@ -53,11 +54,18 @@ export default function PayrollPage({ lockedEmployeeId }: PayrollProps) {
     if (!window.confirm('Creare una payroll run per questo periodo?')) return
     setCreating(true)
     try {
-      const data = await createPayrollRun(start, end, undefined, undefined)
+      // Prepare a friendly name for the run
+      const empName = employeeId ? (employees.find(e => e.id === employeeId)?.name || '') : ''
+      const prettyStart = new Date(start).toLocaleDateString('it-IT')
+      const prettyEnd = new Date(end).toLocaleDateString('it-IT')
+      const runName = empName ? `Paga ${empName} periodo dal ${prettyStart} al ${prettyEnd}` : `Paga periodo dal ${prettyStart} al ${prettyEnd}`
+
+      const data = await createPayrollRun(start, end, undefined, undefined, runName)
       // RPC returns run id as first row or a scalar depending on DB; normalize
       const runId = Array.isArray(data) ? (data[0]?.payroll_run_id || data[0]?.id) : (data?.payroll_run_id || data?.id)
       if (runId) {
         setLastRunId(runId)
+        setLastRunName(runName)
         setExpensesCreated(false)
         window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Payroll run creata', type: 'success' } }))
       } else {
@@ -149,7 +157,7 @@ export default function PayrollPage({ lockedEmployeeId }: PayrollProps) {
           {lastRunId && (
             <Card className="p-4 sm:p-6">
               <div className="flex items-center justify-between">
-                <div className="text-sm">Ultima payroll run: {lastRunId}</div>
+                <div className="text-sm">Ultima payroll run: {lastRunName || lastRunId}</div>
                 <div className="flex gap-2">
                   {isAdmin && <Button onClick={()=>onCreateExpenses(lastRunId!)} disabled={creatingExpenses || expensesCreated}>{creatingExpenses ? 'Creazione...' : expensesCreated ? 'Spese create' : 'Aggiungi paghe alle spese'}</Button>}
                 </div>
