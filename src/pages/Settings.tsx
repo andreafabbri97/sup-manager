@@ -8,7 +8,6 @@ import { supabase } from '../lib/supabaseClient'
 export default function Settings() {
   const [iva, setIva] = useState<number | null>(null)
   const [loading, setLoading] = useState(false)
-  const [roleMsg, setRoleMsg] = useState<string>('')
 
   useEffect(() => {
     load()
@@ -18,25 +17,6 @@ export default function Settings() {
     const { data } = await supabase.from('app_setting').select('value').eq('key', 'iva_percent').single()
     const val = data?.value ? Number(data.value) : 22
     setIva(Number.isFinite(val) ? val : 22)
-  }
-
-  async function setMeAdmin() {
-    try {
-      setLoading(true)
-      const userRes = await supabase.auth.getUser()
-      const user = (userRes as any)?.data?.user
-      if (!user?.id) {
-        alert('Nessun utente autenticato. Effettua login prima.')
-        return
-      }
-      const { error } = await supabase.from('app_user').upsert({ id: user.id, role: 'admin' })
-      if (error) throw error
-      setRoleMsg('Ruolo impostato su admin per il tuo utente.')
-    } catch (e: any) {
-      alert(e?.message || 'Errore nel salvataggio del ruolo')
-    } finally {
-      setLoading(false)
-    }
   }
 
   async function save(e: React.FormEvent) {
@@ -84,16 +64,7 @@ export default function Settings() {
         </Card>
       </div>
 
-      <div className="mt-4">
-        <Card>
-          <h3 className="font-semibold mb-2">Ruolo amministratore</h3>
-          <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-3">Imposta l'utente corrente come admin in app_user.</p>
-          <Button type="button" onClick={setMeAdmin} disabled={loading}>
-            {loading ? 'Salvo...' : 'Impostami admin'}
-          </Button>
-          {roleMsg && <p className="text-sm text-emerald-500 mt-2">{roleMsg}</p>}
-        </Card>
-      </div>
+
     </div>
   )
 }
