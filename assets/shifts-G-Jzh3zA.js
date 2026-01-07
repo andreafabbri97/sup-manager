@@ -1,1 +1,0 @@
-import{s as i}from"./index-DHX3U6mu.js";import"./vendor-react-kVRHbyyB.js";import"./vendor-DwskwR46.js";import"./vendor-charts-BCrMCkTm.js";async function f(t,o,p){const{error:r}=await i.rpc("approve_shift",{p_shift_id:t,p_action:o,p_note:p||null});if(r)throw r;return!0}export{f as approveShift};
