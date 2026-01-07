@@ -290,6 +290,19 @@ export default function Reports() {
 
   // Chart styling (keep charts visible in both light and dark themes)
   const isDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark')
+
+  const fmtDate = (d?: string) => {
+    if (!d) return '—'
+    const s = (d || '').slice(0,10)
+    if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+      const [y,m,dd] = s.split('-')
+      return `${dd}-${m}-${y}`
+    }
+    const dt = new Date(d)
+    if (isNaN(dt.getTime())) return d
+    const pad = (n:number) => String(n).padStart(2,'0')
+    return `${pad(dt.getDate())}-${pad(dt.getMonth()+1)}-${dt.getFullYear()}`
+  }
   const axisColor = isDark ? '#9CA3AF' : '#374151'
   const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'
   const isSmall = typeof window !== 'undefined' && window.innerWidth < 640
@@ -534,7 +547,7 @@ export default function Reports() {
                 <button key={ex.id} onClick={() => { setShowExpenseDetail(true); setDetailExpense(ex) }} className="w-full text-left p-3 rounded border bg-white/5 dark:bg-slate-800 flex items-start justify-between">
                   <div>
                     <div className="font-medium">{ex.category}</div>
-                    <div className="text-xs text-neutral-400">{ex.date}</div>
+                    <div className="text-xs text-neutral-400">{fmtDate(ex.date)}</div>
                     {ex.receipt_url && <div className="text-xs text-amber-500 mt-1">Ricevuta disponibile</div>}
                   </div>
                   <div className="flex flex-col items-end">
@@ -555,7 +568,7 @@ export default function Reports() {
                 <tbody>
                   {expenses.map((ex:any)=> (
                     <tr key={ex.id} role="button" tabIndex={0} onClick={(e) => { if ((e.target as HTMLElement).closest('button')) return; setShowExpenseDetail(true); setDetailExpense(ex) }} onKeyDown={(e:any) => { if (e.key === 'Enter') { setShowExpenseDetail(true); setDetailExpense(ex) } }} className="border-t border-neutral-100 dark:border-neutral-800 hover:bg-white/5 dark:hover:bg-neutral-700/60 transition-colors cursor-pointer">
-                      <td className="py-2 lg:py-1">{ex.date}</td>
+                      <td className="py-2 lg:py-1">{fmtDate(ex.date)}</td>
                       <td className="lg:py-1">{ex.category}</td>
                       <td className="lg:py-1 text-amber-500 dark:text-amber-300 font-bold text-right">{Number(ex.amount).toFixed(2)} €</td>
                       <td className="lg:py-1">{ex.receipt_url ? <a href={ex.receipt_url} target="_blank" rel="noreferrer">Ricevuta</a> : '—'}</td>
@@ -605,7 +618,7 @@ export default function Reports() {
           <Modal isOpen={showExpenseDetail} onClose={() => setShowExpenseDetail(false)} title={detailExpense ? `Spesa ${detailExpense.id}` : 'Dettaglio Spesa'} mobileCentered>
             {detailExpense && (
               <div className="space-y-3">
-                <div><strong>Data:</strong> {detailExpense.date}</div>
+                <div><strong>Data:</strong> {fmtDate(detailExpense.date)}</div>
                 <div><strong>Categoria:</strong> {detailExpense.category}</div>
                 <div><strong>Importo:</strong> € {Number(detailExpense.amount).toFixed(2)}</div>
                 <div><strong>Note:</strong> {detailExpense.notes || '—'}</div>

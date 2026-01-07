@@ -162,17 +162,6 @@ export default function EmployeesPage() {
     setEmployees((prev) => prev.filter((e) => e.id !== id))
   }
 
-  async function startShift(emp: Employee) {
-    const now = new Date().toISOString()
-    const { error } = await supabase.from('shifts').insert({ employee_id: emp.id, start_at: now, end_at: now, status: 'scheduled' })
-    if (error) {
-      window.dispatchEvent(new CustomEvent('toast', { detail: { message: error.message, type: 'error' } }))
-      return
-    }
-    window.dispatchEvent(new CustomEvent('toast', { detail: { message: `Turno iniziato per ${emp.name}`, type: 'success' } }))
-    window.dispatchEvent(new CustomEvent('shifts:changed'))
-  }
-
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
       <div className="flex items-center justify-between flex-wrap gap-3 mb-4">
@@ -221,7 +210,7 @@ export default function EmployeesPage() {
               <div className="flex gap-2 flex-wrap justify-end">
                 <Button size="sm" variant="secondary" onClick={() => openEdit(emp)}>Modifica</Button>
                 {isAdmin ? <Button size="sm" variant="ghost" onClick={() => remove(emp.id)}>Elimina</Button> : null}
-                {isAdmin ? <Button size="sm" variant="secondary" onClick={() => startShift(emp)}>Inizia turno</Button> : null}
+
               </div>
             </Card>
           ))}
