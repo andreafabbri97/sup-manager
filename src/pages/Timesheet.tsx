@@ -351,14 +351,14 @@ export default function TimesheetPage() {
                       <Button size="sm" variant="secondary" onClick={()=>openEdit(shift)}>Modifica</Button>
                       <Button size="sm" variant="ghost" onClick={()=>removeShift(shift.id)}>Elimina</Button>
                       {shift.approval_status === 'approved' ? (
-                        <Button size="sm" variant="secondary" disabled>Approvato</Button>
+                        <span className="inline-flex items-center px-2 py-1 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-200">Approvato</span>
+                      ) : shift.approval_status === 'rejected' ? (
+                        <span className="inline-flex items-center px-2 py-1 rounded-full bg-rose-100 text-rose-700 dark:bg-rose-900/50 dark:text-rose-200">Rifiutato</span>
                       ) : (
-                        <Button size="sm" variant="secondary" onClick={() => approve(shift.id, 'approved')}>Approva</Button>
-                      )}
-                      {shift.approval_status === 'rejected' ? (
-                        <Button size="sm" variant="ghost" disabled>Rifiutato</Button>
-                      ) : (
-                        <Button size="sm" variant="ghost" onClick={() => approve(shift.id, 'rejected')}>Rifiuta</Button>
+                        <>
+                          <Button size="sm" variant="secondary" onClick={() => approve(shift.id, 'approved')}>Approva</Button>
+                          <Button size="sm" variant="ghost" onClick={() => approve(shift.id, 'rejected')}>Rifiuta</Button>
+                        </>
                       )}
                     </>
                   )}
