@@ -200,6 +200,27 @@ export default function PayrollPage({ lockedEmployeeId }: PayrollProps) {
               <div className="font-semibold mb-2">I tuoi risultati</div>
               <div className="text-sm text-neutral-700 dark:text-neutral-300">Totale ore: {result?.totals?.total_hours ?? 0}</div>
               <div className="text-sm text-neutral-700 dark:text-neutral-300 mb-2">Totale importo: {result?.totals?.total_amount ?? 0} €</div>
+
+              {/* Aggregated per-employee totals (for staff this will be just the current user) */}
+              {result?.employees && result.employees.length > 0 && (
+                <div className="mb-3">
+                  <div className="text-sm font-semibold mb-1">Totali per dipendente</div>
+                  <div className="grid gap-2">
+                    {result.employees.map((emp: any) => (
+                      <div key={emp.employee_id} className="p-2 border rounded flex items-center justify-between">
+                        <div>
+                          <div className="font-semibold">{emp.employee_name}</div>
+                          <div className="text-xs">Ore totali: {emp.total_hours}</div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-semibold">{Number(emp.total_amount).toFixed(2)} €</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div className="grid gap-2">
                 {result?.items && result.items.map((it: any) => (
                   <div key={it.shift_id} className="p-2 border rounded flex items-center justify-between">
@@ -256,6 +277,27 @@ export default function PayrollPage({ lockedEmployeeId }: PayrollProps) {
               <div className="font-semibold mb-2">Risultati</div>
               <div className="text-sm text-neutral-700 dark:text-neutral-300">Totale ore: {result?.totals?.total_hours ?? 0}</div>
               <div className="text-sm text-neutral-700 dark:text-neutral-300 mb-2">Totale importo: {result?.totals?.total_amount ?? 0} €</div>
+
+              {/* Aggregated per-employee totals */}
+              {result?.employees && result.employees.length > 0 && (
+                <div className="mb-3">
+                  <div className="text-sm font-semibold mb-1">Totali per dipendente</div>
+                  <div className="grid gap-2">
+                    {result.employees.map((emp: any) => (
+                      <div key={emp.employee_id} className="p-2 border rounded flex items-center justify-between">
+                        <div>
+                          <div className="font-semibold">{emp.employee_name}</div>
+                          <div className="text-xs">Ore totali: {emp.total_hours}</div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-semibold">{Number(emp.total_amount).toFixed(2)} €</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div className="grid gap-2">
                 {result?.items && result.items.map((it: any) => (
                   <div key={it.shift_id} className="p-2 border rounded flex items-center justify-between">

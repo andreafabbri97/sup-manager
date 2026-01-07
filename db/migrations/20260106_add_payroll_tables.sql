@@ -101,9 +101,35 @@ BEGIN
     END;
   END LOOP;
 
+  -- Build per-employee aggregated totals for the selected period
+  DECLARE emp_rec RECORD;
+  DECLARE employee_aggregates jsonb := '[]'::jsonb;
+
+  FOR emp_rec IN
+    SELECT s.employee_id,
+           e.name as employee_name,
+           SUM(ROUND(s.duration_hours::numeric)) AS total_hours,
+           SUM(ROUND(s.duration_hours::numeric) * e.hourly_rate)::numeric(12,2) AS total_amount
+    FROM shifts s
+    JOIN employees e ON e.id = s.employee_id
+    WHERE s.status = 'completed'
+      AND (s.start_at::date >= p_start AND s.start_at::date <= p_end)
+      AND (p_employee_id IS NULL OR s.employee_id = p_employee_id)
+    GROUP BY s.employee_id, e.name
+    ORDER BY e.name
+  LOOP
+    employee_aggregates := employee_aggregates || jsonb_build_object(
+      'employee_id', emp_rec.employee_id,
+      'employee_name', emp_rec.employee_name,
+      'total_hours', emp_rec.total_hours,
+      'total_amount', emp_rec.total_amount
+    );
+  END LOOP;
+
   RETURN jsonb_build_object(
     'items', employee_rows,
-    'totals', jsonb_build_object('total_hours', total_hours, 'total_amount', total_amount)
+    'totals', jsonb_build_object('total_hours', total_hours, 'total_amount', total_amount),
+    'employees', employee_aggregates
   );
 END;
 $$;
