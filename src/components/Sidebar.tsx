@@ -98,6 +98,7 @@ export default function Sidebar({ onNav, currentPage }: { onNav?: (page: string)
     { id: 'packages', label: 'Pacchetti' },
     { id: 'customers', label: 'Clienti' },
     { id: 'people', label: 'Dipendenti, Turni e Paghe' },
+    { id: 'help', label: 'Guida & FAQ' },
     ...(isAdmin ? [{ id: 'reports', label: 'Report & Amministrazione' }] : []),
     ...(isAdmin ? [{ id: 'users', label: 'Utenti' }] : []),
     { id: 'settings', label: 'Impostazioni' }

@@ -13,6 +13,7 @@ import People from './pages/People'
 import Login from './pages/Login'
 import Users from './pages/Users'
 import Payroll from './pages/Payroll'
+import Help from './pages/Help'
 import Toasts from './components/Toasts'
 
 export default function App() {
@@ -110,10 +111,11 @@ export default function App() {
               {page === 'users' && <Users />}
               {page === 'login' && <Login />}
               {page === 'payroll' && <Payroll />}
+              {page === 'help' && <Help />}
               {page === 'reports' && <Reports />}
               {page === 'archive' && <Archive />}
               {page === 'settings' && <Settings />}
-              {!['equipment','bookings','packages','customers','people','reports','settings','archive','users','login'].includes(page) && <Reports /> }
+              {!['equipment','bookings','packages','customers','people','reports','settings','archive','users','login','help'].includes(page) && <Reports /> }
             </>
           )}
         </div>
