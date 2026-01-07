@@ -212,7 +212,7 @@ export default function Equipment() {
         </div>
       </div>
 
-      <Modal isOpen={isAddOpen} onClose={closeAdd} title="Aggiungi attrezzatura" mobileCentered>
+      <Modal isOpen={isAddOpen} onClose={closeAdd} title="Aggiungi attrezzatura" fullScreenMobile openFullMobile>
         <form onSubmit={(e)=>{ createItem(e); closeAdd() }} className="flex flex-col sm:flex-row gap-2 mb-4">
           <input className="border px-2 py-1 rounded flex-1 dark:bg-neutral-800" placeholder="Nome" value={name} onChange={(e)=>setName(e.target.value)} required />
           <Listbox options={[{value:'SUP',label:'SUP'},{value:'Barca',label:'Barca'},{value:'Remo',label:'Remo'},{value:'Salvagente',label:'Salvagente'},{value:'Altro',label:'Altro'}]} value={type} onChange={(v)=>setType(v ?? 'SUP')} />
@@ -223,7 +223,7 @@ export default function Equipment() {
       </Modal>
 
       {/* Edit modal: move the inline edit into a modal for better UX */}
-      <Modal isOpen={isEditOpen} onClose={closeEdit} title={editingId ? 'Modifica Attrezzatura' : 'Modifica Attrezzatura'} mobileCentered>
+      <Modal isOpen={isEditOpen} onClose={closeEdit} title={editingId ? 'Modifica Attrezzatura' : 'Modifica Attrezzatura'} fullScreenMobile openFullMobile>
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-1">Nome</label>

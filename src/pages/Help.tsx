@@ -239,10 +239,7 @@ export default function HelpPage() {
                   </div>
                 </Card>
 
-                <Card>
-                  <div className="text-sm mb-2 font-semibold">Segnaposto per immagini/video</div>
-                  <div className="text-sm">Qui potremo aggiungere screenshot passo-passo e brevi video per aiutare gli utenti visivi: quando hai i materiali, posso incorporarli nella guida.</div>
-                </Card>
+
               </div>
             )}
 

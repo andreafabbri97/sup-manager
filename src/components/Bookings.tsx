@@ -971,7 +971,7 @@ export default function Bookings() {
       </div>
 
       {/* New booking modal */}
-      <Modal isOpen={showModal} onClose={handleCloseModal} title="Nuova Prenotazione">
+      <Modal fullScreenMobile openFullMobile isOpen={showModal} onClose={handleCloseModal} title="Nuova Prenotazione">
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-1">Cliente</label>
