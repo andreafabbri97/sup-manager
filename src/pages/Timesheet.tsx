@@ -136,9 +136,9 @@ export default function TimesheetPage() {
         window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Il tuo account non è associato ad un dipendente; contatta un admin.', type: 'error' } }))
         return
       }
-      setForm({ employee_id: staffEmployeeId, start_at: now.toISOString().slice(0,16), end_at: later.toISOString().slice(0,16), status: 'scheduled' })
+      setForm({ employee_id: staffEmployeeId, start_at: fmtLocalInput(now), end_at: fmtLocalInput(later), status: 'scheduled' })
     } else {
-      setForm({ employee_id: employees[0]?.id || '', start_at: now.toISOString().slice(0,16), end_at: later.toISOString().slice(0,16), status: 'scheduled' })
+      setForm({ employee_id: employees[0]?.id || '', start_at: fmtLocalInput(now), end_at: fmtLocalInput(later), status: 'scheduled' })
     }
 
     setEditing(null)
@@ -149,8 +149,8 @@ export default function TimesheetPage() {
     setEditing(shift)
     setForm({
       employee_id: shift.employee_id,
-      start_at: shift.start_at.slice(0,16),
-      end_at: shift.end_at.slice(0,16),
+      start_at: fmtLocalInput(new Date(shift.start_at)),
+      end_at: fmtLocalInput(new Date(shift.end_at)),
       status: shift.status
     })
     setShowModal(true)
@@ -266,6 +266,11 @@ export default function TimesheetPage() {
   const fmtTime = (iso: string) => {
     const d = new Date(iso)
     return d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })
+  }
+
+  const fmtLocalInput = (d: Date) => {
+    const pad = (n: number) => String(n).padStart(2, '0')
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
   }
 
   return (
