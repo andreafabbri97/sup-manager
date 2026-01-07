@@ -97,10 +97,9 @@ export default function Sidebar({ onNav, currentPage }: { onNav?: (page: string)
     { id: 'bookings', label: 'Prenotazioni' },
     { id: 'packages', label: 'Pacchetti' },
     { id: 'customers', label: 'Clienti' },
-    { id: 'people', label: 'Dipendenti & Turni' },
+    { id: 'people', label: 'Dipendenti, Turni e Paghe' },
     ...(isAdmin ? [{ id: 'reports', label: 'Report & Amministrazione' }] : []),
     ...(isAdmin ? [{ id: 'users', label: 'Utenti' }] : []),
-    ...(isAdmin ? [{ id: 'payroll', label: 'Paghe' }] : []),
     { id: 'settings', label: 'Impostazioni' }
   ] : [
     { id: 'login', label: 'Login' }

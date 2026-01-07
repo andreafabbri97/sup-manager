@@ -30,7 +30,7 @@ export default function PeoplePage() {
   }, [])
 
   return (
-    <div className="w-full px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+    <div className="w-full px-3 sm:px-6 lg:px-8 py-3 sm:py-6">
       <div className="flex items-center justify-between flex-wrap gap-3 mb-4">
         <PageTitle className="m-0">Dipendenti, Turni e Paghe</PageTitle>
         <div className="text-xs text-neutral-500">Gestione anagrafiche, turni e paghe</div>
@@ -39,10 +39,10 @@ export default function PeoplePage() {
       <Card className="p-3 mb-4">
         <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 rounded bg-neutral-100 dark:bg-neutral-800 p-1" role="tablist">
           {role !== 'staff' && (
-            <button role="tab" aria-selected={tab==='employees'} onClick={()=>setTab('employees')} className={`w-full sm:w-auto px-3 py-2 rounded ${tab==='employees' ? 'bg-white dark:bg-neutral-700 shadow' : ''}`}>Dipendenti</button>
+            <button role="tab" aria-selected={tab==='employees'} onClick={()=>setTab('employees')} className={`w-full sm:w-auto px-4 py-3 rounded ${tab==='employees' ? 'bg-white dark:bg-neutral-700 shadow' : ''}`}>Dipendenti</button>
           )}
-          <button role="tab" aria-selected={tab==='timesheet'} onClick={()=>setTab('timesheet')} className={`w-full sm:w-auto px-3 py-2 rounded ${tab==='timesheet' ? 'bg-white dark:bg-neutral-700 shadow' : ''}`}>Turni</button>
-          <button role="tab" aria-selected={tab==='payroll'} onClick={()=>setTab('payroll')} className={`w-full sm:w-auto px-3 py-2 rounded ${tab==='payroll' ? 'bg-white dark:bg-neutral-700 shadow' : ''}`}>Paghe</button>
+          <button role="tab" aria-selected={tab==='timesheet'} onClick={()=>setTab('timesheet')} className={`w-full sm:w-auto px-4 py-3 rounded ${tab==='timesheet' ? 'bg-white dark:bg-neutral-700 shadow' : ''}`}>Turni</button>
+          <button role="tab" aria-selected={tab==='payroll'} onClick={()=>setTab('payroll')} className={`w-full sm:w-auto px-4 py-3 rounded ${tab==='payroll' ? 'bg-white dark:bg-neutral-700 shadow' : ''}`}>Paghe</button>
         </div>
       </Card>
 
