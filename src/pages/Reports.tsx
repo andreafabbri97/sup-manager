@@ -625,7 +625,7 @@ export default function Reports() {
                 <div><strong>Ricevuta:</strong> {detailExpense.receipt_url ? (<a href={detailExpense.receipt_url} target="_blank" rel="noreferrer" className="text-amber-600">Apri ricevuta</a>) : '—'}</div>
                 <div className="flex gap-2 justify-end">
                   <Button onClick={() => { setShowExpenseDetail(false); openEditExpense(detailExpense); }}>Modifica</Button>
-                  <button onClick={() => { if (confirm('Eliminare questa spesa?')) { deleteExpense(detailExpense.id); setShowExpenseDetail(false) } }} className="px-3 py-1 rounded border text-red-600">Elimina</button>
+                  <button onClick={() => { deleteExpense(detailExpense.id); setShowExpenseDetail(false) }} className="px-3 py-1 rounded border text-red-600">Elimina</button>
                   <button onClick={() => setShowExpenseDetail(false)} className="px-3 py-1 rounded border">Chiudi</button>
                 </div>
               </div>

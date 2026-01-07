@@ -16,7 +16,7 @@ BEGIN
         WHERE pi.payroll_run_id = p_run_id AND (pi.expense_created IS NULL OR pi.expense_created = false)
       LOOP
         INSERT INTO expense (amount, date, category, notes)
-        VALUES (r.amount, now()::date, 'Payroll', CONCAT('Paga ', r.name, ', periodo ', to_char(r.period_start, 'YYYY-MM-DD'), ' - ', to_char(r.period_end, 'YYYY-MM-DD'), ' (payroll_item=', r.item_id::text, ')'))
+        VALUES (r.amount, now()::date, 'Payroll', CONCAT('Paga ', r.name, ', periodo ', to_char(r.period_start, 'YYYY-MM-DD'), ' - ', to_char(r.period_end, 'YYYY-MM-DD')))
         RETURNING id INTO expense_id;
 
         UPDATE payroll_items SET expense_created = true WHERE id = r.item_id;
