@@ -146,17 +146,18 @@ BEGIN
     DECLARE r RECORD; expense_id uuid;
     BEGIN
       FOR r IN
-        SELECT pi.id as item_id, pi.employee_id, e.name, pi.amount, pr.period_start, pr.period_end
+        SELECT pi.employee_id, e.name, SUM(pi.amount) AS total_amount, SUM(pi.hours) AS total_hours, pr.period_start, pr.period_end
         FROM payroll_items pi
         JOIN payroll_runs pr ON pr.id = pi.payroll_run_id
         JOIN employees e ON e.id = pi.employee_id
         WHERE pi.payroll_run_id = p_run_id AND (pi.expense_created IS NULL OR pi.expense_created = false)
+        GROUP BY pi.employee_id, e.name, pr.period_start, pr.period_end
       LOOP
         INSERT INTO expense (amount, date, category, notes)
-        VALUES (r.amount, now()::date, 'Payroll', CONCAT('Paga ', r.name, ', periodo ', to_char(r.period_start, 'YYYY-MM-DD'), ' - ', to_char(r.period_end, 'YYYY-MM-DD'), ' (payroll_item=', r.item_id::text, ')'))
+        VALUES (r.total_amount, now()::date, CONCAT('Payroll - ', r.name), CONCAT('Paga ', r.name, ', periodo ', to_char(r.period_start, 'DD/MM/YYYY'), ' - ', to_char(r.period_end, 'DD/MM/YYYY'), ' (', regexp_replace(r.total_hours::text, '\\.?0+$', ''), ' ore)'))
         RETURNING id INTO expense_id;
 
-        UPDATE payroll_items SET expense_created = true WHERE id = r.item_id;
+        UPDATE payroll_items SET expense_created = true WHERE payroll_run_id = p_run_id AND employee_id = r.employee_id;
       END LOOP;
     END;
     $func$;
