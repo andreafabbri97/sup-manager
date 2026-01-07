@@ -14,6 +14,8 @@ export default function PayrollPage() {
   const [result, setResult] = useState<any>(null)
   const [creating, setCreating] = useState(false)
   const [lastRunId, setLastRunId] = useState<string | null>(null)
+  const [creatingExpenses, setCreatingExpenses] = useState(false)
+  const [expensesCreated, setExpensesCreated] = useState(false)
   useEffect(() => { loadEmployees() }, [])
 
   async function loadEmployees() {
@@ -42,6 +44,7 @@ export default function PayrollPage() {
       const runId = Array.isArray(data) ? (data[0]?.payroll_run_id || data[0]?.id) : (data?.payroll_run_id || data?.id)
       if (runId) {
         setLastRunId(runId)
+        setExpensesCreated(false)
         window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Payroll run creata', type: 'success' } }))
       } else {
         window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Run creata (nessun id restituito)', type: 'success' } }))
@@ -54,19 +57,23 @@ export default function PayrollPage() {
   }
 
   async function onCreateExpenses(runId: string) {
+    if (creatingExpenses) return
+    setCreatingExpenses(true)
     try {
       await createExpensesFromPayrollRun(runId)
+      setExpensesCreated(true)
       window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Spese create', type: 'success' } }))
     } catch (e: any) {
       window.dispatchEvent(new CustomEvent('toast', { detail: { message: e.message || 'Errore creazione spese', type: 'error' } }))
     }
+    setCreatingExpenses(false)
   }
 
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4">
-      <div className="flex items-center justify-between">
+      <div>
         <PageTitle className="m-0">Paghe</PageTitle>
-        <div className="text-xs text-neutral-500">Calcola e crea payroll run</div>
+        <div className="text-xs text-neutral-500 mt-2 mb-4">Calcola e crea payroll run</div>
       </div>
 
       <Card className="p-4 sm:p-6">
@@ -94,7 +101,7 @@ export default function PayrollPage() {
       </Card>
 
       {result && (
-        <Card className="p-4 sm:p-6">
+        <Card className="p-4 sm:p-6 mt-4">
           <div className="font-semibold mb-2">Risultati</div>
           <div className="text-sm text-neutral-600">Totale ore: {result?.totals?.total_hours ?? 0}</div>
           <div className="text-sm text-neutral-600 mb-2">Totale importo: {result?.totals?.total_amount ?? 0} €</div>
@@ -120,7 +127,7 @@ export default function PayrollPage() {
           <div className="flex items-center justify-between">
             <div className="text-sm">Ultima payroll run: {lastRunId}</div>
             <div className="flex gap-2">
-              <Button onClick={()=>onCreateExpenses(lastRunId)}>Aggiungi paghe alle spese</Button>
+              <Button onClick={()=>onCreateExpenses(lastRunId!)} disabled={creatingExpenses || expensesCreated}>{creatingExpenses ? 'Creazione...' : expensesCreated ? 'Spese create' : 'Aggiungi paghe alle spese'}</Button>
             </div>
           </div>
         </Card>
