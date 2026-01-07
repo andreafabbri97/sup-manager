@@ -23,7 +23,7 @@ BEGIN
         VALUES (
           r.amount,
           now()::date,
-          CASE WHEN distinct_count > 1 THEN 'Payroll globale' ELSE CONCAT('Payroll - ', r.name) END,
+          CONCAT('Payroll - ', r.name),
           CONCAT('Paga ', r.name, ', periodo ', to_char(r.period_start, 'DD/MM/YYYY'), ' - ', to_char(r.period_end, 'DD/MM/YYYY'))
         )
         RETURNING id INTO expense_id;
