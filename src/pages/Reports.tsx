@@ -576,7 +576,7 @@ export default function Reports() {
             <Archive start={expenseFilterStart} end={expenseFilterEnd} />
           </div>
 
-          <Modal isOpen={showExpenseModal} onClose={handleCloseExpenseModal} title={editExpense ? 'Modifica Spesa' : '+ Spesa'}>
+          <Modal isOpen={showExpenseModal} onClose={handleCloseExpenseModal} title={editExpense ? 'Modifica Spesa' : '+ Spesa'} mobileCentered>
             <form onSubmit={(e)=>{ createExpense(e); setShowExpenseModal(false); }} className="space-y-4">
               <div>
                 <Input label="Importo" value={amount} onChange={(e)=>setAmount(e.target.value)} placeholder="Importo" />
@@ -602,7 +602,7 @@ export default function Reports() {
           </Modal>
 
           {/* Expense detail modal */}
-          <Modal isOpen={showExpenseDetail} onClose={() => setShowExpenseDetail(false)} title={detailExpense ? `Spesa ${detailExpense.id}` : 'Dettaglio Spesa'}>
+          <Modal isOpen={showExpenseDetail} onClose={() => setShowExpenseDetail(false)} title={detailExpense ? `Spesa ${detailExpense.id}` : 'Dettaglio Spesa'} mobileCentered>
             {detailExpense && (
               <div className="space-y-3">
                 <div><strong>Data:</strong> {detailExpense.date}</div>

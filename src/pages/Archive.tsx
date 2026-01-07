@@ -254,7 +254,7 @@ export default function Archive({ start: propStart, end: propEnd }: { start?: st
         </div>
       </Modal>
 
-      <Modal isOpen={showDetail} onClose={() => { setShowDetail(false); setDetail(null) }} title={detail ? `Prenotazione ${detail.id}` : 'Dettaglio'}>
+      <Modal isOpen={showDetail} onClose={() => { setShowDetail(false); setDetail(null) }} title={detail ? `Prenotazione ${detail.id}` : 'Dettaglio'} mobileCentered>
         {detail && (
           <div className="space-y-3">
             <div><strong>Cliente:</strong> {detail.customer_name}</div>
