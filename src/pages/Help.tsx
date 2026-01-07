@@ -25,21 +25,21 @@ export default function HelpPage() {
     <div className="w-full px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
       <PageTitle>Guida & FAQ</PageTitle>
 
-      <div className="bg-white dark:bg-neutral-850 rounded shadow-sm text-neutral-700 dark:text-neutral-300">
+      <div className="bg-white dark:bg-neutral-900 rounded shadow-sm text-neutral-700 dark:text-neutral-100">
         <div className="border-b dark:border-neutral-800">
           <nav className="flex space-x-2 px-4" aria-label="Tabs">
             <button
-              className={`py-3 px-4 text-sm font-medium rounded-t ${tab === 'descrittiva' ? 'bg-neutral-50 dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100 border-b-2 border-b-neutral-200 dark:border-b-neutral-700' : 'text-neutral-600 dark:text-neutral-400'}`}
+              className={`py-3 px-4 text-sm font-medium rounded-t ${tab === 'descrittiva' ? 'bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 border-b-2 border-b-neutral-200 dark:border-b-neutral-700' : 'text-neutral-600 dark:text-neutral-400'}`}
               onClick={() => setTab('descrittiva')}
             >Guida descrittiva</button>
 
             <button
-              className={`py-3 px-4 text-sm font-medium rounded-t ${tab === 'operativa' ? 'bg-neutral-50 dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100 border-b-2 border-b-neutral-200 dark:border-b-neutral-700' : 'text-neutral-600 dark:text-neutral-400'}`}
+              className={`py-3 px-4 text-sm font-medium rounded-t ${tab === 'operativa' ? 'bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 border-b-2 border-b-neutral-200 dark:border-b-neutral-700' : 'text-neutral-600 dark:text-neutral-400'}`}
               onClick={() => setTab('operativa')}
             >Guida operativa</button>
 
             <button
-              className={`py-3 px-4 text-sm font-medium rounded-t ${tab === 'faq' ? 'bg-neutral-50 dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100 border-b-2 border-b-neutral-200 dark:border-b-neutral-700' : 'text-neutral-600 dark:text-neutral-400'}`}
+              className={`py-3 px-4 text-sm font-medium rounded-t ${tab === 'faq' ? 'bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 border-b-2 border-b-neutral-200 dark:border-b-neutral-700' : 'text-neutral-600 dark:text-neutral-400'}`}
               onClick={() => setTab('faq')}
             >FAQ</button>
           </nav>
