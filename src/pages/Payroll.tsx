@@ -20,6 +20,7 @@ export default function PayrollPage({ lockedEmployeeId }: PayrollProps) {
   const [lastRunTotal, setLastRunTotal] = useState<number | null>(null)
   const [creatingExpenses, setCreatingExpenses] = useState(false)
   const [expensesCreated, setExpensesCreated] = useState(false)
+  const [deletingRun, setDeletingRun] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
   const [role, setRole] = useState<string | null>(null)
   const [staffEmployeeId, setStaffEmployeeId] = useState<string | null>(null)
@@ -281,7 +282,26 @@ export default function PayrollPage({ lockedEmployeeId }: PayrollProps) {
                 </div>
                 <div className="flex gap-2">
                   {isAdmin && <Button onClick={()=>onCreateExpenses(lastRunId!)} disabled={creatingExpenses || expensesCreated}>{creatingExpenses ? 'Creazione...' : expensesCreated ? 'Spese create' : 'Aggiungi alle spese'}</Button>}
-                  {isAdmin && <Button variant="ghost" className="text-rose-600" onClick={() => { if (confirm('Eliminare questa payroll run?')) { (async ()=>{ const { error } = await supabase.from('payroll_runs').delete().eq('id', lastRunId); if (error) { window.dispatchEvent(new CustomEvent('toast', { detail: { message: error.message, type: 'error' } })) } else { window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Payroll run eliminata', type: 'success' } })); setLastRunId(null); setLastRunName(null); setLastRunTotal(null); } })() } }}>Elimina payroll run</Button>}
+                  {isAdmin && <Button variant="ghost" className="text-rose-600" disabled={deletingRun} onClick={async () => {
+                    if (!confirm('Eliminare questa payroll run?')) return
+                    if (!lastRunId) { window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Nessuna payroll run selezionata', type: 'info' } })); return }
+                    try {
+                      setDeletingRun(true)
+                      const { data: deleted, error } = await supabase.from('payroll_runs').delete().select('id').eq('id', lastRunId)
+                      if (error) {
+                        window.dispatchEvent(new CustomEvent('toast', { detail: { message: error.message || 'Errore eliminazione payroll run', type: 'error' } }))
+                      } else if (!deleted || deleted.length === 0) {
+                        window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Nessuna payroll run eliminata', type: 'info' } }))
+                      } else {
+                        setLastRunId(null); setLastRunName(null); setLastRunTotal(null)
+                        // Notify other clients to refresh
+                        window.dispatchEvent(new CustomEvent('realtime:payroll_runs'))
+                        window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Payroll run eliminata', type: 'success' } }))
+                      }
+                    } finally {
+                      setDeletingRun(false)
+                    }
+                  }}>{deletingRun ? 'Eliminazione...' : 'Elimina payroll run'}</Button>}
                 </div>
               </div>
             </Card>
