@@ -21,17 +21,11 @@ export default function HelpPage() {
   const isAdmin = role === 'admin'
   const isStaff = role === 'staff'
 
-  useEffect(() => {
-    // ensure tab text contrasts in dark mode
-    document.documentElement.style.setProperty('--help-text', '#374151')
-    document.documentElement.style.setProperty('--help-text-dark', '#E5E7EB')
-  }, [])
-
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
       <PageTitle>Guida & FAQ</PageTitle>
 
-      <div className="bg-white dark:bg-neutral-850 rounded shadow-sm">
+      <div className="bg-white dark:bg-neutral-850 rounded shadow-sm text-neutral-700 dark:text-neutral-300">
         <div className="border-b dark:border-neutral-800">
           <nav className="flex space-x-2 px-4" aria-label="Tabs">
             <button
@@ -54,13 +48,30 @@ export default function HelpPage() {
             {tab === 'descrittiva' && (
               <div className="space-y-6">
                 <Card>
-                  <div className="text-sm mb-2 font-semibold">Prenotazioni</div>
-                  <div className="text-sm text-neutral-700 dark:text-neutral-300">Viste e strumenti per cercare, creare e gestire le prenotazioni. Puoi filtrare per data e stato, aprire i dettagli di una prenotazione e modificare le informazioni.
+                  <div className="text-sm mb-2 font-semibold">Panoramica rapida (Quick start)</div>
+                  <div className="text-sm">Questa sezione ti guida attraverso un flusso di lavoro tipico per usare Sup Manager dalla prima configurazione fino alla gestione quotidiana: impostazione attività, prenotazioni, gestione attrezzatura, turni e paghe.
 
-                    <ul className="list-disc ml-5 mt-3 text-sm text-neutral-700 dark:text-neutral-300">
-                      <li>Ricerca veloce per nome cliente o telefono</li>
-                      <li>Filtri avanzati: data, stato, pacchetto</li>
-                      <li>Calendario visivo per viste mensili</li>
+                    <ul className="list-disc ml-5 mt-3 text-sm">
+                      <li><strong>Step 1 — Configurazione iniziale:</strong> crea i tuoi pacchetti e aggiungi attrezzatura (foto e note consigliate).</li>
+                      <li><strong>Step 2 — Clienti e prenotazioni:</strong> aggiungi clienti, poi crea prenotazioni con pacchetto e range date/ora.</li>
+                      <li><strong>Step 3 — Team e turni:</strong> crea profili dipendenti, programma turni e istruisci lo staff su approvazione e badge.</li>
+                      <li><strong>Step 4 — Paghe e report:</strong> calcola paghe per periodi, rivedi le payroll run e, se necessario, trasforma in spese/esporta CSV.</li>
+                    </ul>
+
+                    <div className="mt-3 text-xs text-neutral-600 dark:text-neutral-400">Suggerimento: prima di iniziare, verifica le impostazioni generali (format monetario, percentuali di tasse e regole di arrotondamento).</div>
+                  </div>
+                </Card>
+
+                <Card>
+                  <div className="text-sm mb-2 font-semibold">Sezioni del prodotto</div>
+                  <div className="text-sm">
+                    <ul className="list-disc ml-5 mt-3 text-sm">
+                      <li><strong>Prenotazioni:</strong> gestione e modifica puntuale, calendario e filtri avanzati.</li>
+                      <li><strong>Attrezzatura:</strong> aggiungi elementi, gestisci disponibilità e manutenzioni.</li>
+                      <li><strong>Dipendenti:</strong> ruoli, collegamento account, tariffari orari.</li>
+                      <li><strong>Turni:</strong> creazione, approvazione/revisione e notifiche realtime.</li>
+                      <li><strong>Paghe:</strong> calcolo su periodi, payroll run non pagate restano visibili.</li>
+                      <li><strong>Report:</strong> esportazioni e reportistica predefinita per contabilità.</li>
                     </ul>
                   </div>
                 </Card>
@@ -123,56 +134,68 @@ export default function HelpPage() {
               <div className="space-y-6">
                 <Card>
                   <div className="text-sm mb-2 font-semibold">Creare una prenotazione - Guida passo-passo</div>
-                  <div className="text-sm text-neutral-700 dark:text-neutral-300">
+                  <div className="text-sm">
                     <ol className="list-decimal ml-5 space-y-2">
                       <li>Vai su "Prenotazioni" e clicca su "Nuova prenotazione"</li>
-                      <li>Seleziona cliente, pacchetto, date e ora</li>
-                      <li>Aggiungi eventuali extra o note</li>
-                      <li>Verifica che l'attrezzatura sia disponibile nel periodo</li>
-                      <li>Salva e invia conferma al cliente (opzione email se configurata)</li>
+                      <li>Seleziona cliente, pacchetto, data/ora e conferma numero partecipanti</li>
+                      <li>Controlla la disponibilità dell'attrezzatura collegata al pacchetto</li>
+                      <li>Aggiungi note su richieste speciali e assegna un operatore se necessario</li>
+                      <li>Salva: il cliente comparirà in lista e riceverà la conferma se l'invio email è attivato</li>
                     </ol>
 
-                    <div className="mt-4 text-xs text-neutral-600">Suggerimento: usa i filtri avanzati per trovare slot liberi più velocemente.</div>
+                    <div className="mt-4 text-xs text-neutral-600 dark:text-neutral-400">Suggerimento: usa ricerca cliente per velocizzare il processo; compila sempre i campi opzionali per later analytics.</div>
                   </div>
                 </Card>
 
                 <Card>
-                  <div className="text-sm mb-2 font-semibold">Gestire i turni - esempio operativo</div>
-                  <div className="text-sm text-neutral-700 dark:text-neutral-300">
+                  <div className="text-sm mb-2 font-semibold">Gestire i turni - Esempio operativo completo</div>
+                  <div className="text-sm">
                     <ol className="list-decimal ml-5 space-y-2">
-                      <li>Vai su "Turni" e clicca su "Nuovo turno"</li>
-                      <li>Compila il form: dipendente, inizio, fine, note</li>
-                      <li>Lo staff può solo impostare lo stato come "Programmato"</li>
-                      <li>L'admin può approvare o rifiutare: cliccare Approva/ Rifiuta</li>
-                      <li>Una volta approvato il badge apparirà vicino alle ore e verrà inviato l'aggiornamento realtime</li>
+                      <li>Crea il turno: seleziona dipendente, data/ora di inizio e fine, durata e note operative</li>
+                      <li>Salva come "Programmato" (lo staff non può marcare come completato)</li>
+                      <li>Admin: rivedi il turno, clicca "Approva" se tutto è corretto o "Rifiuta" con nota</li>
+                      <li>Dopo l'approvazione lo staff vedrà il badge "Approvato" vicino alle ore</li>
+                      <li>Se errore: l'admin può togliere l'approvazione cliccando di nuovo sul badge</li>
                     </ol>
 
-                    <div className="mt-4 text-xs text-neutral-600">Suggerimento: l'admin può cambiare idea cliccando nuovamente sul badge per tornare indietro.</div>
+                    <div className="mt-4 text-xs text-neutral-600 dark:text-neutral-400">Nota: quando approvi, il server emette un evento realtime che aggiorna tutti i dispositivi connessi.</div>
                   </div>
                 </Card>
 
                 <Card>
-                  <div className="text-sm mb-2 font-semibold">Calcolare e gestire le paghe</div>
-                  <div className="text-sm text-neutral-700 dark:text-neutral-300">
+                  <div className="text-sm mb-2 font-semibold">Calcolare e gestire le paghe - Workflow dettagliato</div>
+                  <div className="text-sm">
                     <ol className="list-decimal ml-5 space-y-2">
-                      <li>Vai su "Paghe"</li>
-                      <li>Se sei staff: seleziona il periodo e clicca "Calcola" per vedere solo la tua paga</li>
-                      <li>Se sei admin: puoi creare una payroll run, rivedere le voci e creare spese</li>
-                      <li>Le payroll run non pagate restano visibili finché non le trasformi in spese</li>
+                      <li>Se sei staff: seleziona il periodo e clicca "Calcola" per la tua retribuzione (solo visibile a te)</li>
+                      <li>Se sei admin: scegli l'intervallo per tutti i dipendenti, clicca "Crea payroll run"</li>
+                      <li>Rivedi le voci generate (ore, straordinari, franchigia, trattenute)</li>
+                      <li>Se tutto OK: puoi creare le spese corrispondenti per contabilizzare i pagamenti</li>
+                      <li>Le payroll run non pagate rimangono visibili finché non le trasformi in spese</li>
                     </ol>
 
-                    <div className="mt-4 text-xs text-neutral-600">Suggerimento: verifica gli arrotondamenti e la tassazione nelle impostazioni se necessario.</div>
+                    <div className="mt-4 text-xs text-neutral-600 dark:text-neutral-400">Suggerimento: verifica le impostazioni di tassazione e i parametri orari prima di creare la payroll run per evitare discrepanze.</div>
                   </div>
                 </Card>
 
                 <Card>
-                  <div className="text-sm mb-2 font-semibold">Reportistica e esportazioni</div>
-                  <div className="text-sm text-neutral-700 dark:text-neutral-300">
+                  <div className="text-sm mb-2 font-semibold">Reportistica e esportazioni - Consigli pratici</div>
+                  <div className="text-sm">
                     <ol className="list-decimal ml-5 space-y-2">
-                      <li>Vai su "Report" e scegli il periodo</li>
-                      <li>Utilizza i report giornalieri o mensili per analizzare ricavi e costi</li>
-                      <li>Esporta CSV per integrazione con contabilità</li>
+                      <li>Seleziona il report (giornaliero/mensile) e il periodo di riferimento</li>
+                      <li>Filtra per dipendente, cliente o tipo di spesa per analisi più granulari</li>
+                      <li>Esporta in CSV/PDF per integrazione con il tuo gestionale</li>
                     </ol>
+                  </div>
+                </Card>
+
+                <Card>
+                  <div className="text-sm mb-2 font-semibold">Esempi pratici e scenari</div>
+                  <div className="text-sm">
+                    <ul className="list-disc ml-5 mt-3 text-sm space-y-1">
+                      <li><strong>Scenario 1:</strong> Cliente modifica data — aggiorna la prenotazione e controlla disponibilità attrezzatura</li>
+                      <li><strong>Scenario 2:</strong> Staff segnala un'ora extra — admin approva e la voce viene inclusa nella prossima payroll run</li>
+                      <li><strong>Scenario 3:</strong> Errore su importo — rivedi le impostazioni di arrotondamento e correggi manualmente la voce</li>
+                    </ul>
                   </div>
                 </Card>
               </div>
@@ -181,40 +204,44 @@ export default function HelpPage() {
             {tab === 'faq' && (
               <div className="space-y-6">
                 <Card>
-                  <div className="text-sm mb-2 font-semibold">Domande frequenti</div>
-                  <div className="text-sm text-neutral-700 dark:text-neutral-300">
+                  <div className="text-sm mb-2 font-semibold">FAQ estesa e Troubleshooting</div>
+                  <div className="text-sm">
                     <div className="mb-3">
                       <div className="font-semibold">Perché non vedo certi pulsanti?</div>
-                      <div>Alcune azioni sono riservate agli amministratori (ruolo "admin"). Se sei staff vedrai solo le azioni pertinenti al tuo ruolo.</div>
+                      <div>Le azioni sono limitate in base al ruolo. Se mancano funzioni, verifica di essere loggato con un account admin o contatta l'amministratore.</div>
                     </div>
 
                     <div className="mb-3">
-                      <div className="font-semibold">Come posso fare in modo che le modifiche si vedano su tutti i dispositivi?</div>
-                      <div>Il sistema usa aggiornamenti realtime: quando un admin approva un turno o qualcuno modifica dati rilevanti, gli altri dispositivi ricevono l'aggiornamento automaticamente. Se l'aggiornamento non appare subito, controlla la connessione o ricarica la pagina.</div>
+                      <div className="font-semibold">Non vedo aggiornamenti realtime</div>
+                      <div>Controlla la connessione di rete; il client si riconnette automaticamente in caso di interruzione. In caso di problemi persistenti, apri un ticket e controlla i log del server.</div>
                     </div>
 
                     <div className="mb-3">
-                      <div className="font-semibold">Come riportare un errore o chiedere aiuto?</div>
-                      <div>Invia un messaggio al team di supporto (o apri un ticket). Se vuoi, puoi anche lasciare una nota nella pagina "Impostazioni" con i dettagli del problema.</div>
+                      <div className="font-semibold">Ho un errore su payroll run</div>
+                      <div>Verifica che la payroll run non sia marcata come pagata; controlla le voci associate e gli arrotondamenti. Se necessario, esporta e verifica i dati in CSV.</div>
                     </div>
 
                     <div className="mb-3">
-                      <div className="font-semibold">Posso esportare i dati?</div>
-                      <div>Sì, alcuni report consentono l'esportazione CSV e PDF.</div>
+                      <div className="font-semibold">Come esportare i dati?</div>
+                      <div>Sì, alcuni report consentono l'esportazione CSV e PDF: scegli il periodo e usa il pulsante "Esporta" in alto.</div>
                     </div>
                   </div>
                 </Card>
 
+
+
                 <Card>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="font-semibold">Hai bisogno di più dettagli?</div>
-                      <div className="text-sm text-neutral-700 dark:text-neutral-300">Se vuoi posso aggiungere esempi passo-passo, video o immagini per ciascuna operazione.</div>
-                    </div>
-                    <div>
-                      <Button onClick={() => window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Grazie! Dimmi cosa aggiungere nella Guida.', type: 'info' } }))}>Suggerisci modifica</Button>
-                    </div>
+                  <div className="text-sm mb-2 font-semibold">Glossario rapido</div>
+                  <div className="text-sm list-disc ml-5">
+                    <div><strong>Payroll run:</strong> raggruppamento di voci paghe per un periodo, convertibile in spese.</div>
+                    <div><strong>Shift:</strong> singolo turno di lavoro assegnato ad un dipendente.</div>
+                    <div><strong>Realtime:</strong> aggiornamenti push che sincronizzano i client con le modifiche sul server.</div>
                   </div>
+                </Card>
+
+                <Card>
+                  <div className="text-sm mb-2 font-semibold">Segnaposto per immagini/video</div>
+                  <div className="text-sm">Qui potremo aggiungere screenshot passo-passo e brevi video per aiutare gli utenti visivi: quando hai i materiali, posso incorporarli nella guida.</div>
                 </Card>
               </div>
             )}
