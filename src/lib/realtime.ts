@@ -3,7 +3,7 @@ import { supabase } from './supabaseClient'
 // Central realtime wiring: subscribes to Postgres changes and dispatches
 // CustomEvents on window so components can react.
 
-const TABLES = ['booking', 'equipment', 'package', 'expense', 'sup', 'app_setting']
+const TABLES = ['booking', 'equipment', 'package', 'expense', 'sup', 'app_setting', 'shifts', 'employees', 'payroll_runs', 'payroll_items', 'app_user']
 
 // Coalescing & backoff configuration
 const COALESCE_MS = 500 // window to batch rapid events per table

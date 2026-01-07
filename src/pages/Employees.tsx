@@ -90,8 +90,10 @@ export default function EmployeesPage() {
   useEffect(() => {
     loadUsers()
     const onAuthChanged = () => { load(); loadUsers() }
+    const onRealtime = () => { load(); loadUsers() }
     window.addEventListener('auth:changed', onAuthChanged)
-    return () => window.removeEventListener('auth:changed', onAuthChanged)
+    window.addEventListener('realtime:employees', onRealtime as any)
+    return () => { window.removeEventListener('auth:changed', onAuthChanged); window.removeEventListener('realtime:employees', onRealtime as any) }
   }, [])
 
   function openNew() {

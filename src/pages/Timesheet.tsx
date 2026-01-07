@@ -42,8 +42,10 @@ export default function TimesheetPage() {
     loadEmployees()
     loadShifts()
     const onShiftsChanged = () => loadShifts()
+    const onRealtime = () => loadShifts()
     window.addEventListener('shifts:changed', onShiftsChanged as any)
-    return () => window.removeEventListener('shifts:changed', onShiftsChanged as any)
+    window.addEventListener('realtime:shifts', onRealtime as any)
+    return () => { window.removeEventListener('shifts:changed', onShiftsChanged as any); window.removeEventListener('realtime:shifts', onRealtime as any) }
   }, [])
 
   async function loadEmployees() {
@@ -278,6 +280,19 @@ export default function TimesheetPage() {
     return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
   }
 
+  const fmtDayDisplay = (isoDay: string) => {
+    if (!isoDay || isoDay === 'sconosciuta') return 'sconosciuta'
+    // expect YYYY-MM-DD key
+    if (/^\d{4}-\d{2}-\d{2}$/.test(isoDay)) {
+      const [y, m, d] = isoDay.split('-')
+      return `${d}-${m}-${y}`
+    }
+    const dd = new Date(isoDay)
+    if (isNaN(dd.getTime())) return isoDay
+    const pad = (n:number)=>String(n).padStart(2,'0')
+    return `${pad(dd.getDate())}-${pad(dd.getMonth()+1)}-${dd.getFullYear()}`
+  }
+
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
       <div className="flex items-center justify-between flex-wrap gap-3 mb-4">
@@ -307,7 +322,7 @@ export default function TimesheetPage() {
         {Object.keys(grouped).length === 0 && !loading && <div className="text-sm text-neutral-500">Nessun turno</div>}
         {Object.entries(grouped).sort((a,b)=>a[0]<b[0]?1:-1).map(([day, list]) => (
           <div key={day} className="space-y-2">
-            <div className="text-sm font-semibold text-neutral-600 dark:text-neutral-200">{day}</div>
+            <div className="text-sm font-semibold text-neutral-600 dark:text-neutral-200">{fmtDayDisplay(day)}</div>
             {list.map((shift) => (
               <Card key={shift.id} className="p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                 <div className="flex-1">

@@ -27,6 +27,9 @@ export default function PayrollPage({ lockedEmployeeId }: PayrollProps) {
   useEffect(() => { 
     loadEmployees()
     loadLastPayrollRun()
+    const onRealtime = () => loadLastPayrollRun()
+    window.addEventListener('realtime:payroll_runs', onRealtime as any)
+    return () => window.removeEventListener('realtime:payroll_runs', onRealtime as any)
   }, [])
   useEffect(() => {
     ;(async () => {
