@@ -145,8 +145,17 @@ export default function Modal({ isOpen, onClose, title, children, autoFocus = fa
       openFullTriggered.current = false
     } else {
       if (contentRef.current && !userExpanded) {
-        // default opening height: on mobile, if fullScreenMobile is requested we still use the '60vh' default
-        contentRef.current.style.maxHeight = (isMobile && fullScreenMobile) ? '60vh' : ''
+        // default opening height
+        if (isMobile) {
+          // When mobileCentered is requested, constrain height so the dialog can be vertically centered
+          if (mobileCentered) {
+            contentRef.current.style.maxHeight = '80vh'
+          } else {
+            contentRef.current.style.maxHeight = fullScreenMobile ? '60vh' : ''
+          }
+        } else {
+          contentRef.current.style.maxHeight = fullScreenMobile ? '60vh' : ''
+        }
       }
       // If caller requested opening full-screen on mobile, expand automatically ONCE
       if (isMobile && openFullMobile && contentRef.current && !openFullTriggered.current) {
@@ -156,7 +165,7 @@ export default function Modal({ isOpen, onClose, title, children, autoFocus = fa
         openFullTriggered.current = true
       }
     }
-  }, [isOpen, fullScreenMobile, userExpanded, isMobile, openFullMobile])
+  }, [isOpen, fullScreenMobile, userExpanded, isMobile, openFullMobile, mobileCentered])
 
   const [isClosing, setIsClosing] = useState(false)
   const isClosingRef = useRef(false)
