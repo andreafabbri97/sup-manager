@@ -144,8 +144,8 @@ export default function PayrollPage({ lockedEmployeeId }: PayrollProps) {
           {result && (
             <Card className="p-4 sm:p-6 mt-4">
               <div className="font-semibold mb-2">Risultati</div>
-              <div className="text-sm text-neutral-600">Totale ore: {result?.totals?.total_hours ?? 0}</div>
-              <div className="text-sm text-neutral-600 mb-2">Totale importo: {result?.totals?.total_amount ?? 0} €</div>
+              <div className="text-sm text-neutral-700 dark:text-neutral-300">Totale ore: {result?.totals?.total_hours ?? 0}</div>
+              <div className="text-sm text-neutral-700 dark:text-neutral-300 mb-2">Totale importo: {result?.totals?.total_amount ?? 0} €</div>
               <div className="grid gap-2">
                 {result?.items && result.items.map((it: any) => (
                   <div key={it.shift_id} className="p-2 border rounded flex items-center justify-between">
@@ -168,7 +168,7 @@ export default function PayrollPage({ lockedEmployeeId }: PayrollProps) {
               <div className="flex items-center justify-between">
                 <div className="text-sm">
                   <div>Ultima payroll run: {lastRunName || lastRunId}</div>
-                  {lastRunTotal !== null && <div className="text-xs text-neutral-600">Totale: {Number(lastRunTotal).toFixed(2)} €</div>}
+                  {lastRunTotal !== null && <div className="text-xs text-neutral-700 dark:text-neutral-300">Totale: {Number(lastRunTotal).toFixed(2)} €</div>}
                 </div>
                 <div className="flex gap-2">
                   {isAdmin && <Button onClick={()=>onCreateExpenses(lastRunId!)} disabled={creatingExpenses || expensesCreated}>{creatingExpenses ? 'Creazione...' : expensesCreated ? 'Spese create' : 'Aggiungi alle spese'}</Button>}
