@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 
 interface ModalProps {
   isOpen: boolean
@@ -326,8 +327,7 @@ export default function Modal({ isOpen, onClose, title, children, autoFocus = fa
 
   // Use a portal so modal content is attached to document.body and not affected by ancestor transforms
   if (typeof document !== 'undefined' && document.body) {
-    // eslint-disable-next-line react/no-danger
-    return (window.React && (window.React as any).createPortal) ? (window.React as any).createPortal(modalContent, document.body) : modalContent
+    return createPortal(modalContent, document.body)
   }
 
   return modalContent
