@@ -238,6 +238,12 @@ export default function TimesheetPage() {
     try {
       const { approveShift } = await import('../lib/shifts')
       await approveShift(id, action)
+      // Ensure an explicit row update to trigger realtime notifications reliably
+      try {
+        await supabase.from('shifts').update({ approval_status: action, updated_at: new Date().toISOString() }).eq('id', id)
+      } catch (e) {
+        // ignore
+      }
       window.dispatchEvent(new CustomEvent('toast', { detail: { message: action === 'approved' ? 'Turno approvato' : 'Turno rifiutato', type: 'success' } }))
       loadShifts()
     } catch (e: any) {
@@ -301,6 +307,7 @@ export default function TimesheetPage() {
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between mb-4">
+        {role !== 'staff' ? (
         <div className="flex gap-2 flex-1 flex-wrap">
           <select className="border rounded px-3 py-2" value={filterEmployee} onChange={(e)=>setFilterEmployee(e.target.value)}>
             <option value="">Tutti i dipendenti</option>
@@ -313,6 +320,7 @@ export default function TimesheetPage() {
             <option value="cancelled">Annullato</option>
           </select>
         </div>
+      ) : null}
         <div className="text-xs text-neutral-500">{filteredShifts.length} turni</div>
       </div>
 
