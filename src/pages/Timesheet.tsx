@@ -37,6 +37,8 @@ export default function TimesheetPage() {
   const [editing, setEditing] = useState<Shift | null>(null)
   const [filterEmployee, setFilterEmployee] = useState('')
   const [filterStatus, setFilterStatus] = useState('')
+  const [startDate, setStartDate] = useState<string>(() => { const d = new Date(); d.setDate(d.getDate()-30); return d.toISOString().slice(0,10) })
+  const [endDate, setEndDate] = useState<string>(() => new Date().toISOString().slice(0,10))
 
   useEffect(() => {
     loadEmployees()
@@ -47,6 +49,11 @@ export default function TimesheetPage() {
     window.addEventListener('realtime:shifts', onRealtime as any)
     return () => { window.removeEventListener('shifts:changed', onShiftsChanged as any); window.removeEventListener('realtime:shifts', onRealtime as any) }
   }, [])
+
+  // reload when date range changes
+  useEffect(() => {
+    loadShifts()
+  }, [startDate, endDate])
 
   async function loadEmployees() {
     const { data, error } = await supabase.from('employees').select('id, name').order('name', { ascending: true })
@@ -95,7 +102,10 @@ export default function TimesheetPage() {
         if (!uid) { setShifts([]); setLoading(false); return }
         const { data: emp } = await supabase.from('employees').select('id').eq('auth_user_id', uid).single()
         if (!emp || !emp.id) { setShifts([]); setLoading(false); return }
-        const { data, error } = await supabase.from('shifts').select('id, employee_id, start_at, end_at, status, duration_hours, approval_status, employees(name, auth_user_id)').eq('employee_id', emp.id).order('start_at', { ascending: false }).limit(200)
+        let q = supabase.from('shifts').select('id, employee_id, start_at, end_at, status, duration_hours, approval_status, employees(name, auth_user_id)').eq('employee_id', emp.id)
+        if (startDate) q = q.gte('start_at', `${startDate}T00:00:00`)
+        if (endDate) q = q.lte('start_at', `${endDate}T23:59:59`)
+        const { data, error } = await q.order('start_at', { ascending: false }).limit(200)
         setLoading(false)
         if (error) { window.dispatchEvent(new CustomEvent('toast', { detail: { message: error.message, type: 'error' } })); return }
         setShifts((data as any) || [])
@@ -103,7 +113,10 @@ export default function TimesheetPage() {
       }
 
       // admin/other roles: load wide view
-      const { data, error } = await supabase.from('shifts').select('id, employee_id, start_at, end_at, status, duration_hours, approval_status, employees(name, auth_user_id)').order('start_at', { ascending: false }).limit(200)
+      let q = supabase.from('shifts').select('id, employee_id, start_at, end_at, status, duration_hours, approval_status, employees(name, auth_user_id)')
+      if (startDate) q = q.gte('start_at', `${startDate}T00:00:00`)
+      if (endDate) q = q.lte('start_at', `${endDate}T23:59:59`)
+      const { data, error } = await q.order('start_at', { ascending: false }).limit(200)
       setLoading(false)
       if (error) { window.dispatchEvent(new CustomEvent('toast', { detail: { message: error.message, type: 'error' } })); return }
       setShifts((data as any) || [])
@@ -307,20 +320,30 @@ export default function TimesheetPage() {
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between mb-4">
-        {role !== 'staff' ? (
-        <div className="flex gap-2 flex-1 flex-wrap">
-          <select className="border rounded px-3 py-2" value={filterEmployee} onChange={(e)=>setFilterEmployee(e.target.value)}>
-            <option value="">Tutti i dipendenti</option>
-            {employees.map((e)=>(<option key={e.id} value={e.id}>{e.name}</option>))}
-          </select>
-          <select className="border rounded px-3 py-2" value={filterStatus} onChange={(e)=>setFilterStatus(e.target.value)}>
-            <option value="">Tutti gli stati</option>
-            <option value="scheduled">Programmato</option>
-            <option value="completed">Completato</option>
-            <option value="cancelled">Annullato</option>
-          </select>
+        <div className="flex gap-2 flex-1 flex-wrap items-end">
+        <div>
+          <label className="text-sm block mb-1">Da</label>
+          <input type="date" className="border rounded px-3 py-2" value={startDate} onChange={(e)=>{ setStartDate(e.target.value) }} />
         </div>
-      ) : null}
+        <div>
+          <label className="text-sm block mb-1">A</label>
+          <input type="date" className="border rounded px-3 py-2" value={endDate} onChange={(e)=>{ setEndDate(e.target.value) }} />
+        </div>
+        {role !== 'staff' && (
+          <>
+            <select className="border rounded px-3 py-2" value={filterEmployee} onChange={(e)=>setFilterEmployee(e.target.value)}>
+              <option value="">Tutti i dipendenti</option>
+              {employees.map((e)=>(<option key={e.id} value={e.id}>{e.name}</option>))}
+            </select>
+            <select className="border rounded px-3 py-2" value={filterStatus} onChange={(e)=>setFilterStatus(e.target.value)}>
+              <option value="">Tutti gli stati</option>
+              <option value="scheduled">Programmato</option>
+              <option value="completed">Completato</option>
+              <option value="cancelled">Annullato</option>
+            </select>
+          </>
+        )}
+      </div>
         <div className="text-xs text-neutral-500">{filteredShifts.length} turni</div>
       </div>
 
