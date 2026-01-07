@@ -5,7 +5,9 @@ import Button from '../components/ui/Button'
 import { calculatePayroll, createPayrollRun, createExpensesFromPayrollRun } from '../lib/payroll'
 import { supabase } from '../lib/supabaseClient'
 
-export default function PayrollPage() {
+interface PayrollProps { lockedEmployeeId?: string | null }
+
+export default function PayrollPage({ lockedEmployeeId }: PayrollProps) {
   const [start, setStart] = useState<string>(() => new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().slice(0,10))
   const [end, setEnd] = useState<string>(() => new Date().toISOString().slice(0,10))
   const [employeeId, setEmployeeId] = useState('')
@@ -17,6 +19,7 @@ export default function PayrollPage() {
   const [creatingExpenses, setCreatingExpenses] = useState(false)
   const [expensesCreated, setExpensesCreated] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
+
   useEffect(() => { loadEmployees() }, [])
   useEffect(() => {
     import('../lib/auth').then(({ getCurrentUserRole }) => getCurrentUserRole().then(r => setIsAdmin(r === 'admin')))
@@ -24,6 +27,10 @@ export default function PayrollPage() {
     window.addEventListener('auth:changed', onAuth as any)
     return () => window.removeEventListener('auth:changed', onAuth as any)
   }, [])
+
+  useEffect(() => {
+    if (lockedEmployeeId) setEmployeeId(lockedEmployeeId)
+  }, [lockedEmployeeId])
 
   async function loadEmployees() {
     const { data, error } = await supabase.from('employees').select('id, name').order('name')
@@ -101,14 +108,18 @@ export default function PayrollPage() {
               </div>
               <div>
                 <label className="text-sm block mb-1">Dipendente (opzionale)</label>
-                <select className="w-full border rounded px-3 py-2" value={employeeId} onChange={(e)=>setEmployeeId(e.target.value)}>
-                  <option value="">Tutti i dipendenti</option>
-                  {employees.map(e=> (<option key={e.id} value={e.id}>{e.name}</option>))}
-                </select>
+                {lockedEmployeeId ? (
+                  <div className="px-3 py-2 border rounded bg-neutral-50">{employees.find(e => e.id === lockedEmployeeId)?.name || '—'}</div>
+                ) : (
+                  <select className="w-full border rounded px-3 py-2" value={employeeId} onChange={(e)=>setEmployeeId(e.target.value)}>
+                    <option value="">Tutti i dipendenti</option>
+                    {employees.map(e=> (<option key={e.id} value={e.id}>{e.name}</option>))}
+                  </select>
+                )}
               </div>
               <div className="flex gap-2">
                 <Button onClick={onCalculate} disabled={loading}>{loading? 'Calcolo...' : 'Calcola'}</Button>
-                <Button variant="secondary" disabled={creating} onClick={onCreateRun}>{creating? 'Creazione...' : 'Crea payroll run'}</Button>
+                {isAdmin && <Button variant="secondary" disabled={creating} onClick={onCreateRun}>{creating? 'Creazione...' : 'Crea payroll run'}</Button>}
               </div>
             </div>
           </Card>
@@ -140,7 +151,7 @@ export default function PayrollPage() {
               <div className="flex items-center justify-between">
                 <div className="text-sm">Ultima payroll run: {lastRunId}</div>
                 <div className="flex gap-2">
-                  <Button onClick={()=>onCreateExpenses(lastRunId!)} disabled={creatingExpenses || expensesCreated}>{creatingExpenses ? 'Creazione...' : expensesCreated ? 'Spese create' : 'Aggiungi paghe alle spese'}</Button>
+                  {isAdmin && <Button onClick={()=>onCreateExpenses(lastRunId!)} disabled={creatingExpenses || expensesCreated}>{creatingExpenses ? 'Creazione...' : expensesCreated ? 'Spese create' : 'Aggiungi paghe alle spese'}</Button>}
                 </div>
               </div>
             </Card>
