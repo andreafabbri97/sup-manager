@@ -17,6 +17,7 @@ interface Shift {
   end_at: string
   status: string
   duration_hours: number
+  approval_status?: string | null
   employee?: { name: string; auth_user_id?: string | null }
 }
 
@@ -92,7 +93,7 @@ export default function TimesheetPage() {
         if (!uid) { setShifts([]); setLoading(false); return }
         const { data: emp } = await supabase.from('employees').select('id').eq('auth_user_id', uid).single()
         if (!emp || !emp.id) { setShifts([]); setLoading(false); return }
-        const { data, error } = await supabase.from('shifts').select('id, employee_id, start_at, end_at, status, duration_hours, employees(name, auth_user_id)').eq('employee_id', emp.id).order('start_at', { ascending: false }).limit(200)
+        const { data, error } = await supabase.from('shifts').select('id, employee_id, start_at, end_at, status, duration_hours, approval_status, employees(name, auth_user_id)').eq('employee_id', emp.id).order('start_at', { ascending: false }).limit(200)
         setLoading(false)
         if (error) { window.dispatchEvent(new CustomEvent('toast', { detail: { message: error.message, type: 'error' } })); return }
         setShifts((data as any) || [])
@@ -100,7 +101,7 @@ export default function TimesheetPage() {
       }
 
       // admin/other roles: load wide view
-      const { data, error } = await supabase.from('shifts').select('id, employee_id, start_at, end_at, status, duration_hours, employees(name, auth_user_id)').order('start_at', { ascending: false }).limit(200)
+      const { data, error } = await supabase.from('shifts').select('id, employee_id, start_at, end_at, status, duration_hours, approval_status, employees(name, auth_user_id)').order('start_at', { ascending: false }).limit(200)
       setLoading(false)
       if (error) { window.dispatchEvent(new CustomEvent('toast', { detail: { message: error.message, type: 'error' } })); return }
       setShifts((data as any) || [])
@@ -331,8 +332,16 @@ export default function TimesheetPage() {
                     <>
                       <Button size="sm" variant="secondary" onClick={()=>openEdit(shift)}>Modifica</Button>
                       <Button size="sm" variant="ghost" onClick={()=>removeShift(shift.id)}>Elimina</Button>
-                      {shift.approval_status !== 'approved' && <Button size="sm" variant="secondary" onClick={() => approve(shift.id, 'approved')}>Approva</Button>}
-                      {shift.approval_status !== 'rejected' && <Button size="sm" variant="ghost" onClick={() => approve(shift.id, 'rejected')}>Rifiuta</Button>}
+                      {shift.approval_status === 'approved' ? (
+                        <Button size="sm" variant="secondary" disabled>Approvato</Button>
+                      ) : (
+                        <Button size="sm" variant="secondary" onClick={() => approve(shift.id, 'approved')}>Approva</Button>
+                      )}
+                      {shift.approval_status === 'rejected' ? (
+                        <Button size="sm" variant="ghost" disabled>Rifiutato</Button>
+                      ) : (
+                        <Button size="sm" variant="ghost" onClick={() => approve(shift.id, 'rejected')}>Rifiuta</Button>
+                      )}
                     </>
                   )}
                 </div>
