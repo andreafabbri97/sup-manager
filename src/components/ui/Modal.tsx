@@ -311,7 +311,7 @@ export default function Modal({ isOpen, onClose, title, children, autoFocus = fa
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className={`bg-white dark:bg-slate-800 ${dialogRadius} shadow-2xl w-full sm:max-w-[900px] md:max-w-[1000px] lg:max-w-[1100px] xl:max-w-[1400px] 2xl:max-w-[2000px] overflow-hidden transform transition-transform duration-300 ease-out scale-100 sm:animate-modal-open ${isClosing ? 'animate-slide-down' : 'animate-modal-open'} touch-manipulation z-[100000]`}
+        className={`bg-white dark:bg-slate-800 ${dialogRadius} shadow-2xl w-full sm:max-w-[min(900px,90vw)] md:max-w-[min(1000px,85vw)] lg:max-w-[min(1100px,80vw)] xl:max-w-[min(1200px,70vw)] 2xl:max-w-[min(1400px,60vw)] overflow-hidden transform transition-transform duration-300 ease-out scale-100 sm:animate-modal-open ${isClosing ? 'animate-slide-down' : 'animate-modal-open'} touch-manipulation z-[100000]`}
         onClick={(e) => e.stopPropagation()}
         onPointerDown={(e) => e.stopPropagation()}
       >
@@ -329,7 +329,7 @@ export default function Modal({ isOpen, onClose, title, children, autoFocus = fa
             />
           </div>
 
-          <div className="sticky top-0 bg-white dark:bg-slate-800 border-b border-neutral-200 dark:border-neutral-700 px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
+          <div className="sticky top-0 bg-white dark:bg-slate-800 border-b border-neutral-200 dark:border-neutral-700 px-4 sm:px-4 py-3 sm:py-4 flex items-center justify-between">
             <h3 className="text-lg sm:text-xl font-semibold">{title}</h3>
             <button onClick={requestClose} aria-label="Chiudi" className="text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200 p-2 rounded focus:ring-2 focus:ring-amber-300">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
