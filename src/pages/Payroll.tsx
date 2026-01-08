@@ -201,15 +201,14 @@ export default function PayrollPage({ lockedEmployeeId }: PayrollProps) {
               <div className="text-sm text-neutral-700 dark:text-neutral-300">Totale ore: {result?.totals?.total_hours ?? 0}</div>
               <div className="text-sm text-neutral-700 dark:text-neutral-300 mb-2">Totale importo: {result?.totals?.total_amount ?? 0} €</div>
 
-              {/* Aggregated per-employee totals (compact list) */}
+              {/* Aggregated per-employee totals (compact inline format) */}
               {result?.employees && result.employees.length > 0 && (
                 <div className="mb-3">
                   <div className="text-sm font-semibold mb-1">Totali per dipendente</div>
                   <ul className="text-sm text-neutral-700 dark:text-neutral-300 space-y-1">
                     {result.employees.map((emp: any) => (
-                      <li key={emp.employee_id} className="flex justify-between items-center">
-                        <span>{emp.employee_name} — <span className="text-xs">Ore totali: {emp.total_hours}</span></span>
-                        <span className="font-semibold">{Number(emp.total_amount).toFixed(2)} €</span>
+                      <li key={emp.employee_id} className="">
+                        <span>{emp.employee_name} — <span className="text-xs">Ore totali: {emp.total_hours} - Importo totale: {Number(emp.total_amount).toFixed(2)}€</span></span>
                       </li>
                     ))}
                   </ul>
@@ -273,15 +272,14 @@ export default function PayrollPage({ lockedEmployeeId }: PayrollProps) {
               <div className="text-sm text-neutral-700 dark:text-neutral-300">Totale ore: {result?.totals?.total_hours ?? 0}</div>
               <div className="text-sm text-neutral-700 dark:text-neutral-300 mb-2">Totale importo: {result?.totals?.total_amount ?? 0} €</div>
 
-              {/* Aggregated per-employee totals (compact list) */}
+              {/* Aggregated per-employee totals (compact inline format) */}
               {result?.employees && result.employees.length > 0 && (
                 <div className="mb-3">
                   <div className="text-sm font-semibold mb-1">Totali per dipendente</div>
                   <ul className="text-sm text-neutral-700 dark:text-neutral-300 space-y-1">
                     {result.employees.map((emp: any) => (
-                      <li key={emp.employee_id} className="flex justify-between items-center">
-                        <span>{emp.employee_name} — <span className="text-xs">Ore totali: {emp.total_hours}</span></span>
-                        <span className="font-semibold">{Number(emp.total_amount).toFixed(2)} €</span>
+                      <li key={emp.employee_id} className="">
+                        <span>{emp.employee_name} — <span className="text-xs">Ore totali: {emp.total_hours} - Importo totale: {Number(emp.total_amount).toFixed(2)}€</span></span>
                       </li>
                     ))}
                   </ul>

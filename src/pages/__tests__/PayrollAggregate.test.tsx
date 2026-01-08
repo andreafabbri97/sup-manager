@@ -41,8 +41,8 @@ describe('Payroll calculate shows aggregated employees', () => {
     const aggHours = screen.getAllByText(/Ore totali:/)
     expect(aggHours.length).toBe(2)
 
-    // Aggregated amounts should appear (at least one of them should equal 40.00 €)
-    const amounts = screen.getAllByText(/40.00 \u20AC|40.00 \$/)
+    // Aggregated amounts should appear inline (at least one of them should equal Importo totale: 40.00€)
+    const amounts = screen.getAllByText(/Importo totale:\s*40\.00\s*€/)
     expect(amounts.length).toBeGreaterThanOrEqual(1)
   })
 })
