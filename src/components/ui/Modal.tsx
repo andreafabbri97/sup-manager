@@ -56,6 +56,9 @@ export default function Modal({ isOpen, onClose, title, children, autoFocus = fa
   // ensure we only auto-open full mobile once per open cycle
   const openFullTriggered = React.useRef(false)
 
+  // Default desktop max height to use across the component
+  const defaultDesktopMax = 'min(95vh, calc(100vh - 48px))'
+
   const animateSetMaxHeight = (target: string) => {
     const el = contentRef.current || dialogRef.current
     if (!el) return
@@ -102,7 +105,6 @@ export default function Modal({ isOpen, onClose, title, children, autoFocus = fa
       setUserExpanded(true)
     } else {
       // snap back to default (larger default on desktop)
-      const defaultDesktopMax = 'min(90vh, calc(100vh-48px))'
       animateSetMaxHeight(fullScreenMobile ? '60vh' : defaultDesktopMax)
       setUserExpanded(false)
     }
@@ -156,7 +158,7 @@ export default function Modal({ isOpen, onClose, title, children, autoFocus = fa
       if (contentRef.current && !userExpanded) {
         // default opening height
         // Use a responsive default that occupies more vertical space on typical desktop resolutions
-        const defaultDesktopMax = 'min(90vh, calc(100vh - 48px))'
+        const defaultDesktopMax = 'min(95vh, calc(100vh - 48px))'
         if (isMobile) {
           // When mobileCentered is requested, constrain height so the dialog can be vertically centered
           if (mobileCentered) {
@@ -297,12 +299,12 @@ export default function Modal({ isOpen, onClose, title, children, autoFocus = fa
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className={`bg-white dark:bg-slate-800 ${dialogRadius} shadow-2xl w-full sm:max-w-2xl overflow-hidden transform transition-transform duration-300 ease-out scale-100 sm:animate-modal-open ${isClosing ? 'animate-slide-down' : 'animate-modal-open'} touch-manipulation z-[100000]`}
+        className={`bg-white dark:bg-slate-800 ${dialogRadius} shadow-2xl w-full sm:max-w-[1200px] md:max-w-[1000px] lg:max-w-[1100px] overflow-hidden transform transition-transform duration-300 ease-out scale-100 sm:animate-modal-open ${isClosing ? 'animate-slide-down' : 'animate-modal-open'} touch-manipulation z-[100000]`}
         onClick={(e) => e.stopPropagation()}
         onPointerDown={(e) => e.stopPropagation()}
       >
         {/* Inner scrollable wrapper - keeps rounded corners visible while allowing internal scroll */}
-        <div ref={contentRef} className={`overflow-y-auto touch-manipulation`} style={{ paddingBottom: 'env(safe-area-inset-bottom)', maxHeight: isMobile && fullScreenMobile ? '100vh' : 'min(90vh, calc(100vh - 48px))' }}>
+        <div ref={contentRef} className={`overflow-y-auto touch-manipulation`} style={{ paddingBottom: 'env(safe-area-inset-bottom)', maxHeight: isMobile && fullScreenMobile ? '100vh' : defaultDesktopMax }}>
           {/* Mobile handle (draggable/tap to expand) */}
           <div className="sm:hidden flex justify-center pt-4">
             <div
