@@ -737,7 +737,6 @@ export default function Bookings() {
   }
 
   async function removeBooking(id: string) {
-    if (!confirm('Eliminare questa prenotazione?')) return
     const { error } = await supabase.from('booking').delete().eq('id', id)
     if (error) return alert(error.message)
     load()

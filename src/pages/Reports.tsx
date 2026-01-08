@@ -410,8 +410,10 @@ export default function Reports() {
             onClick={async () => {
               setIsRefreshing(true)
               try {
-                if (tab === 'reports') await loadReports()
-                else await loadExpenses(start, end)
+                // Always refresh reports (so the top StatCards reflect the selected date range)
+                await loadReports()
+                // If user is on admin tab, also refresh the expenses list
+                if (tab === 'admin') await loadExpenses(expenseFilterStart, expenseFilterEnd)
               } finally {
                 setIsRefreshing(false)
               }
