@@ -311,7 +311,7 @@ export default function Modal({ isOpen, onClose, title, children, autoFocus = fa
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className={`bg-white dark:bg-slate-800 ${dialogRadius} shadow-2xl w-full sm:max-w-[min(640px,70vw)] md:max-w-[min(720px,60vw)] lg:max-w-[min(800px,55vw)] xl:max-w-[min(880px,48vw)] 2xl:max-w-[min(960px,40vw)] overflow-hidden transform transition-transform duration-300 ease-out scale-100 sm:animate-modal-open ${isClosing ? 'animate-slide-down' : 'animate-modal-open'} touch-manipulation z-[100000]`}
+        className={`bg-white dark:bg-slate-800 ${dialogRadius} shadow-2xl w-full sm:max-w-[min(512px,56vw)] md:max-w-[min(576px,48vw)] lg:max-w-[min(640px,44vw)] xl:max-w-[min(704px,38vw)] 2xl:max-w-[min(768px,32vw)] overflow-hidden transform transition-transform duration-300 ease-out scale-100 sm:animate-modal-open ${isClosing ? 'animate-slide-down' : 'animate-modal-open'} touch-manipulation z-[100000]`}
         onClick={(e) => e.stopPropagation()}
         onPointerDown={(e) => e.stopPropagation()}
       >
