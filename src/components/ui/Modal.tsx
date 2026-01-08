@@ -101,8 +101,9 @@ export default function Modal({ isOpen, onClose, title, children, autoFocus = fa
       animateSetMaxHeight(isMobile ? '100vh' : 'calc(100vh-48px)')
       setUserExpanded(true)
     } else {
-      // snap back to default (60vh)
-      animateSetMaxHeight(fullScreenMobile ? '60vh' : '60vh')
+      // snap back to default (larger default on desktop)
+      const defaultDesktopMax = 'min(90vh, calc(100vh-48px))'
+      animateSetMaxHeight(fullScreenMobile ? '60vh' : defaultDesktopMax)
       setUserExpanded(false)
     }
     // restore transition property after small delay
@@ -154,6 +155,8 @@ export default function Modal({ isOpen, onClose, title, children, autoFocus = fa
     } else {
       if (contentRef.current && !userExpanded) {
         // default opening height
+        // Use a responsive default that occupies more vertical space on typical desktop resolutions
+        const defaultDesktopMax = 'min(90vh, calc(100vh - 48px))'
         if (isMobile) {
           // When mobileCentered is requested, constrain height so the dialog can be vertically centered
           if (mobileCentered) {
@@ -162,7 +165,8 @@ export default function Modal({ isOpen, onClose, title, children, autoFocus = fa
             contentRef.current.style.maxHeight = fullScreenMobile ? '60vh' : ''
           }
         } else {
-          contentRef.current.style.maxHeight = fullScreenMobile ? '60vh' : ''
+          // On desktop, use a larger default max height so smaller displays (e.g., 1080p) get more vertical space
+          contentRef.current.style.maxHeight = fullScreenMobile ? '60vh' : defaultDesktopMax
         }
       }
       // If caller requested opening full-screen on mobile, expand automatically ONCE
@@ -298,7 +302,7 @@ export default function Modal({ isOpen, onClose, title, children, autoFocus = fa
         onPointerDown={(e) => e.stopPropagation()}
       >
         {/* Inner scrollable wrapper - keeps rounded corners visible while allowing internal scroll */}
-        <div ref={contentRef} className={`${isMobile && fullScreenMobile ? 'max-h-[100vh]' : 'max-h-[calc(100vh-48px)]'} sm:max-h-[calc(100vh-48px)] overflow-y-auto touch-manipulation`} style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+        <div ref={contentRef} className={`overflow-y-auto touch-manipulation`} style={{ paddingBottom: 'env(safe-area-inset-bottom)', maxHeight: isMobile && fullScreenMobile ? '100vh' : 'min(90vh, calc(100vh - 48px))' }}>
           {/* Mobile handle (draggable/tap to expand) */}
           <div className="sm:hidden flex justify-center pt-4">
             <div

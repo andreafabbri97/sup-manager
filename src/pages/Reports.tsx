@@ -555,7 +555,7 @@ export default function Reports() {
             <div className="hidden sm:block">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-left text-neutral-500"><th>Data</th><th>Categoria</th><th>Importo</th><th>Ricevuta</th><th></th></tr>
+                  <tr className="text-left text-neutral-500"><th>Data</th><th>Categoria</th><th className="text-right">Importo</th><th>Ricevuta</th><th></th></tr>
                 </thead>
                 <tbody>
                   {expenses.map((ex:any)=> (
