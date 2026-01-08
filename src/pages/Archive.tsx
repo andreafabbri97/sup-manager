@@ -194,7 +194,7 @@ export default function Archive({ start: propStart, end: propEnd }: { start?: st
       <div className="overflow-x-auto hidden sm:block">
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-left text-neutral-500 dark:text-neutral-300"><th>Data</th><th>Cliente</th><th>Fattura</th><th>Prezzo</th><th>Pagato</th><th>Azioni</th></tr>
+              <tr className="text-left text-neutral-500 dark:text-neutral-300"><th>Data</th><th>Cliente</th><th>Fattura</th><th className="text-right">Prezzo</th><th>Pagato</th><th>Azioni</th></tr>
             </thead>
             <tbody>
               {paginated.map(b => (
