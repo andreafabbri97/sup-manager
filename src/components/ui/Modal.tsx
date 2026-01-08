@@ -55,6 +55,8 @@ export default function Modal({ isOpen, onClose, title, children, autoFocus = fa
   const dragState = React.useRef({ startY: 0, startHeight: 0 })
   // ensure we only auto-open full mobile once per open cycle
   const openFullTriggered = React.useRef(false)
+  // ensure we only auto-open expanded on desktop once per open cycle
+  const openDesktopExpandedTriggered = React.useRef(false)
 
   // Default desktop max height to use across the component
   const defaultDesktopMax = 'min(95vh, calc(100vh - 48px))'
@@ -154,6 +156,7 @@ export default function Modal({ isOpen, onClose, title, children, autoFocus = fa
       setIsDragging(false)
       setUserExpanded(false)
       openFullTriggered.current = false
+      openDesktopExpandedTriggered.current = false
     } else {
       if (contentRef.current && !userExpanded) {
         // default opening height
@@ -171,12 +174,21 @@ export default function Modal({ isOpen, onClose, title, children, autoFocus = fa
           contentRef.current.style.maxHeight = fullScreenMobile ? '60vh' : defaultDesktopMax
         }
       }
+
       // If caller requested opening full-screen on mobile, expand automatically ONCE
       if (isMobile && openFullMobile && contentRef.current && !openFullTriggered.current) {
         // expand to full viewport height on mobile
         animateSetMaxHeight('100vh')
         setUserExpanded(true)
         openFullTriggered.current = true
+      }
+
+      // Force modals to open expanded on desktop once per open cycle
+      if (!isMobile && contentRef.current && !openDesktopExpandedTriggered.current) {
+        // expand to nearly-full viewport on desktop
+        animateSetMaxHeight('calc(100vh - 48px)')
+        setUserExpanded(true)
+        openDesktopExpandedTriggered.current = true
       }
     }
 
