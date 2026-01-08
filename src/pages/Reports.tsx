@@ -555,14 +555,14 @@ export default function Reports() {
             <div className="hidden sm:block">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-left text-neutral-500"><th>Data</th><th>Categoria</th><th className="text-right">Importo</th><th>Ricevuta</th><th></th></tr>
+                  <tr className="text-left text-neutral-500"><th>Data</th><th>Categoria</th><th className="w-36">Importo</th><th>Ricevuta</th><th></th></tr>
                 </thead>
                 <tbody>
                   {expenses.map((ex:any)=> (
                     <tr key={ex.id} role="button" tabIndex={0} onClick={(e) => { if ((e.target as HTMLElement).closest('button')) return; setShowExpenseDetail(true); setDetailExpense(ex) }} onKeyDown={(e:any) => { if (e.key === 'Enter') { setShowExpenseDetail(true); setDetailExpense(ex) } }} className="border-t border-neutral-100 dark:border-neutral-800 hover:bg-white/5 dark:hover:bg-neutral-700/60 transition-colors cursor-pointer">
                       <td className="py-2 lg:py-1">{fmtDate(ex.date)}</td>
                       <td className="lg:py-1">{ex.category}</td>
-                      <td className="lg:py-1 text-amber-500 dark:text-amber-300 font-bold text-right">{Number(ex.amount).toFixed(2)} €</td>
+                      <td className="lg:py-1 text-amber-500 dark:text-amber-300 font-bold w-36">{Number(ex.amount).toFixed(2)} €</td>
                       <td className="lg:py-1">{ex.receipt_url ? <a href={ex.receipt_url} target="_blank" rel="noreferrer">Ricevuta</a> : '—'}</td>
                       <td className="py-2 lg:py-1">
                         <div className="flex gap-2">
