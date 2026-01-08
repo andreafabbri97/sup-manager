@@ -220,7 +220,7 @@ export default function Equipment() {
             <input type="number" min={1} className="w-20 border px-2 py-1 rounded" value={quantity} onChange={(e)=>setQuantity(Number(e.target.value))} />
             <input type="number" step="0.01" className="w-36 border px-2 py-1 rounded" placeholder="Prezzo / ora (€)" value={pricePerHour} onChange={(e)=>setPricePerHour(e.target.value)} />
           </div>
-          <Button> Aggiungi </Button>
+          <Button type="submit"> Aggiungi </Button>
         </form>
       </Modal>
 
