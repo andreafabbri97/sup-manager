@@ -342,21 +342,49 @@ export default function Bookings() {
       dMin = 60
     }
 
-    setDetailSelectedEquipment(Array.isArray(selectedBooking.equipment_items) ? selectedBooking.equipment_items.map((it: any) => ({ id: it.id, quantity: Number(it.quantity || 1) })) : [])
+    // Sync selection into modal state
+    const selEquip = Array.isArray(selectedBooking.equipment_items) ? selectedBooking.equipment_items.map((it: any) => ({ id: it.id, quantity: Number(it.quantity || 1) })) : []
+    setDetailSelectedEquipment(selEquip)
     setDetailSelectedPackage(selectedBooking.package_id || null)
     setDetailDurationMinutes(dMin)
     setDetailDurationInput(String(dMin))
     setDetailStartTime(formatToDatetimeLocal(selectedBooking.start_time || null))
     setDetailEndTime(formatToDatetimeLocal(selectedBooking.end_time || null))
-    setDetailPrice(selectedBooking.price ?? null)
-    setDetailPriceManual(false)
+
+    // Determine expected/computed price based on package or equipment so we can detect if the stored booking price is a manual override
+    let expectedPrice: number | null = null
+    if (selectedBooking.package_id) {
+      const pkg = packages.find((p: any) => p.id === selectedBooking.package_id)
+      expectedPrice = pkg ? (Number(pkg.price || 0)) : 0
+    } else if (selEquip.length > 0) {
+      const hours = Math.max(0.01, dMin / 60)
+      let total = 0
+      for (const item of selEquip) {
+        const eq = equipment.find(e => e.id === item.id)
+        const rate = eq?.price_per_hour ? Number(eq.price_per_hour) : 0
+        total += rate * (item.quantity || 1) * hours
+      }
+      expectedPrice = Math.round((total + Number.EPSILON) * 100) / 100
+    }
+
+    const storedPrice = selectedBooking.price ?? null
+    if (storedPrice !== null && expectedPrice !== null && Number(storedPrice) !== Number(expectedPrice)) {
+      // booking has a manual price different from computed -> preserve it
+      setDetailPrice(storedPrice)
+      setDetailPriceManual(true)
+    } else {
+      // otherwise show computed price (or stored if computed not available)
+      setDetailPrice(expectedPrice !== null ? expectedPrice : (storedPrice ?? null))
+      setDetailPriceManual(false)
+    }
+
     setDetailCustomerName(selectedBooking.customer_name || '')
     setDetailCustomerPhone(selectedBooking.customer_phone || '')
     setDetailInvoiceNumber(selectedBooking.invoice_number || null)
     setDetailNotes(selectedBooking.notes || '')
     setDetailPaid(!!selectedBooking.paid)
     setDetailInvoiced(!!selectedBooking.invoiced)
-  }, [selectedBooking])
+  }, [selectedBooking, equipment, packages])
 
   // recompute detail price when detail inputs change
   useEffect(() => {
