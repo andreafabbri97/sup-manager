@@ -588,14 +588,12 @@ export default function Reports() {
                 <button key={ex.id} onClick={() => { setShowExpenseDetail(true); setDetailExpense(ex) }} className="w-full text-left p-3 rounded border bg-white/5 dark:bg-slate-800 flex items-start justify-between">
                   <div className="flex-1 min-w-0">
                     <div className="font-medium truncate">{ex.category}</div>
-                    <div className="text-xs text-neutral-400 truncate">
-                      {fmtDate(ex.date)}{ex.notes ? (<span className="text-xs text-neutral-400 truncate ml-1"> — {ex.notes}</span>) : null}
-                    </div>
+                    <div className="text-xs text-neutral-400">{fmtDate(ex.date)}</div>
+                    {ex.notes && <div className="text-xs text-neutral-400 mt-1 truncate">{ex.notes}</div>}
                     {ex.receipt_url && <div className="text-xs text-amber-500 mt-1">Ricevuta disponibile</div>}
                   </div>
                   <div className="flex flex-col items-end">
                     <div className="text-amber-500 dark:text-amber-300 font-bold">{ex.amount ? `€ ${Number(ex.amount).toFixed(2)}` : '—'}</div>
-                    <div className="text-sm text-neutral-500 mt-1">Dettagli →</div>
                   </div>
                 </button>
               ))}
