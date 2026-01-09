@@ -213,11 +213,11 @@ export default function Archive({ start: propStart, end: propEnd }: { start?: st
             <tbody>
               {paginated.map(b => (
                 <tr key={b.id} role="button" tabIndex={0} onClick={(e) => { if ((e.target as HTMLElement).closest('button')) return; setDetail(b); setShowDetail(true) }} onKeyDown={(e:any) => { if (e.key === 'Enter') { setDetail(b); setShowDetail(true) } }} className="border-t border-neutral-100 dark:border-neutral-800 hover:bg-white/5 dark:hover:bg-neutral-700/60 transition-colors cursor-pointer">
-                  <td className="py-2 lg:py-1">{new Date(b.start_time).toLocaleString('it-IT', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
-                  <td className="lg:py-1">{b.customer_name}</td>
-                  <td className="lg:py-1 text-amber-500 dark:text-amber-300 font-bold w-36">{b.price ? `€ ${Number(b.price).toFixed(2)}` : '—'}</td>
-                  <td className="lg:py-1">{b.paid ? <span className="text-green-600 font-semibold">Pagato</span> : 'No'}</td>
-                  <td className="lg:py-1">{b.invoice_number ? <span>{b.invoice_number}{b.invoiced ? <span className="text-blue-600 font-semibold"> Fatturata</span> : null}</span> : (b.invoiced ? <span className="text-blue-600 font-semibold">Fatturata</span> : '—')}</td>
+                  <td className="py-3 lg:py-2">{new Date(b.start_time).toLocaleString('it-IT', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
+                  <td className="lg:py-2">{b.customer_name}</td>
+                  <td className="lg:py-2 text-amber-500 dark:text-amber-300 font-bold w-36">{b.price ? `€ ${Number(b.price).toFixed(2)}` : '—'}</td>
+                  <td className="lg:py-2">{b.paid ? <span className="text-green-600 font-semibold">Pagato</span> : 'No'}</td>
+                  <td className="lg:py-2">{b.invoice_number ? <span>{b.invoice_number}{b.invoiced ? <span className="text-blue-600 font-semibold"> Fatturata</span> : null}</span> : (b.invoiced ? <span className="text-blue-600 font-semibold">Fatturata</span> : '—')}</td>
                 </tr>
               ))}
             </tbody>
