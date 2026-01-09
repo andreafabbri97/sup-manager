@@ -208,22 +208,16 @@ export default function Archive({ start: propStart, end: propEnd }: { start?: st
       <div className="overflow-x-auto hidden sm:block">
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-left text-neutral-500 dark:text-neutral-300"><th>Data</th><th>Cliente</th><th>Fattura</th><th className="w-36">Prezzo</th><th>Pagato</th><th>Azioni</th></tr>
+              <tr className="text-left text-neutral-500 dark:text-neutral-300"><th>Data</th><th>Cliente</th><th className="w-36">Prezzo</th><th>Pagato</th><th>Fattura</th></tr>
             </thead>
             <tbody>
               {paginated.map(b => (
                 <tr key={b.id} role="button" tabIndex={0} onClick={(e) => { if ((e.target as HTMLElement).closest('button')) return; setDetail(b); setShowDetail(true) }} onKeyDown={(e:any) => { if (e.key === 'Enter') { setDetail(b); setShowDetail(true) } }} className="border-t border-neutral-100 dark:border-neutral-800 hover:bg-white/5 dark:hover:bg-neutral-700/60 transition-colors cursor-pointer">
                   <td className="py-2 lg:py-1">{new Date(b.start_time).toLocaleString('it-IT', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
                   <td className="lg:py-1">{b.customer_name}</td>
-                  <td className="lg:py-1">{b.invoice_number ? <span>{b.invoice_number}{b.invoiced ? <span className="text-blue-600 font-semibold"> Fatturata</span> : null}</span> : (b.invoiced ? <span className="text-blue-600 font-semibold">Fatturata</span> : '—')}</td>
                   <td className="lg:py-1 text-amber-500 dark:text-amber-300 font-bold w-36">{b.price ? `€ ${Number(b.price).toFixed(2)}` : '—'}</td>
                   <td className="lg:py-1">{b.paid ? <span className="text-green-600 font-semibold">Pagato</span> : 'No'}</td>
-                  <td>
-                    <div className="flex items-center gap-2">
-                      <button onClick={(e)=>{ e.stopPropagation(); setDetail(b); setShowDetail(true) }} className="text-sm px-2 py-1 rounded border">Dettagli</button>
-                      {!b.paid && <button onClick={(e)=>{ e.stopPropagation(); setMarkPaidBookingId(b.id); setMarkPaidInvoiced(null); setMarkPaidInvoiceNumber(null); setShowMarkPaidModal(true) }} className="text-sm px-2 py-1 rounded bg-green-600 text-white">Segna pagato</button>}
-                    </div>
-                  </td>
+                  <td className="lg:py-1">{b.invoice_number ? <span>{b.invoice_number}{b.invoiced ? <span className="text-blue-600 font-semibold"> Fatturata</span> : null}</span> : (b.invoiced ? <span className="text-blue-600 font-semibold">Fatturata</span> : '—')}</td>
                 </tr>
               ))}
             </tbody>
