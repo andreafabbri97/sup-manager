@@ -754,7 +754,22 @@ export default function Bookings() {
 
     const { error } = await supabase.from('booking').update(updatePayload).eq('id', id)
     if (error) return alert(error.message)
-    load()
+
+    // Optimistically update local bookings state so reopening the modal shows the latest values immediately
+    setBookings(prev => (prev || []).map(b => (b.id === id ? { ...b, ...updatePayload } : b)))
+
+    // Invalidate cached day bookings for the booking's date so any cached day view is refreshed on next load
+    try {
+      if (start_time) {
+        const key = dateKey(new Date(start_time))
+        setDayBookingsCache(prev => ({ ...prev, [key]: undefined }))
+      }
+    } catch (e) {
+      // ignore
+    }
+
+    // Refresh in background to ensure server state is synced
+    load({ background: true })
     setShowBookingDetails(false)
     setSelectedBooking(null)
   }
