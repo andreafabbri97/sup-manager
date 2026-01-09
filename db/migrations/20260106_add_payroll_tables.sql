@@ -188,7 +188,7 @@ BEGIN
         WHERE pi.payroll_run_id = p_run_id
       LOOP
         INSERT INTO expense (amount, date, category, notes)
-        VALUES (r.amount, now()::date, 'Payroll', CONCAT('Paga ', r.name, ', ', to_char(r.period_start, 'Mon YYYY')));
+        VALUES (r.amount, now()::date, 'Payroll', CONCAT('Periodo ', to_char(r.period_start, 'Mon YYYY')));
       END LOOP;
     END;
     $func$;

@@ -154,7 +154,7 @@ BEGIN
         GROUP BY pi.employee_id, e.name, pr.period_start, pr.period_end
       LOOP
         INSERT INTO expense (amount, date, category, notes)
-        VALUES (r.total_amount, now()::date, CONCAT('Payroll - ', r.name), CONCAT('Paga ', r.name, ', periodo ', to_char(r.period_start, 'DD/MM/YYYY'), ' - ', to_char(r.period_end, 'DD/MM/YYYY'), ' (', regexp_replace(r.total_hours::text, '\\.?0+$', ''), ' ore)'))
+        VALUES (r.total_amount, now()::date, CONCAT('Payroll - ', r.name), CONCAT('Periodo ', to_char(r.period_start, 'DD/MM/YYYY'), ' - ', to_char(r.period_end, 'DD/MM/YYYY'), ' (', regexp_replace(r.total_hours::text, '\\.?0+$', ''), ' ore)'))
         RETURNING id INTO expense_id;
 
         UPDATE payroll_items SET expense_created = true WHERE payroll_run_id = p_run_id AND employee_id = r.employee_id;

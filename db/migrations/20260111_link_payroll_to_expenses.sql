@@ -26,7 +26,7 @@ BEGIN
           now()::date,
           CONCAT('Payroll - ', r.name),
           CONCAT(
-            'Paga ', r.name, ', periodo ', to_char(r.period_start, 'DD/MM/YYYY'), ' - ', to_char(r.period_end, 'DD/MM/YYYY'),
+            'Periodo ', to_char(r.period_start, 'DD/MM/YYYY'), ' - ', to_char(r.period_end, 'DD/MM/YYYY'),
             ' (', regexp_replace(r.total_hours::text, '\\.?0+$', ''), ' ore)'
           )
         )

@@ -21,6 +21,7 @@ export default function Bookings() {
   const [detailDurationMinutes, setDetailDurationMinutes] = useState<number>(60)
   const [detailDurationInput, setDetailDurationInput] = useState<string>(String(60))
   const [detailPrice, setDetailPrice] = useState<number | null>(null)
+  const [detailPriceManual, setDetailPriceManual] = useState<boolean>(false)
   const [detailStartTime, setDetailStartTime] = useState<string | null>(null)
   const [detailEndTime, setDetailEndTime] = useState<string | null>(null)
   const [detailCustomerName, setDetailCustomerName] = useState<string>('')
@@ -348,6 +349,7 @@ export default function Bookings() {
     setDetailStartTime(formatToDatetimeLocal(selectedBooking.start_time || null))
     setDetailEndTime(formatToDatetimeLocal(selectedBooking.end_time || null))
     setDetailPrice(selectedBooking.price ?? null)
+    setDetailPriceManual(false)
     setDetailCustomerName(selectedBooking.customer_name || '')
     setDetailCustomerPhone(selectedBooking.customer_phone || '')
     setDetailInvoiceNumber(selectedBooking.invoice_number || null)
@@ -358,6 +360,7 @@ export default function Bookings() {
 
   // recompute detail price when detail inputs change
   useEffect(() => {
+    if (detailPriceManual) return
     if (detailSelectedPackage) {
       const pkg = packages.find(p => p.id === detailSelectedPackage)
       setDetailPrice(pkg ? (pkg.price || 0) : 0)
@@ -373,7 +376,7 @@ export default function Bookings() {
     }
     setDetailPrice(Math.round((total + Number.EPSILON) * 100) / 100)
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [detailSelectedEquipment, detailSelectedPackage, detailDurationMinutes])
+  }, [detailSelectedEquipment, detailSelectedPackage, detailDurationMinutes, detailPriceManual])
 
   // when package changed, merge package equipment into current selection (non-destructive)
   useEffect(() => {
@@ -1355,7 +1358,7 @@ export default function Bookings() {
             <div>
               <label className="block text-sm text-neutral-500">Prezzo</label>
               <div className="flex items-center gap-2">
-                <input type="number" step="0.01" value={detailPrice ?? ''} onChange={(e)=>setDetailPrice(e.target.value === '' ? null : Number(e.target.value))} className="w-full border px-3 py-2 rounded" />
+                <input type="number" step="0.01" value={detailPrice ?? ''} onChange={(e)=>{ setDetailPrice(e.target.value === '' ? null : Number(e.target.value)); setDetailPriceManual(true); }} className="w-full border px-3 py-2 rounded" />
                 <div className="text-sm text-neutral-500">€</div>
               </div>
             </div>
