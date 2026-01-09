@@ -118,10 +118,7 @@ export default function Archive({ start: propStart, end: propEnd }: { start?: st
           <h3 className="text-lg font-medium m-0">Archivio Prenotazioni</h3>
           <p className="text-sm text-neutral-500 dark:text-neutral-300">Cerca fatture e verifica a quali prenotazioni si riferiscono</p>
         </div>
-        <div className="flex flex-row gap-2 w-full">
-          <Button onClick={exportCSV} className="px-4 py-2">Esporta CSV</Button>
-          <Button onClick={exportInvoicesCSV} className="bg-amber-600 px-4 py-2">Esporta fatture</Button>
-        </div>
+
       </div>
 
       {/* Mobile filters toggle */}
