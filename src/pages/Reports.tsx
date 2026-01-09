@@ -325,6 +325,8 @@ export default function Reports() {
 
   function downloadCSV(rows: any[], filename: string) {
     if (!rows || rows.length === 0) return alert('Nessun dato')
+    // confirm with the user before triggering the download
+    if (!confirm(`Vuoi esportare ${rows.length} righe in ${filename}?`)) return
     const headers = Object.keys(rows[0])
     const csv = toCSV(rows, headers)
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })

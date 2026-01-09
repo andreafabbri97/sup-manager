@@ -60,8 +60,8 @@ export default function Archive({ start: propStart, end: propEnd }: { start?: st
   }
 
   function exportCSV() {
-    const rows = bookings.map(b => ({ date: b.start_time, customer: b.customer_name, invoice: b.invoice_number || '', paid: b.paid ? 'yes' : 'no', price: b.price, notes: b.notes }))
-    const csv = [Object.keys(rows[0]||{}).join(','), ...rows.map(r => Object.values(r).map(v=>`"${String(v).replace(/"/g,'""')}"`).join(','))].join('\n')
+    const rows = bookings.map(b => ({ date: b.start_time, customer: b.customer_name, invoice: b.invoice_number || '', paid: b.paid ? 'yes' : 'no', price: b.price, notes: b.notes }))    if (!rows || rows.length === 0) return alert('Nessuna prenotazione da esportare')
+    if (!confirm(`Vuoi esportare ${rows.length} prenotazioni in CSV per il periodo ${start} → ${end}?`)) return    const csv = [Object.keys(rows[0]||{}).join(','), ...rows.map(r => Object.values(r).map(v=>`"${String(v).replace(/"/g,'""')}"`).join(','))].join('\n')
     const blob = new Blob([csv], { type: 'text/csv' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
@@ -104,8 +104,7 @@ export default function Archive({ start: propStart, end: propEnd }: { start?: st
 
   function exportInvoicesCSV() {
     const rows = bookings.filter(b => b.invoice_number).map(b => ({ date: b.start_time, customer: b.customer_name, invoice: b.invoice_number, price: b.price }))
-    if (rows.length === 0) return alert('Nessuna fattura trovata per il filtro')
-    const csv = [Object.keys(rows[0]||{}).join(','), ...rows.map(r => Object.values(r).map(v=>`"${String(v).replace(/"/g,'""')}"`).join(','))].join('\n')
+    if (rows.length === 0) return alert('Nessuna fattura trovata per il filtro')    if (!confirm(`Vuoi esportare ${rows.length} fatture in CSV per il periodo ${start} → ${end}?`)) return    const csv = [Object.keys(rows[0]||{}).join(','), ...rows.map(r => Object.values(r).map(v=>`"${String(v).replace(/"/g,'""')}"`).join(','))].join('\n')
     const blob = new Blob([csv], { type: 'text/csv' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
