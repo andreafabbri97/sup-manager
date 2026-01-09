@@ -30,7 +30,7 @@ export default function Listbox({
   const selected = options.find((o) => o.value === value)
 
   return (
-    <div className={`relative inline-block text-left ${className}`} ref={ref}>
+    <div className={`relative inline-block min-w-0 w-full text-left ${className}`} ref={ref}>
       <button
         type="button"
         onClick={() => setOpen((s) => !s)}
