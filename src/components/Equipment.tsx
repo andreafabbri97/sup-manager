@@ -213,16 +213,27 @@ export default function Equipment() {
       </div>
 
       <Modal isOpen={isAddOpen} onClose={closeAdd} title="Aggiungi attrezzatura" fullScreenMobile openFullMobile>
-        <form onSubmit={(e)=>{ createItem(e); closeAdd() }} className="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center mb-4">
-          <input className="border px-2 py-1 rounded col-span-12 sm:col-span-5 min-w-0 dark:bg-neutral-800" placeholder="Nome" value={name} onChange={(e)=>setName(e.target.value)} required />
-          <div className="col-span-12 sm:col-span-2 min-w-0">
+        <form onSubmit={(e)=>{ createItem(e); closeAdd() }} className="flex flex-col gap-3 mb-4">
+          <label className="sr-only">Nome</label>
+          <input className="border px-2 py-1 rounded w-full min-w-0 dark:bg-neutral-800" placeholder="Nome" value={name} onChange={(e)=>setName(e.target.value)} required />
+
+          <label className="sr-only">Tipo</label>
+          <div className="w-full">
             <Listbox className="w-full" options={[{value:'SUP',label:'SUP'},{value:'Barca',label:'Barca'},{value:'Remo',label:'Remo'},{value:'Salvagente',label:'Salvagente'},{value:'Altro',label:'Altro'}]} value={type} onChange={(v)=>setType(v ?? 'SUP')} />
           </div>
 
-          <input type="number" min={1} className="border px-2 py-1 rounded col-span-4 sm:col-span-1" value={quantity} onChange={(e)=>setQuantity(Number(e.target.value))} />
-          <input type="number" step="0.01" className="border px-2 py-1 rounded col-span-8 sm:col-span-2" placeholder="Prezzo / ora (€)" value={pricePerHour} onChange={(e)=>setPricePerHour(e.target.value)} />
+          <div className="flex gap-2 w-full">
+            <div className="w-28">
+              <label className="sr-only">Quantità</label>
+              <input type="number" min={1} className="w-full border px-2 py-1 rounded" value={quantity} onChange={(e)=>setQuantity(Number(e.target.value))} />
+            </div>
+            <div className="flex-1">
+              <label className="sr-only">Prezzo / ora</label>
+              <input type="number" step="0.01" className="w-full border px-2 py-1 rounded" placeholder="Prezzo / ora (€)" value={pricePerHour} onChange={(e)=>setPricePerHour(e.target.value)} />
+            </div>
+          </div>
 
-          <div className="col-span-12 sm:col-span-2 flex justify-end">
+          <div className="flex justify-end">
             <Button type="submit"> Aggiungi </Button>
           </div>
         </form>
@@ -236,16 +247,16 @@ export default function Equipment() {
             <input className="w-full border px-2 py-1 rounded dark:bg-neutral-800" value={editName} onChange={(e)=>setEditName(e.target.value)} />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
-            <div className="col-span-12 sm:col-span-4">
+          <div className="grid grid-cols-1 gap-3">
+            <div>
               <label className="block text-sm font-medium mb-1">Tipo</label>
               <Listbox className="w-full" options={[{value:'SUP',label:'SUP'},{value:'Barca',label:'Barca'},{value:'Remo',label:'Remo'},{value:'Salvagente',label:'Salvagente'},{value:'Altro',label:'Altro'}]} value={editType} onChange={(v)=>setEditType(v ?? 'SUP')} />
             </div>
-            <div className="col-span-6 sm:col-span-4">
+            <div>
               <label className="block text-sm font-medium mb-1">Quantità</label>
               <input type="number" min={1} className="w-full border px-2 py-1 rounded" value={editQuantity} onChange={(e)=>setEditQuantity(Number(e.target.value))} />
             </div>
-            <div className="col-span-6 sm:col-span-4">
+            <div>
               <label className="block text-sm font-medium mb-1">Prezzo / ora (€)</label>
               <input type="number" step="0.01" className="w-full border px-2 py-1 rounded" value={editPricePerHour} onChange={(e)=>setEditPricePerHour(e.target.value)} />
             </div>
