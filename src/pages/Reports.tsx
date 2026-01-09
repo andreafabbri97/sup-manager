@@ -212,7 +212,23 @@ export default function Reports() {
     if (start) q = q.gte('date', start)
     if (end) q = q.lte('date', end)
     const { data } = await q
-    setExpenses(data ?? [])
+    const rows = data ?? []
+
+    // If any row has a created_by id, fetch corresponding usernames and attach them
+    const creatorIds = Array.from(new Set(rows.map((r:any)=>r.created_by).filter(Boolean)))
+    if (creatorIds.length > 0) {
+      try {
+        const { data: users } = await supabase.from('app_user').select('id, username').in('id', creatorIds)
+        const map: Record<string,string> = {}
+        ;(users || []).forEach((u:any) => { map[u.id] = u.username })
+        setExpenses(rows.map((r:any) => ({ ...r, created_by_username: map[r.created_by] ?? null })))
+        return
+      } catch (err) {
+        console.error('Error loading expense creators', err)
+      }
+    }
+
+    setExpenses(rows)
   }
 
   // If tab restored as 'admin' on load, ensure expenses are fetched
@@ -244,19 +260,50 @@ export default function Reports() {
     const parsedAmount = Number(String(amount).replace(',', '.'))
     if (!Number.isFinite(parsedAmount)) return alert('Importo non valido')
     if (editExpense) {
-      // update
+      // update (try to update in-place to avoid reordering the list if date unchanged)
       const payload: any = { amount: parsedAmount, category, notes, date: expenseDate }
       if (receipt_url) payload.receipt_url = receipt_url
-      const { error } = await supabase.from('expense').update(payload).eq('id', editExpense.id)
+      const { data: updatedRows, error } = await supabase.from('expense').update(payload).eq('id', editExpense.id).select().single()
       if (error) return alert(error.message)
+
+      // update local array in-place if possible (keeps position unless date changed)
+      setExpenses(prev => {
+        const idx = prev.findIndex((r:any)=>r.id === editExpense.id)
+        if (idx === -1) return prev
+        const old = prev[idx]
+        const updated = { ...old, ...updatedRows }
+        // keep created_by_username if present
+        if (!updated.created_by_username && old.created_by_username) updated.created_by_username = old.created_by_username
+        // if date changed, refresh full list to respect ordering
+        if ((old.date || '') !== (updated.date || '')) {
+          loadExpenses()
+          return prev
+        }
+        const arr = [...prev]
+        arr[idx] = updated
+        return arr
+      })
+
       setEditExpense(null)
     } else {
-      const { error } = await supabase.from('expense').insert([{ amount: parsedAmount, category, notes, date: expenseDate, receipt_url }])
+      // create
+      const creatorId = await import('../lib/auth').then(m => m.getCurrentUserId()).catch(()=>null)
+      const insertPayload: any = { amount: parsedAmount, category, notes, date: expenseDate, receipt_url }
+      if (creatorId) insertPayload.created_by = creatorId
+      const { data: ins, error } = await supabase.from('expense').insert([insertPayload]).select().single()
       if (error) return alert(error.message)
+
+      // attach username if available
+      let username: string | null = null
+      if (ins?.created_by) {
+        const { data: u } = await supabase.from('app_user').select('username').eq('id', ins.created_by).single()
+        username = u?.username ?? null
+      }
+      const newRow = { ...(ins || {}), created_by_username: username }
+      setExpenses(prev => [newRow, ...prev])
     }
 
     setAmount(''); setCategory(''); setNotes(''); setReceiptFile(null); setExpenseDate(new Date().toISOString().slice(0,10))
-    loadExpenses()
   }
 
   async function openEditExpense(ex: any) {
@@ -539,9 +586,11 @@ export default function Reports() {
             <div className="sm:hidden space-y-2">
               {expenses.map((ex:any) => (
                 <button key={ex.id} onClick={() => { setShowExpenseDetail(true); setDetailExpense(ex) }} className="w-full text-left p-3 rounded border bg-white/5 dark:bg-slate-800 flex items-start justify-between">
-                  <div>
-                    <div className="font-medium">{ex.category}</div>
-                    <div className="text-xs text-neutral-400">{fmtDate(ex.date)}</div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium truncate">{ex.category}</div>
+                    <div className="text-xs text-neutral-400 truncate">
+                      {fmtDate(ex.date)}{ex.notes ? (<span className="text-xs text-neutral-400 truncate ml-1"> — {ex.notes}</span>) : null}
+                    </div>
                     {ex.receipt_url && <div className="text-xs text-amber-500 mt-1">Ricevuta disponibile</div>}
                   </div>
                   <div className="flex flex-col items-end">
@@ -612,7 +661,7 @@ export default function Reports() {
           <Modal isOpen={showExpenseDetail} onClose={() => setShowExpenseDetail(false)} title={detailExpense ? `Spesa ${detailExpense.id}` : 'Dettaglio Spesa'} mobileCentered>
             {detailExpense && (
               <div className="space-y-3">
-                <div><strong>Data:</strong> {fmtDate(detailExpense.date)}</div>
+                <div><strong>Data:</strong> {fmtDate(detailExpense.date)}{detailExpense.created_by_username ? ` - Creato da ${detailExpense.created_by_username}` : ''}</div>
                 <div><strong>Categoria:</strong> {detailExpense.category}</div>
                 <div><strong>Importo:</strong> € {Number(detailExpense.amount).toFixed(2)}</div>
                 <div><strong>Note:</strong> {detailExpense.notes || '—'}</div>
