@@ -615,8 +615,6 @@ export default function Reports() {
                       <td className="lg:py-1 max-w-[30ch] truncate">{ex.notes || '—'}</td>
                       <td className="lg:py-1 text-amber-500 dark:text-amber-300 font-bold w-36">{Number(ex.amount).toFixed(2)} €</td>
                       <td className="lg:py-1">{ex.receipt_url ? <a href={ex.receipt_url} target="_blank" rel="noreferrer">Ricevuta</a> : '—'}</td>
-                        </div>
-                      </td>
                     </tr>
                   ))}
                 </tbody>
