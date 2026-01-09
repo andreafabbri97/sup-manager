@@ -568,7 +568,6 @@ export default function Reports() {
             <div className="flex flex-row gap-2 w-full">
                 <Button onClick={() => { setEditExpense(null); setExpenseDate(new Date().toISOString().slice(0,10)); setShowExpenseModal(true) }} className="px-4 py-2">+ Spesa</Button>
                 <Button onClick={() => loadExpenses(expenseFilterStart, expenseFilterEnd)} className="bg-gray-600 px-4 py-2">Applica filtro</Button>
-                <Button onClick={() => { setExpenseFilterStart(new Date(new Date().setMonth(new Date().getMonth()-1)).toISOString().slice(0,10)); setExpenseFilterEnd(new Date().toISOString().slice(0,10)); loadExpenses(); }} className="bg-gray-600 px-4 py-2">Reset</Button>
               </div>
           </div>
 
