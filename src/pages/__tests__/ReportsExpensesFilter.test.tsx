@@ -8,6 +8,8 @@ import { supabase } from '../../lib/supabaseClient'
 beforeEach(() => {
   // clear any persisted tab selection to avoid cross-test contamination
   window.localStorage.removeItem('reports_tab')
+  // ensure starting with empty keyword
+  window.localStorage.removeItem('reports_keyword')
 })
 vi.mock('../../lib/auth', () => ({ getCurrentUserRole: vi.fn().mockResolvedValue('admin'), getCurrentUserId: vi.fn() }))
 
@@ -50,5 +52,8 @@ describe('Expenses keyword filter', () => {
     await waitFor(() => expect(capturedOr).not.toBeNull())
     expect(capturedOr).toContain('category.ilike.%tax%')
     expect(capturedOr).toContain('notes.ilike.%tax%')
+
+    // Reset button should not exist anymore
+    expect(screen.queryByText('Reset')).toBeNull()
   })
 })

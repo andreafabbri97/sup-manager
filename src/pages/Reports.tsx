@@ -572,11 +572,10 @@ export default function Reports() {
             <div>
               <h3 className="text-lg font-medium">Gestione Spese</h3>
             </div>
-            <div className="flex flex-row gap-2 w-full items-center">
-                <Button onClick={() => { setEditExpense(null); setExpenseDate(new Date().toISOString().slice(0,10)); setShowExpenseModal(true) }} className="px-4 py-2">+ Spesa</Button>
-                <input aria-label="Parola chiave" placeholder="Cerca categoria / note" className="border rounded px-3 py-2 flex-1" value={expenseFilterKeyword} onChange={(e)=>setExpenseFilterKeyword(e.target.value)} />
-                <Button onClick={() => loadExpenses(expenseFilterStart, expenseFilterEnd, expenseFilterKeyword)} className="bg-gray-600 px-4 py-2">Applica filtro</Button>
-                <Button onClick={() => { setExpenseFilterStart(new Date(new Date().setMonth(new Date().getMonth()-1)).toISOString().slice(0,10)); setExpenseFilterEnd(new Date().toISOString().slice(0,10)); setExpenseFilterKeyword(''); loadExpenses() }} className="bg-gray-600 px-4 py-2">Reset</Button>
+            <div className="flex flex-col sm:flex-row gap-2 w-full items-center">
+                <Button onClick={() => { setEditExpense(null); setExpenseDate(new Date().toISOString().slice(0,10)); setShowExpenseModal(true) }} className="px-4 py-2 w-full sm:w-auto">+ Spesa</Button>
+                <input aria-label="Parola chiave" placeholder="Cerca categoria / note" className="border rounded px-3 py-2 w-full sm:flex-1" value={expenseFilterKeyword} onChange={(e)=>setExpenseFilterKeyword(e.target.value)} />
+                <Button onClick={() => loadExpenses(expenseFilterStart, expenseFilterEnd, expenseFilterKeyword)} className="bg-gray-600 px-4 py-2 w-full sm:w-auto">Applica filtro</Button>
               </div>
           </div>
 
