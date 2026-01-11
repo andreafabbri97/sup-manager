@@ -55,5 +55,10 @@ describe('Expenses keyword filter', () => {
 
     // Reset button should not exist anymore
     expect(screen.queryByText('Reset')).toBeNull()
+
+    // layout sanity: on small screens the two buttons should be in the same row (we test by checking DOM order)
+    const firstButton = screen.getByText('+ Spesa')
+    const applyButton = screen.getByText('Applica filtro')
+    expect(firstButton.compareDocumentPosition(applyButton) & Node.DOCUMENT_POSITION_FOLLOWING).toBeGreaterThan(0)
   })
 })

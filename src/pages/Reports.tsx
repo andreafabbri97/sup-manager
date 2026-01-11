@@ -572,10 +572,10 @@ export default function Reports() {
             <div>
               <h3 className="text-lg font-medium">Gestione Spese</h3>
             </div>
-            <div className="flex flex-col sm:flex-row gap-2 w-full items-center">
-                <Button onClick={() => { setEditExpense(null); setExpenseDate(new Date().toISOString().slice(0,10)); setShowExpenseModal(true) }} className="px-4 py-2 w-full sm:w-auto">+ Spesa</Button>
-                <input aria-label="Parola chiave" placeholder="Cerca categoria / note" className="border rounded px-3 py-2 w-full sm:flex-1" value={expenseFilterKeyword} onChange={(e)=>setExpenseFilterKeyword(e.target.value)} />
-                <Button onClick={() => loadExpenses(expenseFilterStart, expenseFilterEnd, expenseFilterKeyword)} className="bg-gray-600 px-4 py-2 w-full sm:w-auto">Applica filtro</Button>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:items-center w-full">
+                <Button onClick={() => { setEditExpense(null); setExpenseDate(new Date().toISOString().slice(0,10)); setShowExpenseModal(true) }} className="col-span-1 px-4 py-2">+ Spesa</Button>
+                <Button onClick={() => loadExpenses(expenseFilterStart, expenseFilterEnd, expenseFilterKeyword)} className="col-span-1 sm:col-span-1 sm:order-3 bg-gray-600 px-4 py-2">Applica filtro</Button>
+                <input aria-label="Parola chiave" placeholder="Cerca categoria / note" className="col-span-2 sm:col-span-1 sm:order-2 border rounded px-3 py-2 w-full" value={expenseFilterKeyword} onChange={(e)=>setExpenseFilterKeyword(e.target.value)} />
               </div>
           </div>
 
