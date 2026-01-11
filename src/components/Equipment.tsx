@@ -194,11 +194,11 @@ export default function Equipment() {
 
   return (
     <div className="mt-6">
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3">
         <PageTitle className="m-0">Attrezzatura</PageTitle>
-        <div className="flex gap-2">
-          <Button onClick={openAdd} className="px-3 py-1 text-xs sm:px-4 sm:py-2 sm:text-sm">Aggiungi attrezzatura</Button>
-          <Button variant="secondary" onClick={()=>setIsCatModalOpen(true)} className="px-3 py-1 text-xs sm:px-4 sm:py-2 sm:text-sm">Modifica categorie</Button>
+        <div className="flex gap-2 w-full sm:w-auto justify-end mt-2 sm:mt-0">
+          <Button onClick={openAdd} className="px-3 py-1 text-xs sm:px-4 sm:py-2 sm:text-sm flex-shrink-0">Aggiungi attrezzatura</Button>
+          <Button variant="secondary" onClick={()=>setIsCatModalOpen(true)} className="px-3 py-1 text-xs sm:px-4 sm:py-2 sm:text-sm flex-shrink-0">Modifica categorie</Button>
         </div>
       </div>
       <div>
