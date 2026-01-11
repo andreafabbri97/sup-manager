@@ -5,6 +5,7 @@ import PageTitle from './ui/PageTitle'
 import Button from './ui/Button'
 import Listbox from './ui/Listbox'
 import Modal from './ui/Modal'
+import CategoryManager from './CategoryManager'
 
 type EquipmentItem = { id: string; name: string; type: string; quantity: number; status?: string; notes?: string }
 
@@ -152,12 +153,52 @@ export default function Equipment() {
   const openEdit = useCallback(() => setIsEditOpen(true), [])
   const closeEdit = useCallback(() => { setIsEditOpen(false); setEditingId(null) }, [])
 
+  const [categories, setCategories] = useState<{id:string;name:string}[]>([])
+  const [isCatModalOpen, setIsCatModalOpen] = useState(false)
+
+  useEffect(() => { fetchCategories() }, [])
+
+  async function fetchCategories(){
+    const { data, error } = await supabase.from('equipment_category').select('id, name').order('name')
+    if (error) console.error(error)
+    else setCategories(data || [])
+  }
+
+  // helpers for category modal actions
+  async function createCategory(name: string){
+    if (!name.trim()) return
+    const { error } = await supabase.from('equipment_category').insert([{ name: name.trim() }])
+    if (error) { window.dispatchEvent(new CustomEvent('toast', { detail: { message: error.message || 'Errore creazione categoria', type: 'error' } })); return }
+    fetchCategories()
+  }
+
+  async function updateCategory(id: string, name: string){
+    if (!name.trim()) return
+    const { error } = await supabase.from('equipment_category').update({ name: name.trim() }).eq('id', id)
+    if (error) { window.dispatchEvent(new CustomEvent('toast', { detail: { message: error.message || 'Errore aggiornamento categoria', type: 'error' } })); return }
+    fetchCategories()
+  }
+
+  async function deleteCategory(id: string, name: string){
+    // prevent deletion if any equipment uses this category name
+    const { data: ref, error: rerr } = await supabase.from('equipment').select('id').eq('type', name).limit(1)
+    if (rerr) { window.dispatchEvent(new CustomEvent('toast', { detail: { message: rerr.message || 'Errore verifica referenze', type: 'error' } })); return }
+    if (ref && ref.length > 0) {
+      window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Impossibile eliminare: esistono attrezzature assegnate a questa categoria', type: 'error' } }))
+      return
+    }
+    const { error } = await supabase.from('equipment_category').delete().eq('id', id)
+    if (error) { window.dispatchEvent(new CustomEvent('toast', { detail: { message: error.message || 'Errore eliminazione categoria', type: 'error' } })); return }
+    fetchCategories()
+  }
+
   return (
     <div className="mt-6">
       <div className="flex items-center justify-between mb-3">
         <PageTitle className="m-0">Attrezzatura</PageTitle>
         <div className="flex gap-2">
           <Button onClick={openAdd}>Aggiungi attrezzatura</Button>
+          <Button variant="secondary" onClick={()=>setIsCatModalOpen(true)}>Modifica categorie</Button>
         </div>
       </div>
       <div>
@@ -219,7 +260,7 @@ export default function Equipment() {
 
           <label className="sr-only">Tipo</label>
           <div className="w-full">
-            <Listbox className="w-full" options={[{value:'SUP',label:'SUP'},{value:'Barca',label:'Barca'},{value:'Remo',label:'Remo'},{value:'Salvagente',label:'Salvagente'},{value:'Altro',label:'Altro'}]} value={type} onChange={(v)=>setType(v ?? 'SUP')} />
+            <Listbox className="w-full" options={(categories || []).map(c=>({ value: c.name, label: c.name }))} value={type} onChange={(v)=>setType(v ?? (categories[0]?.name ?? 'SUP'))} />
           </div>
 
           <div className="flex gap-2 w-full">
@@ -239,6 +280,11 @@ export default function Equipment() {
         </form>
       </Modal>
 
+      {/* Categories modal */}
+      <Modal isOpen={isCatModalOpen} onClose={()=>setIsCatModalOpen(false)} title="Gestione categorie" fullScreenMobile openFullMobile>
+        <CategoryManager categories={categories} onCreate={createCategory} onUpdate={updateCategory} onDelete={deleteCategory} onRefresh={fetchCategories} />
+      </Modal>
+
       {/* Edit modal: move the inline edit into a modal for better UX */}
       <Modal isOpen={isEditOpen} onClose={closeEdit} title={editingId ? 'Modifica Attrezzatura' : 'Modifica Attrezzatura'} fullScreenMobile openFullMobile>
         <div className="space-y-4">
@@ -250,7 +296,7 @@ export default function Equipment() {
           <div className="grid grid-cols-1 gap-3">
             <div>
               <label className="block text-sm font-medium mb-1">Tipo</label>
-              <Listbox className="w-full" options={[{value:'SUP',label:'SUP'},{value:'Barca',label:'Barca'},{value:'Remo',label:'Remo'},{value:'Salvagente',label:'Salvagente'},{value:'Altro',label:'Altro'}]} value={editType} onChange={(v)=>setEditType(v ?? 'SUP')} />
+              <Listbox className="w-full" options={(categories || []).map(c=>({ value: c.name, label: c.name }))} value={editType} onChange={(v)=>setEditType(v ?? (categories[0]?.name ?? 'SUP'))} />
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Quantità</label>
