@@ -206,11 +206,18 @@ export default function Reports() {
 
   const [expenseFilterStart, setExpenseFilterStart] = useState<string>(() => { const d = new Date(); d.setMonth(d.getMonth()-1); return d.toISOString().slice(0,10) })
   const [expenseFilterEnd, setExpenseFilterEnd] = useState<string>(() => new Date().toISOString().slice(0,10))
+  const [expenseFilterKeyword, setExpenseFilterKeyword] = useState<string>('')
 
-  async function loadExpenses(start?: string, end?: string) {
+  async function loadExpenses(start?: string, end?: string, keyword?: string) {
     let q: any = supabase.from('expense').select('*').order('date', { ascending: false }).limit(500)
     if (start) q = q.gte('date', start)
     if (end) q = q.lte('date', end)
+    if (keyword && keyword.trim() !== '') {
+      // search both category and notes case-insensitively
+      // PostgREST `or` uses a comma-separated list of expressions
+      const k = keyword.trim()
+      q = q.or(`category.ilike.%${k}%,notes.ilike.%${k}%`)
+    }
     const { data } = await q
     const rows = data ?? []
 
@@ -234,9 +241,9 @@ export default function Reports() {
   // If tab restored as 'admin' on load, ensure expenses are fetched
 
   useEffect(() => {
-    // when switching to admin, load expenses using the Admin card filters (expenseFilterStart/end)
-    if (tab === 'admin') { loadExpenses(expenseFilterStart, expenseFilterEnd) }
-  }, [tab, expenseFilterStart, expenseFilterEnd])
+    // when switching to admin, load expenses using the Admin card filters (expenseFilterStart/end/keyword)
+    if (tab === 'admin') { loadExpenses(expenseFilterStart, expenseFilterEnd, expenseFilterKeyword) }
+  }, [tab, expenseFilterStart, expenseFilterEnd, expenseFilterKeyword])
 
 
 
@@ -565,9 +572,11 @@ export default function Reports() {
             <div>
               <h3 className="text-lg font-medium">Gestione Spese</h3>
             </div>
-            <div className="flex flex-row gap-2 w-full">
+            <div className="flex flex-row gap-2 w-full items-center">
                 <Button onClick={() => { setEditExpense(null); setExpenseDate(new Date().toISOString().slice(0,10)); setShowExpenseModal(true) }} className="px-4 py-2">+ Spesa</Button>
-                <Button onClick={() => loadExpenses(expenseFilterStart, expenseFilterEnd)} className="bg-gray-600 px-4 py-2">Applica filtro</Button>
+                <input aria-label="Parola chiave" placeholder="Cerca categoria / note" className="border rounded px-3 py-2 flex-1" value={expenseFilterKeyword} onChange={(e)=>setExpenseFilterKeyword(e.target.value)} />
+                <Button onClick={() => loadExpenses(expenseFilterStart, expenseFilterEnd, expenseFilterKeyword)} className="bg-gray-600 px-4 py-2">Applica filtro</Button>
+                <Button onClick={() => { setExpenseFilterStart(new Date(new Date().setMonth(new Date().getMonth()-1)).toISOString().slice(0,10)); setExpenseFilterEnd(new Date().toISOString().slice(0,10)); setExpenseFilterKeyword(''); loadExpenses() }} className="bg-gray-600 px-4 py-2">Reset</Button>
               </div>
           </div>
 
