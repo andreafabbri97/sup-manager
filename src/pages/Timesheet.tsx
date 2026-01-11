@@ -268,7 +268,16 @@ export default function TimesheetPage() {
   async function removeShift(id: string) {
     if (!window.confirm('Eliminare questo turno?')) return
     const { error } = await supabase.from('shifts').delete().eq('id', id)
-    if (error) return alert(error.message)
+    if (error) {
+      // Detect FK violation related to payroll_items to show a friendly message
+      const msg = error.message || ''
+      if (msg.includes('payroll_items_shift_id_fkey') || msg.includes('violates foreign key constraint')) {
+        window.dispatchEvent(new CustomEvent('toast', { detail: { message: "Impossibile eliminare: esistono voci di payroll collegate a questo turno. Puoi prima eliminare la payroll run o contattare un admin.", type: 'error' } }))
+      } else {
+        window.dispatchEvent(new CustomEvent('toast', { detail: { message: error.message || 'Errore eliminazione turno', type: 'error' } }))
+      }
+      return
+    }
     setShifts((prev) => prev.filter((s) => s.id !== id))
   }
 

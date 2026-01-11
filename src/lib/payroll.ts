@@ -9,10 +9,11 @@ export async function calculatePayroll(start: string, end: string, employeeId?: 
   return data
 }
 
-export async function createPayrollRun(start: string, end: string, createdBy?: string, notes?: string, name?: string) {
+export async function createPayrollRun(start: string, end: string, createdBy?: string, notes?: string, name?: string, employeeId?: string) {
   const params: any = { p_start: start, p_end: end, p_created_by: createdBy }
   if (notes) params.p_notes = notes
   if (name) params.p_name = name
+  if (employeeId) params.p_employee_id = employeeId
   const { data, error } = await supabase.rpc('create_payroll_run', params)
   if (error) throw error
   return data

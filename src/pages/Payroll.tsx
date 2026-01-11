@@ -120,7 +120,7 @@ export default function PayrollPage({ lockedEmployeeId }: PayrollProps) {
       const prettyEnd = new Date(end).toLocaleDateString('it-IT')
       const runName = empName ? `Paga ${empName} periodo dal ${prettyStart} al ${prettyEnd}` : `Paga periodo dal ${prettyStart} al ${prettyEnd}`
 
-      const data = await createPayrollRun(start, end, undefined, undefined, runName)
+      const data = await createPayrollRun(start, end, undefined, undefined, runName, employeeId || undefined)
       // RPC returns run id as first row or a scalar depending on DB; normalize
       const runId = Array.isArray(data) ? (data[0]?.payroll_run_id || data[0]?.id) : (data?.payroll_run_id || data?.id)
       if (runId) {
