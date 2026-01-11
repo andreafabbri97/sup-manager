@@ -20,8 +20,8 @@ describe('Equipment categories integration', () => {
 
   it('opens category manager and shows categories', async () => {
     render(<Equipment />)
-    // wait for page title
-    await waitFor(() => expect(screen.getByText('Attrezzatura')).toBeTruthy())
+    // wait for page title (select the heading explicitly to avoid matching the button label)
+    await waitFor(() => expect(screen.getByRole('heading', { name: 'Attrezzatura' })).toBeTruthy())
 
     const btn = screen.getByText('Categorie')
     await userEvent.click(btn)

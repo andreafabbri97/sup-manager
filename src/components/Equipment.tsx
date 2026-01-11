@@ -194,16 +194,16 @@ export default function Equipment() {
 
   return (
     <div className="mt-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3">
-        <PageTitle className="m-0">Attrezzatura</PageTitle>
-        <div className="flex gap-2 w-full sm:w-auto justify-end mt-2 sm:mt-0">
-          <Button onClick={openAdd} className="px-3 py-1 text-xs sm:px-4 sm:py-2 sm:text-sm flex-shrink-0">
+      <div className="flex items-center justify-between mb-3">
+        <PageTitle className="m-0 flex-1">Attrezzatura</PageTitle>
+        <div className="flex gap-2 items-center ml-3">
+          <Button onClick={openAdd} className="px-2 py-1 text-xs sm:px-4 sm:py-2 sm:text-sm flex-shrink-0" aria-label="Aggiungi attrezzatura">
             <span className="inline-flex items-center gap-1">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4"/></svg>
-              <span>+ Attrezzatura</span>
+              <span>Attrezzatura</span>
             </span>
           </Button>
-          <Button variant="secondary" onClick={()=>setIsCatModalOpen(true)} className="px-3 py-1 text-xs sm:px-4 sm:py-2 sm:text-sm flex-shrink-0">
+          <Button variant="secondary" onClick={()=>setIsCatModalOpen(true)} className="px-2 py-1 text-xs sm:px-4 sm:py-2 sm:text-sm flex-shrink-0" aria-label="Modifica categorie">
             <span className="inline-flex items-center gap-1">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16"/></svg>
               <span>Categorie</span>
