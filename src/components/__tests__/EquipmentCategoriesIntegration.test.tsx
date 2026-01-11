@@ -23,7 +23,7 @@ describe('Equipment categories integration', () => {
     // wait for page title
     await waitFor(() => expect(screen.getByText('Attrezzatura')).toBeTruthy())
 
-    const btn = screen.getByText('Modifica categorie')
+    const btn = screen.getByText('Categorie')
     await userEvent.click(btn)
 
     // modal should show categories
