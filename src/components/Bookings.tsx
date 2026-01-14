@@ -612,72 +612,82 @@ export default function Bookings() {
     resetForm()
   }, [])
 
+  // Atomically change equipment quantity using functional update to avoid races on mobile rapid taps
+  function performEquipmentDelta(equipId: string, delta: number) {
+    setSelectedEquipment(prev => {
+      const eq = equipment.find(e => e.id === equipId)
+      const total = Number(eq?.quantity ?? 1)
+
+      // Compute booked from bookings
+      let booked = 0
+      const start = new Date(startTime || 0)
+      const end = new Date(start)
+      end.setMinutes(end.getMinutes() + (durationMinutes || 60))
+      for (const b of bookings) {
+        if (!b.start_time || !b.end_time) continue
+        const bStart = new Date(b.start_time)
+        const bEnd = new Date(b.end_time)
+        if (!(start < bEnd && bStart < end)) continue
+        const items = b.equipment_items || []
+        for (const bi of items) if (bi?.id === equipId) booked += Number(bi.quantity || 1)
+      }
+
+      // equipment used by packages
+      let bookedByPackages = 0
+      for (const sp of selectedPackages) {
+        const pkg = packages.find(p => p.id === sp.id)
+        if (!pkg || !Array.isArray(pkg.equipment_items)) continue
+        const pei = pkg.equipment_items.find((it: any) => it.id === equipId)
+        if (pei) bookedByPackages += Number(pei.quantity || 1) * (sp.quantity || 0)
+      }
+      booked += bookedByPackages
+
+      // find current in previous state
+      const current = prev.find(e => e.id === equipId)
+      const currentQty = current?.quantity || 0
+
+      // booked by other selected equipment (excluding current)
+      let bookedByOtherSelected = 0
+      for (const se of prev) if (se.id === equipId && se !== current) bookedByOtherSelected += Number(se.quantity || 0)
+      booked += bookedByOtherSelected
+
+      const remaining = Math.max(0, total - booked)
+      const targetQty = Math.max(0, Math.min(currentQty + delta, currentQty + remaining))
+
+      if (targetQty <= 0) return prev.filter(e => e.id !== equipId)
+
+      if (current) return prev.map(e => e.id === equipId ? {...e, quantity: targetQty} : e)
+      return [...prev, { id: equipId, quantity: targetQty }]
+    })
+  }
+
   function handleEquipmentChange(equipId: string, quantity: number) {
-    // Ensure integer
-    let q = Math.max(0, Math.floor(Number(quantity || 0)))
-    const eq = equipment.find(e => e.id === equipId)
+    // Legacy direct set (kept for non-incremental calls) -> convert to delta
     const current = selectedEquipment.find(e => e.id === equipId)
     const currentQty = current?.quantity || 0
+    const delta = quantity - currentQty
+    performEquipmentDelta(equipId, delta)
+  }
 
-    // Compute immediate availability for this equipment (bookings + selected packages + other selected equipment)
-    let total = Number(eq?.quantity ?? 1)
-    let booked = 0
-    const start = new Date(startTime || 0)
-    const end = new Date(start)
-    end.setMinutes(end.getMinutes() + (durationMinutes || 60))
-    for (const b of bookings) {
-      if (!b.start_time || !b.end_time) continue
-      const bStart = new Date(b.start_time)
-      const bEnd = new Date(b.end_time)
-      if (!(start < bEnd && bStart < end)) continue
-      const items = b.equipment_items || []
-      for (const bi of items) if (bi?.id === equipId) booked += Number(bi.quantity || 1)
-    }
-    // equipment used by packages
-    for (const sp of selectedPackages) {
-      const pkg = packages.find(p => p.id === sp.id)
-      if (!pkg || !Array.isArray(pkg.equipment_items)) continue
-      const pei = pkg.equipment_items.find((it: any) => it.id === equipId)
-      if (pei) booked += Number(pei.quantity || 1) * (sp.quantity || 0)
-    }
-    // other selected equipment (excluding current entry)
-    for (const se of selectedEquipment) if (se.id === equipId && se !== current) booked += Number(se.quantity || 0)
-
-    const remaining = Math.max(0, total - booked)
-    const maxTotal = currentQty + remaining
-
-    if (q > maxTotal) q = maxTotal
-
-    if (q <= 0) {
-      setSelectedEquipment(selectedEquipment.filter(e => e.id !== equipId))
-    } else {
-      if (current) {
-        setSelectedEquipment(selectedEquipment.map(e => e.id === equipId ? {...e, quantity: q} : e))
-      } else {
-        setSelectedEquipment([...selectedEquipment, {id: equipId, quantity: q}])
-      }
-    }
+  // Atomically change package quantity using functional update to avoid races
+  function performPackageDelta(pkgId: string, delta: number) {
+    setSelectedPackages(prev => {
+      const sel = prev.find(p => p.id === pkgId)
+      const currentQty = sel?.quantity || 0
+      const addable = getMaxPackageQuantity(pkgId)
+      const maxTotal = currentQty + addable
+      const target = Math.max(0, Math.min(currentQty + delta, maxTotal))
+      if (target <= 0) return prev.filter(p => p.id !== pkgId)
+      if (sel) return prev.map(p => p.id === pkgId ? { ...p, quantity: target } : p)
+      return [...prev, { id: pkgId, quantity: target }]
+    })
   }
 
   function handlePackageChange(pkgId: string, quantity: number) {
-    // clamp to allowable total (current + available)
-    let q = Math.max(0, Math.floor(Number(quantity || 0)))
     const sel = selectedPackages.find(p => p.id === pkgId)
     const currentQty = sel?.quantity || 0
-    const addable = getMaxPackageQuantity(pkgId) // how many more packages can be added
-    const maxTotal = currentQty + addable
-
-    if (q > maxTotal) q = maxTotal
-
-    if (q <= 0) {
-      setSelectedPackages(selectedPackages.filter(p => p.id !== pkgId))
-    } else {
-      if (sel) {
-        setSelectedPackages(selectedPackages.map(p => p.id === pkgId ? {...p, quantity: q} : p))
-      } else {
-        setSelectedPackages([...selectedPackages, {id: pkgId, quantity: q}])
-      }
-    }
+    const delta = quantity - currentQty
+    performPackageDelta(pkgId, delta)
   }
 
   // Compute max quantity for a package based on equipment availability
