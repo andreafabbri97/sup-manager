@@ -460,7 +460,7 @@ export default function Bookings() {
   useEffect(() => {
     computeAvailabilityPreview()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [startTime, durationMinutes, bookings, equipment, selectedPackages])
+  }, [startTime, durationMinutes, bookings, equipment, selectedPackages, selectedEquipment])
 
   function computeAvailabilityPreview() {
     if (!startTime) { setAvailabilityMap({}); return }
@@ -499,6 +499,11 @@ export default function Bookings() {
             booked += Number(pei.quantity || 1) * (sp.quantity || 1)
           }
         }
+      }
+
+      // Subtract equipment manually selected in the form
+      for (const se of selectedEquipment) {
+        if (se.id === eq.id) booked += Number(se.quantity || 1)
       }
       
       map[eq.id] = Math.max(0, total - booked)
