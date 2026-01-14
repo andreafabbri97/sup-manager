@@ -511,6 +511,21 @@ export default function Bookings() {
     setAvailabilityMap(map)
   }
 
+  // Lock to avoid duplicate rapid events (touch + click) for same item
+  const actionLockRef = React.useRef<Record<string, number>>({})
+  function tryPerformAction(key: string, fn: () => void, timeout = 350) {
+    const now = Date.now()
+    const last = actionLockRef.current[key] || 0
+    if (now - last < timeout) return
+    actionLockRef.current[key] = now
+    try {
+      fn()
+    } finally {
+      // release after timeout
+      setTimeout(() => { actionLockRef.current[key] = 0 }, timeout)
+    }
+  }
+
   // When detail start/end change, clamp selected equipment quantities to available
   useEffect(() => {
     if (!selectedBooking) return
@@ -554,8 +569,32 @@ export default function Bookings() {
     const eq = equipment.find(e => e.id === equipId)
     const current = selectedEquipment.find(e => e.id === equipId)
     const currentQty = current?.quantity || 0
-    // Remaining available (already excludes current selection)
-    const remaining = availabilityMap[equipId] ?? (eq?.quantity ?? 1)
+
+    // Compute immediate availability for this equipment (bookings + selected packages + other selected equipment)
+    let total = Number(eq?.quantity ?? 1)
+    let booked = 0
+    const start = new Date(startTime || 0)
+    const end = new Date(start)
+    end.setMinutes(end.getMinutes() + (durationMinutes || 60))
+    for (const b of bookings) {
+      if (!b.start_time || !b.end_time) continue
+      const bStart = new Date(b.start_time)
+      const bEnd = new Date(b.end_time)
+      if (!(start < bEnd && bStart < end)) continue
+      const items = b.equipment_items || []
+      for (const bi of items) if (bi?.id === equipId) booked += Number(bi.quantity || 1)
+    }
+    // equipment used by packages
+    for (const sp of selectedPackages) {
+      const pkg = packages.find(p => p.id === sp.id)
+      if (!pkg || !Array.isArray(pkg.equipment_items)) continue
+      const pei = pkg.equipment_items.find((it: any) => it.id === equipId)
+      if (pei) booked += Number(pei.quantity || 1) * (sp.quantity || 0)
+    }
+    // other selected equipment (excluding current entry)
+    for (const se of selectedEquipment) if (se.id === equipId && se !== current) booked += Number(se.quantity || 0)
+
+    const remaining = Math.max(0, total - booked)
     const maxTotal = currentQty + remaining
 
     if (q > maxTotal) q = maxTotal
@@ -598,41 +637,55 @@ export default function Bookings() {
     if (!pkg || !Array.isArray(pkg.equipment_items) || pkg.equipment_items.length === 0) {
       return 999 // no equipment constraints
     }
-    
+
+    // Helper to compute immediate availability for an equipment id (considers bookings and current selections)
+    function immediateAvailable(eqId: string) {
+      const eq = equipment.find(e => e.id === eqId)
+      if (!eq) return 0
+      if (eq?.status && eq.status !== 'available') return 0
+      const total = Number(eq.quantity ?? 1)
+
+      // booked by existing bookings (overlapping)
+      let booked = 0
+      const start = new Date(startTime || 0)
+      const end = new Date(start)
+      end.setMinutes(end.getMinutes() + (durationMinutes || 60))
+      for (const b of bookings) {
+        if (!b.start_time || !b.end_time) continue
+        const bStart = new Date(b.start_time)
+        const bEnd = new Date(b.end_time)
+        if (!(start < bEnd && bStart < end)) continue
+        const items = b.equipment_items || []
+        for (const bi of items) if (bi?.id === eqId) booked += Number(bi.quantity || 1)
+      }
+
+      // subtract manually selected equipment
+      for (const se of selectedEquipment) if (se.id === eqId) booked += Number(se.quantity || 0)
+
+      // subtract equipment used by other selected packages (excluding this package)
+      for (const sp of selectedPackages) {
+        if (!sp) continue
+        if (sp.id === pkgId) continue
+        const otherPkg = packages.find(p => p.id === sp.id)
+        if (!otherPkg || !Array.isArray(otherPkg.equipment_items)) continue
+        const otherPei = otherPkg.equipment_items.find((item: any) => item.id === eqId)
+        if (otherPei) booked += Number(otherPei.quantity || 1) * (sp.quantity || 0)
+      }
+
+      return Math.max(0, total - booked)
+    }
+
     let minAvailable = Infinity
     for (const pei of pkg.equipment_items) {
       const eqId = pei.id
       const qtyInPkg = Number(pei.quantity || 1)
       if (qtyInPkg <= 0) continue
-      
-      // Get available count for this equipment
-      const eq = equipment.find(e => e.id === eqId)
-      const isAvailable = !(eq?.status && eq.status !== 'available')
-      if (!isAvailable) return 0
-      
-      const availCount = availabilityMap[eqId] ?? (eq?.quantity ?? 1)
-      
-      // Subtract already selected equipment (non-package)
-      const alreadySelected = selectedEquipment.find(se => se.id === eqId)?.quantity || 0
-      const remainingForPackages = availCount - alreadySelected
-      
-      // Subtract equipment from other already-selected packages
-      let usedByOtherPackages = 0
-      for (const sp of selectedPackages) {
-        if (sp.id === pkgId) continue // skip current package
-        const otherPkg = packages.find(p => p.id === sp.id)
-        if (!otherPkg || !Array.isArray(otherPkg.equipment_items)) continue
-        const otherPei = otherPkg.equipment_items.find((item: any) => item.id === eqId)
-        if (otherPei) {
-          usedByOtherPackages += (Number(otherPei.quantity || 1)) * (sp.quantity || 0)
-        }
-      }
-      
-      const netAvailable = remainingForPackages - usedByOtherPackages
-      const maxPackagesForThisEquip = Math.floor(netAvailable / qtyInPkg)
+
+      const avail = immediateAvailable(eqId)
+      const maxPackagesForThisEquip = Math.floor(avail / qtyInPkg)
       minAvailable = Math.min(minAvailable, maxPackagesForThisEquip)
     }
-    
+
     return Math.max(0, minAvailable === Infinity ? 999 : minAvailable)
   }
 
@@ -1247,7 +1300,7 @@ export default function Bookings() {
                      <div className="flex items-center gap-2">
                       <button
                         type="button"
-                        onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); handlePackageChange(p.id, qty - 1) }}
+                        onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); tryPerformAction(`pkg-${p.id}-dec`, () => handlePackageChange(p.id, qty - 1)) }}
                         disabled={qty <= 0}
                         className={`w-8 h-8 rounded ${qty <= 0 ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed' : 'bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600'}`}
                       >
@@ -1256,7 +1309,7 @@ export default function Bookings() {
                       <span className="w-10 text-center text-sm font-medium">{qty}</span>
                       <button
                         type="button"
-                        onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); handlePackageChange(p.id, qty + 1) }}
+                        onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); tryPerformAction(`pkg-${p.id}-inc`, () => handlePackageChange(p.id, qty + 1)) }}
                         disabled={!canAdd}
                         className={`w-8 h-8 rounded ${!canAdd ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed' : 'bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600'}`}
                       >
@@ -1289,7 +1342,7 @@ export default function Bookings() {
                     <div className="flex items-center gap-2">
                       <button
                         type="button"
-                        onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); handleEquipmentChange(eq.id, (selected?.quantity || 0) - 1) }}
+                        onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); tryPerformAction(`eq-${eq.id}-dec`, () => handleEquipmentChange(eq.id, (selected?.quantity || 0) - 1)) }}
                         disabled={(selected?.quantity || 0) <= 0 || !isAvailable}
                         aria-disabled={(selected?.quantity || 0) <= 0 || !isAvailable}
                         className={`w-8 h-8 rounded ${ (!isAvailable || (selected?.quantity || 0) <= 0) ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed' : 'bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600'}`}
@@ -1299,7 +1352,7 @@ export default function Bookings() {
                       <span className="w-10 text-center text-sm font-medium">{selected?.quantity || 0}</span>
                       <button
                         type="button"
-                        onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); handleEquipmentChange(eq.id, (selected?.quantity || 0) + 1) }}
+                        onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); tryPerformAction(`eq-${eq.id}-inc`, () => handleEquipmentChange(eq.id, (selected?.quantity || 0) + 1)) }}
                         disabled={!isAvailable || availCount <= (selected?.quantity || 0)}
                         aria-disabled={!isAvailable || availCount <= (selected?.quantity || 0)}
                         className={`w-8 h-8 rounded ${ (!isAvailable || availCount <= (selected?.quantity || 0)) ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed' : 'bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600'}`}
