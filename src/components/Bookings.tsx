@@ -452,7 +452,7 @@ export default function Bookings() {
   useEffect(() => {
     computeAvailabilityPreview()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [startTime, durationMinutes, bookings, equipment])
+  }, [startTime, durationMinutes, bookings, equipment, selectedPackages])
 
   function computeAvailabilityPreview() {
     if (!startTime) { setAvailabilityMap({}); return }
@@ -469,6 +469,8 @@ export default function Bookings() {
       }
       const total = Number(eq.quantity ?? 1)
       let booked = 0
+      
+      // Subtract equipment from existing bookings in the same time slot
       for (const b of bookings) {
         if (!b.start_time || !b.end_time) continue
         const bStart = new Date(b.start_time)
@@ -479,6 +481,18 @@ export default function Bookings() {
           if (bi?.id === eq.id) booked += Number(bi.quantity || 1)
         }
       }
+      
+      // Subtract equipment from currently selected packages
+      for (const sp of selectedPackages) {
+        const pkg = packages.find(p => p.id === sp.id)
+        if (!pkg || !Array.isArray(pkg.equipment_items)) continue
+        for (const pei of pkg.equipment_items) {
+          if (pei.id === eq.id) {
+            booked += Number(pei.quantity || 1) * (sp.quantity || 1)
+          }
+        }
+      }
+      
       map[eq.id] = Math.max(0, total - booked)
     }
     setAvailabilityMap(map)
