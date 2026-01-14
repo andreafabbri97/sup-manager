@@ -38,9 +38,9 @@ BEGIN
   FOR pi IN SELECT * FROM jsonb_array_elements(coalesce(p_package_items, '[]'::jsonb)) LOOP
     -- Get package equipment_items
     FOR pkg_rec IN 
-      SELECT jsonb_array_elements(coalesce(equipment_items, '[]'::jsonb)) as pkg_eq
+      SELECT jsonb_array_elements(coalesce(package.equipment_items, '[]'::jsonb)) as pkg_eq
       FROM package 
-      WHERE id = (pi->>'id')::uuid
+      WHERE package.id = (pi->>'id')::uuid
     LOOP
       -- Add to merged_equipment
       eq_id := (pkg_rec.pkg_eq->>'id')::uuid;
@@ -111,9 +111,9 @@ BEGIN
       -- Expand and add from package_items
       FOR pi IN SELECT * FROM jsonb_array_elements(coalesce(rec.package_items, '[]'::jsonb)) LOOP
         FOR pkg_rec IN 
-          SELECT jsonb_array_elements(coalesce(equipment_items, '[]'::jsonb)) as pkg_eq
+          SELECT jsonb_array_elements(coalesce(package.equipment_items, '[]'::jsonb)) as pkg_eq
           FROM package 
-          WHERE id = (pi->>'id')::uuid
+          WHERE package.id = (pi->>'id')::uuid
         LOOP
           IF (pkg_rec.pkg_eq->>'id')::uuid = eq_id THEN
             booked_qty := booked_qty + (COALESCE((pkg_rec.pkg_eq->>'quantity')::int, 1) * COALESCE((pi->>'quantity')::int, 1));
