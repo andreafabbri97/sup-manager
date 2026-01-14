@@ -356,8 +356,12 @@ export default function Bookings() {
     // Sync selection into modal state
     const selEquip = Array.isArray(selectedBooking.equipment_items) ? selectedBooking.equipment_items.map((it: any) => ({ id: it.id, quantity: Number(it.quantity || 1) })) : []
     setDetailSelectedEquipment(selEquip)
-    // If booking has a single package FK, represent it in detailSelectedPackages for editing
-    if (selectedBooking.package_id) {
+    // If booking has package_items (new format), use that
+    if (Array.isArray(selectedBooking.package_items) && selectedBooking.package_items.length > 0) {
+      setDetailSelectedPackages(selectedBooking.package_items.map((sp: any) => ({ id: sp.id, quantity: sp.quantity || 1 })))
+      setDetailSelectedPackage(null)
+    } else if (selectedBooking.package_id) {
+      // Legacy: single package FK
       setDetailSelectedPackages([{ id: selectedBooking.package_id, quantity: 1 }])
       setDetailSelectedPackage(selectedBooking.package_id)
     } else if (Array.isArray(selectedBooking._source_packages) && selectedBooking._source_packages.length > 0) {
@@ -801,7 +805,7 @@ export default function Bookings() {
     const end_time = new Date(startTime)
     end_time.setMinutes(end_time.getMinutes() + duration)
 
-    // Merge package equipment_items (if any) with explicitly selected equipment
+    // Merge package equipment_items (if any) with explicitly selected equipment FOR AVAILABILITY CHECK
     let mergedEquipment: {id: string, quantity: number}[] = [...selectedEquipment]
     
     for (const pkgItem of selectedPackages) {
@@ -843,7 +847,8 @@ export default function Bookings() {
           end_time: end_time.toISOString(),
           price,
           package_id: null, // Multiple packages not supported by single FK, storing null
-          equipment_items: mergedEquipment,
+          equipment_items: selectedEquipment, // Store only manual equipment, not merged
+          package_items: selectedPackages,
           mergedEquipment, // per availability check
           duration
         })
@@ -862,7 +867,8 @@ export default function Bookings() {
       end_time: end_time.toISOString(),
       price,
       package_id: null,
-      equipment_items: mergedEquipment,
+      equipment_items: selectedEquipment, // Store only manual equipment, not merged
+      package_items: selectedPackages,
       mergedEquipment,
       duration
     })
@@ -916,7 +922,8 @@ export default function Bookings() {
         p_end: dbData.end_time,
         p_price: dbData.price,
         p_package: dbData.package_id,
-        p_equipment_items: dbData.equipment_items
+        p_equipment_items: dbData.equipment_items,
+        p_package_items: dbData.package_items || []
       })
       if (error) throw error
       // RPC returns the created booking id (table result). Update with customer_phone, customer_id, paid/invoiced if user set them
@@ -1004,8 +1011,8 @@ export default function Bookings() {
   }
 
   async function saveBookingChanges(updated: any) {
-    const { id, customer_name, customer_phone, start_time, end_time, price, package_id, equipment_items, paid, invoiced, invoice_number, notes } = updated
-    const updatePayload: any = { customer_name, customer_phone, start_time, end_time, price, package_id, equipment_items, notes }
+    const { id, customer_name, customer_phone, start_time, end_time, price, package_id, equipment_items, package_items, paid, invoiced, invoice_number, notes } = updated
+    const updatePayload: any = { customer_name, customer_phone, start_time, end_time, price, package_id, equipment_items, package_items, notes }
     if (paid !== undefined) updatePayload.paid = paid
     if (invoiced !== undefined) updatePayload.invoiced = invoiced
     if (invoice_number !== undefined) updatePayload.invoice_number = invoice_number
@@ -1779,6 +1786,7 @@ export default function Bookings() {
                   price: detailPrice,
                   package_id: detailSelectedPackage,
                   equipment_items: detailSelectedEquipment,
+                  package_items: detailSelectedPackages,
                   paid: detailPaid,
                   invoiced: detailInvoiced,
                   invoice_number: detailInvoiceNumber,
