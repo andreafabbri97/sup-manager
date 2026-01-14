@@ -549,27 +549,45 @@ export default function Bookings() {
   }, [])
 
   function handleEquipmentChange(equipId: string, quantity: number) {
-    if (quantity <= 0) {
+    // Ensure integer
+    let q = Math.max(0, Math.floor(Number(quantity || 0)))
+    const eq = equipment.find(e => e.id === equipId)
+    const current = selectedEquipment.find(e => e.id === equipId)
+    const currentQty = current?.quantity || 0
+    // Remaining available (already excludes current selection)
+    const remaining = availabilityMap[equipId] ?? (eq?.quantity ?? 1)
+    const maxTotal = currentQty + remaining
+
+    if (q > maxTotal) q = maxTotal
+
+    if (q <= 0) {
       setSelectedEquipment(selectedEquipment.filter(e => e.id !== equipId))
     } else {
-      const exists = selectedEquipment.find(e => e.id === equipId)
-      if (exists) {
-        setSelectedEquipment(selectedEquipment.map(e => e.id === equipId ? {...e, quantity} : e))
+      if (current) {
+        setSelectedEquipment(selectedEquipment.map(e => e.id === equipId ? {...e, quantity: q} : e))
       } else {
-        setSelectedEquipment([...selectedEquipment, {id: equipId, quantity}])
+        setSelectedEquipment([...selectedEquipment, {id: equipId, quantity: q}])
       }
     }
   }
 
   function handlePackageChange(pkgId: string, quantity: number) {
-    if (quantity <= 0) {
+    // clamp to allowable total (current + available)
+    let q = Math.max(0, Math.floor(Number(quantity || 0)))
+    const sel = selectedPackages.find(p => p.id === pkgId)
+    const currentQty = sel?.quantity || 0
+    const addable = getMaxPackageQuantity(pkgId) // how many more packages can be added
+    const maxTotal = currentQty + addable
+
+    if (q > maxTotal) q = maxTotal
+
+    if (q <= 0) {
       setSelectedPackages(selectedPackages.filter(p => p.id !== pkgId))
     } else {
-      const exists = selectedPackages.find(p => p.id === pkgId)
-      if (exists) {
-        setSelectedPackages(selectedPackages.map(p => p.id === pkgId ? {...p, quantity} : p))
+      if (sel) {
+        setSelectedPackages(selectedPackages.map(p => p.id === pkgId ? {...p, quantity: q} : p))
       } else {
-        setSelectedPackages([...selectedPackages, {id: pkgId, quantity}])
+        setSelectedPackages([...selectedPackages, {id: pkgId, quantity: q}])
       }
     }
   }
@@ -1229,8 +1247,7 @@ export default function Bookings() {
                      <div className="flex items-center gap-2">
                       <button
                         type="button"
-                        onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); handlePackageChange(p.id, qty - 1) }}
-                        onTouchStart={(e) => { e.preventDefault(); e.stopPropagation(); handlePackageChange(p.id, qty - 1) }}
+                        onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); handlePackageChange(p.id, qty - 1) }}
                         disabled={qty <= 0}
                         className={`w-8 h-8 rounded ${qty <= 0 ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed' : 'bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600'}`}
                       >
@@ -1239,8 +1256,7 @@ export default function Bookings() {
                       <span className="w-10 text-center text-sm font-medium">{qty}</span>
                       <button
                         type="button"
-                        onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); handlePackageChange(p.id, qty + 1) }}
-                        onTouchStart={(e) => { e.preventDefault(); e.stopPropagation(); handlePackageChange(p.id, qty + 1) }}
+                        onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); handlePackageChange(p.id, qty + 1) }}
                         disabled={!canAdd}
                         className={`w-8 h-8 rounded ${!canAdd ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed' : 'bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600'}`}
                       >
@@ -1273,8 +1289,7 @@ export default function Bookings() {
                     <div className="flex items-center gap-2">
                       <button
                         type="button"
-                        onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); handleEquipmentChange(eq.id, (selected?.quantity || 0) - 1) }}
-                        onTouchStart={(e) => { e.preventDefault(); e.stopPropagation(); handleEquipmentChange(eq.id, (selected?.quantity || 0) - 1) }}
+                        onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); handleEquipmentChange(eq.id, (selected?.quantity || 0) - 1) }}
                         disabled={(selected?.quantity || 0) <= 0 || !isAvailable}
                         aria-disabled={(selected?.quantity || 0) <= 0 || !isAvailable}
                         className={`w-8 h-8 rounded ${ (!isAvailable || (selected?.quantity || 0) <= 0) ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed' : 'bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600'}`}
@@ -1284,8 +1299,7 @@ export default function Bookings() {
                       <span className="w-10 text-center text-sm font-medium">{selected?.quantity || 0}</span>
                       <button
                         type="button"
-                        onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); handleEquipmentChange(eq.id, (selected?.quantity || 0) + 1) }}
-                        onTouchStart={(e) => { e.preventDefault(); e.stopPropagation(); handleEquipmentChange(eq.id, (selected?.quantity || 0) + 1) }}
+                        onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); handleEquipmentChange(eq.id, (selected?.quantity || 0) + 1) }}
                         disabled={!isAvailable || availCount <= (selected?.quantity || 0)}
                         aria-disabled={!isAvailable || availCount <= (selected?.quantity || 0)}
                         className={`w-8 h-8 rounded ${ (!isAvailable || availCount <= (selected?.quantity || 0)) ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed' : 'bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600'}`}
