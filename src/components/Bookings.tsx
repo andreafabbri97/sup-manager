@@ -333,8 +333,8 @@ export default function Bookings() {
 
   // Sync priceInput with computed price when not manually edited
   useEffect(() => {
-    if (!isPriceManual && computedPrice !== null) {
-      setPriceInput(String(computedPrice))
+    if (!isPriceManual) {
+      setPriceInput(computedPrice !== null ? String(computedPrice) : '0')
     }
   }, [computedPrice, isPriceManual])
 
@@ -1226,6 +1226,7 @@ export default function Bookings() {
                         type="button"
                         onClick={(e) => { e.stopPropagation(); handlePackageChange(p.id, qty - 1) }}
                         disabled={qty <= 0}
+                        style={{ touchAction: 'none' }}
                         className={`w-8 h-8 rounded ${qty <= 0 ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed' : 'bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600'}`}
                       >
                         -
@@ -1235,6 +1236,7 @@ export default function Bookings() {
                         type="button"
                         onClick={(e) => { e.stopPropagation(); handlePackageChange(p.id, qty + 1) }}
                         disabled={!canAdd}
+                        style={{ touchAction: 'none' }}
                         className={`w-8 h-8 rounded ${!canAdd ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed' : 'bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600'}`}
                       >
                         +
@@ -1269,6 +1271,7 @@ export default function Bookings() {
                         onClick={(e) => { e.stopPropagation(); handleEquipmentChange(eq.id, (selected?.quantity || 0) - 1) }}
                         disabled={(selected?.quantity || 0) <= 0 || !isAvailable}
                         aria-disabled={(selected?.quantity || 0) <= 0 || !isAvailable}
+                        style={{ touchAction: 'none' }}
                         className={`w-8 h-8 rounded ${ (!isAvailable || (selected?.quantity || 0) <= 0) ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed' : 'bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600'}`}
                       >
                         -
@@ -1279,6 +1282,7 @@ export default function Bookings() {
                         onClick={(e) => { e.stopPropagation(); handleEquipmentChange(eq.id, (selected?.quantity || 0) + 1) }}
                         disabled={!isAvailable || availCount <= (selected?.quantity || 0)}
                         aria-disabled={!isAvailable || availCount <= (selected?.quantity || 0)}
+                        style={{ touchAction: 'none' }}
                         className={`w-8 h-8 rounded ${ (!isAvailable || availCount <= (selected?.quantity || 0)) ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed' : 'bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600'}`}
                       >
                         +
