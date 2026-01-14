@@ -546,6 +546,50 @@ export default function Bookings() {
     }
   }
 
+  // Compute max quantity for a package based on equipment availability
+  function getMaxPackageQuantity(pkgId: string): number {
+    const pkg = packages.find(p => p.id === pkgId)
+    if (!pkg || !Array.isArray(pkg.equipment_items) || pkg.equipment_items.length === 0) {
+      return 999 // no equipment constraints
+    }
+    
+    let minAvailable = Infinity
+    for (const pei of pkg.equipment_items) {
+      const eqId = pei.id
+      const qtyInPkg = Number(pei.quantity || 1)
+      if (qtyInPkg <= 0) continue
+      
+      // Get available count for this equipment
+      const eq = equipment.find(e => e.id === eqId)
+      const isAvailable = !(eq?.status && eq.status !== 'available')
+      if (!isAvailable) return 0
+      
+      const availCount = availabilityMap[eqId] ?? (eq?.quantity ?? 1)
+      
+      // Subtract already selected equipment (non-package)
+      const alreadySelected = selectedEquipment.find(se => se.id === eqId)?.quantity || 0
+      const remainingForPackages = availCount - alreadySelected
+      
+      // Subtract equipment from other already-selected packages
+      let usedByOtherPackages = 0
+      for (const sp of selectedPackages) {
+        if (sp.id === pkgId) continue // skip current package
+        const otherPkg = packages.find(p => p.id === sp.id)
+        if (!otherPkg || !Array.isArray(otherPkg.equipment_items)) continue
+        const otherPei = otherPkg.equipment_items.find((item: any) => item.id === eqId)
+        if (otherPei) {
+          usedByOtherPackages += (Number(otherPei.quantity || 1)) * (sp.quantity || 0)
+        }
+      }
+      
+      const netAvailable = remainingForPackages - usedByOtherPackages
+      const maxPackagesForThisEquip = Math.floor(netAvailable / qtyInPkg)
+      minAvailable = Math.min(minAvailable, maxPackagesForThisEquip)
+    }
+    
+    return Math.max(0, minAvailable === Infinity ? 999 : minAvailable)
+  }
+
   async function computePricePreview() {
     // compute price locally
     let total = 0
@@ -1146,15 +1190,18 @@ export default function Bookings() {
               {packages.map(p => {
                 const sel = selectedPackages.find(sp => sp.id === p.id)
                 const qty = sel?.quantity || 0
+                const maxQty = getMaxPackageQuantity(p.id)
+                const canAdd = maxQty > qty
                 return (
                   <div key={p.id} className="flex items-center justify-between gap-3">
-                    <div className="min-w-0">
+                    <div className="min-w-0 flex-1">
                       <div className="text-sm font-medium truncate">{p.name}</div>
-                      <div className="text-xs text-neutral-400">€ {p.price}</div>
+                      <div className="text-xs text-neutral-400">€ {p.price} — <span className="text-neutral-500">Max: {maxQty}</span></div>
                     </div>
                      <div className="flex items-center gap-2">
                       <button
-                        onClick={() => handlePackageChange(p.id, qty - 1)}
+                        onClick={(e) => { e.preventDefault(); handlePackageChange(p.id, qty - 1) }}
+                        onTouchEnd={(e) => e.preventDefault()}
                         disabled={qty <= 0}
                         className={`w-8 h-8 rounded ${qty <= 0 ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed' : 'bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600'}`}
                       >
@@ -1162,8 +1209,10 @@ export default function Bookings() {
                       </button>
                       <span className="w-10 text-center text-sm font-medium">{qty}</span>
                       <button
-                        onClick={() => handlePackageChange(p.id, qty + 1)}
-                        className="w-8 h-8 rounded bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600"
+                        onClick={(e) => { e.preventDefault(); handlePackageChange(p.id, qty + 1) }}
+                        onTouchEnd={(e) => e.preventDefault()}
+                        disabled={!canAdd}
+                        className={`w-8 h-8 rounded ${!canAdd ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed' : 'bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600'}`}
                       >
                         +
                       </button>
@@ -1193,7 +1242,8 @@ export default function Bookings() {
                     </div>
                     <div className="flex items-center gap-2">
                       <button
-                        onClick={() => handleEquipmentChange(eq.id, (selected?.quantity || 0) - 1)}
+                        onClick={(e) => { e.preventDefault(); handleEquipmentChange(eq.id, (selected?.quantity || 0) - 1) }}
+                        onTouchEnd={(e) => e.preventDefault()}
                         disabled={(selected?.quantity || 0) <= 0 || !isAvailable}
                         aria-disabled={(selected?.quantity || 0) <= 0 || !isAvailable}
                         className={`w-8 h-8 rounded ${ (!isAvailable || (selected?.quantity || 0) <= 0) ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed' : 'bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600'}`}
@@ -1202,7 +1252,8 @@ export default function Bookings() {
                       </button>
                       <span className="w-10 text-center text-sm font-medium">{selected?.quantity || 0}</span>
                       <button
-                        onClick={() => handleEquipmentChange(eq.id, (selected?.quantity || 0) + 1)}
+                        onClick={(e) => { e.preventDefault(); handleEquipmentChange(eq.id, (selected?.quantity || 0) + 1) }}
+                        onTouchEnd={(e) => e.preventDefault()}
                         disabled={!isAvailable || availCount <= (selected?.quantity || 0)}
                         aria-disabled={!isAvailable || availCount <= (selected?.quantity || 0)}
                         className={`w-8 h-8 rounded ${ (!isAvailable || availCount <= (selected?.quantity || 0)) ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed' : 'bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600'}`}
