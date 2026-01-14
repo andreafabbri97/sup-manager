@@ -67,7 +67,8 @@ export default function Bookings() {
   const [modalDay, setModalDay] = useState<Date | null>(null)
 
   // Cache for per-day bookings to avoid refetching same day repeatedly
-  const [dayBookingsCache, setDayBookingsCache] = useState<Record<string, any[]>>({})
+  // Allow undefined values when explicitly invalidating a cached day
+  const [dayBookingsCache, setDayBookingsCache] = useState<Record<string, any[] | undefined>>({})
   const [dayLoading, setDayLoading] = useState<Record<string, boolean>>({})
 
   // Mark-paid modal state
