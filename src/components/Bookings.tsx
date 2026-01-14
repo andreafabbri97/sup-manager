@@ -66,6 +66,10 @@ export default function Bookings() {
   const [showDayListModal, setShowDayListModal] = useState(false)
   const [modalDay, setModalDay] = useState<Date | null>(null)
 
+  // Cache for per-day bookings to avoid refetching same day repeatedly
+  const [dayBookingsCache, setDayBookingsCache] = useState<Record<string, any[]>>({})
+  const [dayLoading, setDayLoading] = useState<Record<string, boolean>>({})
+
   // Mark-paid modal state
   const [showMarkPaidModal, setShowMarkPaidModal] = useState(false)
   const [markPaidBooking, setMarkPaidBooking] = useState<any | null>(null)
@@ -759,6 +763,24 @@ export default function Bookings() {
     const current = selectedPackages.find(sp => sp.id === pkgId)
     const currentQty = current?.quantity || 0
     return Math.max(0, totalAllowed - currentQty)
+  }
+
+  // For detail modal (uses detailSelectedPackages instead of selectedPackages)
+  function getMaxPackageAddableForDetails(pkgId: string) {
+    const totalAllowed = getMaxPackageQuantity(pkgId)
+    const current = detailSelectedPackages.find(sp => sp.id === pkgId)
+    const currentQty = current?.quantity || 0
+    return Math.max(0, totalAllowed - currentQty)
+  }
+
+  function handleDetailPackageChange(pkgId: string, quantity: number) {
+    setDetailSelectedPackages(prev => {
+      const q = Math.max(0, quantity)
+      if (q <= 0) return prev.filter(p => p.id !== pkgId)
+      const sel = prev.find(p => p.id === pkgId)
+      if (sel) return prev.map(p => p.id === pkgId ? { ...p, quantity: q } : p)
+      return [...prev, { id: pkgId, quantity: q }]
+    })
   }
 
   async function computePricePreview() {
@@ -1675,7 +1697,7 @@ export default function Bookings() {
                       <div className="flex items-center gap-2">
                         <button type="button" onClick={(e)=>{ e.stopPropagation(); handleDetailPackageChange(p.id, qty - 1) }} className={`w-6 h-6 rounded ${qty <= 0 ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed' : 'bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600'}`}>-</button>
                         <span className="w-8 text-center text-sm font-medium">{qty}</span>
-                        <button type="button" onClick={(e)=>{ e.stopPropagation(); handleDetailPackageChange(p.id, qty + 1) }} disabled={getMaxPackageAddable(p.id) <= 0} className={`w-6 h-6 rounded ${(getMaxPackageAddable(p.id) <= 0) ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed' : 'bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600'}`}>+</button>
+                        <button type="button" onClick={(e)=>{ e.stopPropagation(); handleDetailPackageChange(p.id, qty + 1) }} disabled={getMaxPackageAddableForDetails(p.id) <= 0} className={`w-6 h-6 rounded ${(getMaxPackageAddableForDetails(p.id) <= 0) ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed' : 'bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600'}`}>+</button>
                       </div>
                     </div>
                   )
