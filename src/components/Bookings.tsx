@@ -17,7 +17,8 @@ export default function Bookings() {
   const [showBookingDetails, setShowBookingDetails] = useState(false)
   // detail modal local state (to avoid mutating selectedBooking directly)
   const [detailSelectedEquipment, setDetailSelectedEquipment] = useState<{id: string, quantity: number}[]>([])
-  const [detailSelectedPackage, setDetailSelectedPackage] = useState<string | null>(null)
+  const [detailSelectedPackages, setDetailSelectedPackages] = useState<{id: string, quantity: number}[]>([])
+  const [detailSelectedPackage, setDetailSelectedPackage] = useState<string | null>(null) // legacy single-package support
   const [detailDurationMinutes, setDetailDurationMinutes] = useState<number>(60)
   const [detailDurationInput, setDetailDurationInput] = useState<string>(String(60))
   const [detailPrice, setDetailPrice] = useState<number | null>(null)
@@ -355,7 +356,18 @@ export default function Bookings() {
     // Sync selection into modal state
     const selEquip = Array.isArray(selectedBooking.equipment_items) ? selectedBooking.equipment_items.map((it: any) => ({ id: it.id, quantity: Number(it.quantity || 1) })) : []
     setDetailSelectedEquipment(selEquip)
-    setDetailSelectedPackage(selectedBooking.package_id || null)
+    // If booking has a single package FK, represent it in detailSelectedPackages for editing
+    if (selectedBooking.package_id) {
+      setDetailSelectedPackages([{ id: selectedBooking.package_id, quantity: 1 }])
+      setDetailSelectedPackage(selectedBooking.package_id)
+    } else if (Array.isArray(selectedBooking._source_packages) && selectedBooking._source_packages.length > 0) {
+      // If booking was created with multiple packages we might store them in a synthetic field (_source_packages) when creating bookings via new UI
+      setDetailSelectedPackages(selectedBooking._source_packages.map((sp: any) => ({ id: sp.id, quantity: sp.quantity || 1 })))
+      setDetailSelectedPackage(null)
+    } else {
+      setDetailSelectedPackages([])
+      setDetailSelectedPackage(null)
+    }
     setDetailDurationMinutes(dMin)
     setDetailDurationInput(String(dMin))
     setDetailStartTime(formatToDatetimeLocal(selectedBooking.start_time || null))
@@ -399,9 +411,14 @@ export default function Bookings() {
   // recompute detail price when detail inputs change
   useEffect(() => {
     if (detailPriceManual) return
-    if (detailSelectedPackage) {
-      const pkg = packages.find(p => p.id === detailSelectedPackage)
-      setDetailPrice(pkg ? (pkg.price || 0) : 0)
+    // If any package selected, compute package price sum
+    if (detailSelectedPackages.length > 0) {
+      let totalP = 0
+      for (const sp of detailSelectedPackages) {
+        const pkg = packages.find(p => p.id === sp.id)
+        if (pkg) totalP += (Number(pkg.price || 0)) * (sp.quantity || 1)
+      }
+      setDetailPrice(Math.round((totalP + Number.EPSILON) * 100) / 100)
       return
     }
     if (detailSelectedEquipment.length === 0) { setDetailPrice(null); return }
@@ -414,7 +431,7 @@ export default function Bookings() {
     }
     setDetailPrice(Math.round((total + Number.EPSILON) * 100) / 100)
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [detailSelectedEquipment, detailSelectedPackage, detailDurationMinutes, detailPriceManual])
+  }, [detailSelectedEquipment, detailSelectedPackages, detailDurationMinutes, detailPriceManual])
 
   // when package changed, merge package equipment into current selection (non-destructive)
   useEffect(() => {
@@ -509,6 +526,38 @@ export default function Bookings() {
       map[eq.id] = Math.max(0, total - booked)
     }
     setAvailabilityMap(map)
+  }
+
+  // Compute immediate remaining availability for an equipment id (used in render to disable +)
+  function immediateEquipmentRemaining(eqId: string) {
+    const eq = equipment.find(e => e.id === eqId)
+    if (!eq) return 0
+    if (eq?.status && eq.status !== 'available') return 0
+    const total = Number(eq.quantity ?? 1)
+
+    let booked = 0
+    const start = new Date(startTime || 0)
+    const end = new Date(start)
+    end.setMinutes(end.getMinutes() + (durationMinutes || 60))
+    for (const b of bookings) {
+      if (!b.start_time || !b.end_time) continue
+      const bStart = new Date(b.start_time)
+      const bEnd = new Date(b.end_time)
+      if (!(start < bEnd && bStart < end)) continue
+      const items = b.equipment_items || []
+      for (const bi of items) if (bi?.id === eqId) booked += Number(bi.quantity || 1)
+    }
+    // count equipment used by packages
+    for (const sp of selectedPackages) {
+      const pkg = packages.find(p => p.id === sp.id)
+      if (!pkg || !Array.isArray(pkg.equipment_items)) continue
+      const pei = pkg.equipment_items.find((it: any) => it.id === eqId)
+      if (pei) booked += Number(pei.quantity || 1) * (sp.quantity || 0)
+    }
+    // other selected equipment
+    for (const se of selectedEquipment) if (se.id === eqId) booked += Number(se.quantity || 0)
+
+    return Math.max(0, total - booked)
   }
 
   // Lock to avoid duplicate rapid events (touch + click) for same item
@@ -633,6 +682,7 @@ export default function Bookings() {
 
   // Compute max quantity for a package based on equipment availability
   function getMaxPackageQuantity(pkgId: string): number {
+    // Backwards-compatible: return total allowed packages (not addable)
     const pkg = packages.find(p => p.id === pkgId)
     if (!pkg || !Array.isArray(pkg.equipment_items) || pkg.equipment_items.length === 0) {
       return 999 // no equipment constraints
@@ -687,6 +737,14 @@ export default function Bookings() {
     }
 
     return Math.max(0, minAvailable === Infinity ? 999 : minAvailable)
+  }
+
+  // Return how many additional packages can be added (beyond current selection)
+  function getMaxPackageAddable(pkgId: string) {
+    const totalAllowed = getMaxPackageQuantity(pkgId)
+    const current = selectedPackages.find(sp => sp.id === pkgId)
+    const currentQty = current?.quantity || 0
+    return Math.max(0, totalAllowed - currentQty)
   }
 
   async function computePricePreview() {
@@ -1329,7 +1387,11 @@ export default function Bookings() {
               {equipment.map((eq) => {
                 const selected = selectedEquipment.find(e => e.id === eq.id)
                 const isAvailable = !(eq?.status && eq.status !== 'available')
-                const availCount = isAvailable ? (availabilityMap[eq.id] ?? (eq.quantity ?? 1)) : 0
+                // Use immediate calculation so button disabled updates instantly on touch
+                const remaining = isAvailable ? immediateEquipmentRemaining(eq.id) : 0
+                const displayedAvail = isAvailable ? remaining : 0
+                const selectedQty = selected?.quantity || 0
+                const disableInc = !isAvailable || displayedAvail <= 0
                 return (
                   <div key={eq.id} className="flex items-center justify-between gap-3">
                     <div className="min-w-0">
@@ -1337,25 +1399,25 @@ export default function Bookings() {
                         <div className="text-sm font-medium truncate">{eq.name}</div>
                         <div className={`inline-block px-2 py-0.5 text-xs rounded ${isAvailable ? 'bg-green-100 text-green-800' : eq.status === 'maintenance' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>{isAvailable ? 'Disponibile' : (eq.status === 'maintenance' ? 'Manutenzione' : 'Ritirata')}</div>
                       </div>
-                      <div className="text-xs text-neutral-400">€ {eq.price_per_hour ?? 0} / ora — <span className="text-neutral-500">Disponibili: {availCount}</span></div>
+                      <div className="text-xs text-neutral-400">€ {eq.price_per_hour ?? 0} / ora — <span className="text-neutral-500">Disponibili: {displayedAvail}</span></div>
                     </div>
                     <div className="flex items-center gap-2">
                       <button
                         type="button"
-                        onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); tryPerformAction(`eq-${eq.id}-dec`, () => handleEquipmentChange(eq.id, (selected?.quantity || 0) - 1)) }}
-                        disabled={(selected?.quantity || 0) <= 0 || !isAvailable}
-                        aria-disabled={(selected?.quantity || 0) <= 0 || !isAvailable}
-                        className={`w-8 h-8 rounded ${ (!isAvailable || (selected?.quantity || 0) <= 0) ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed' : 'bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600'}`}
+                        onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); tryPerformAction(`eq-${eq.id}-dec`, () => handleEquipmentChange(eq.id, selectedQty - 1)) }}
+                        disabled={selectedQty <= 0 || !isAvailable}
+                        aria-disabled={selectedQty <= 0 || !isAvailable}
+                        className={`w-8 h-8 rounded ${ (!isAvailable || selectedQty <= 0) ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed' : 'bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600'}`}
                       >
                         -
                       </button>
-                      <span className="w-10 text-center text-sm font-medium">{selected?.quantity || 0}</span>
+                      <span className="w-10 text-center text-sm font-medium">{selectedQty}</span>
                       <button
                         type="button"
-                        onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); tryPerformAction(`eq-${eq.id}-inc`, () => handleEquipmentChange(eq.id, (selected?.quantity || 0) + 1)) }}
-                        disabled={!isAvailable || availCount <= (selected?.quantity || 0)}
-                        aria-disabled={!isAvailable || availCount <= (selected?.quantity || 0)}
-                        className={`w-8 h-8 rounded ${ (!isAvailable || availCount <= (selected?.quantity || 0)) ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed' : 'bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600'}`}
+                        onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); tryPerformAction(`eq-${eq.id}-inc`, () => handleEquipmentChange(eq.id, selectedQty + 1)) }}
+                        disabled={disableInc}
+                        aria-disabled={disableInc}
+                        className={`w-8 h-8 rounded ${ (disableInc) ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed' : 'bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600'}`}
                       >
                         +
                       </button>
@@ -1562,13 +1624,27 @@ export default function Bookings() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">Pacchetto (opzionale)</label>
-              <select value={detailSelectedPackage || ''} onChange={(e)=>{ setDetailSelectedPackage(e.target.value || null) }} className="w-full border px-3 py-2 rounded">
-                <option value="">Nessun pacchetto</option>
-                {packages.map(p => (
-                  <option key={p.id} value={p.id}>{p.name} - €{p.price}</option>
-                ))}
-              </select>
+              <label className="block text-sm font-medium mb-2">Pacchetti (opzionale)</label>
+              <div className="space-y-2 max-h-48 overflow-y-auto border border-neutral-200 dark:border-neutral-700 rounded p-3">
+                {packages.map(p => {
+                  const sel = detailSelectedPackages.find(sp => sp.id === p.id)
+                  const qty = sel?.quantity || 0
+                  return (
+                    <div key={p.id} className="flex items-center justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="text-sm font-medium truncate">{p.name}</div>
+                        <div className="text-xs text-neutral-400">€ {p.price}</div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button type="button" onClick={(e)=>{ e.stopPropagation(); handleDetailPackageChange(p.id, qty - 1) }} className={`w-6 h-6 rounded ${qty <= 0 ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed' : 'bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600'}`}>-</button>
+                        <span className="w-8 text-center text-sm font-medium">{qty}</span>
+                        <button type="button" onClick={(e)=>{ e.stopPropagation(); handleDetailPackageChange(p.id, qty + 1) }} disabled={getMaxPackageAddable(p.id) <= 0} className={`w-6 h-6 rounded ${(getMaxPackageAddable(p.id) <= 0) ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed' : 'bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600'}`}>+</button>
+                      </div>
+                    </div>
+                  )
+                })}
+                {packages.length === 0 && <div className="text-sm text-neutral-500 text-center py-4">Nessun pacchetto disponibile</div>}
+              </div>
             </div>
 
             <div>
