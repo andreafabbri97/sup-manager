@@ -1214,8 +1214,8 @@ export default function Bookings() {
                     </div>
                      <div className="flex items-center gap-2">
                       <button
-                        onClick={(e) => { e.preventDefault(); handlePackageChange(p.id, qty - 1) }}
-                        onTouchEnd={(e) => e.preventDefault()}
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); handlePackageChange(p.id, qty - 1) }}
                         disabled={qty <= 0}
                         className={`w-8 h-8 rounded ${qty <= 0 ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed' : 'bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600'}`}
                       >
@@ -1223,8 +1223,8 @@ export default function Bookings() {
                       </button>
                       <span className="w-10 text-center text-sm font-medium">{qty}</span>
                       <button
-                        onClick={(e) => { e.preventDefault(); handlePackageChange(p.id, qty + 1) }}
-                        onTouchEnd={(e) => e.preventDefault()}
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); handlePackageChange(p.id, qty + 1) }}
                         disabled={!canAdd}
                         className={`w-8 h-8 rounded ${!canAdd ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed' : 'bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600'}`}
                       >
@@ -1256,8 +1256,8 @@ export default function Bookings() {
                     </div>
                     <div className="flex items-center gap-2">
                       <button
-                        onClick={(e) => { e.preventDefault(); handleEquipmentChange(eq.id, (selected?.quantity || 0) - 1) }}
-                        onTouchEnd={(e) => e.preventDefault()}
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); handleEquipmentChange(eq.id, (selected?.quantity || 0) - 1) }}
                         disabled={(selected?.quantity || 0) <= 0 || !isAvailable}
                         aria-disabled={(selected?.quantity || 0) <= 0 || !isAvailable}
                         className={`w-8 h-8 rounded ${ (!isAvailable || (selected?.quantity || 0) <= 0) ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed' : 'bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600'}`}
@@ -1266,8 +1266,8 @@ export default function Bookings() {
                       </button>
                       <span className="w-10 text-center text-sm font-medium">{selected?.quantity || 0}</span>
                       <button
-                        onClick={(e) => { e.preventDefault(); handleEquipmentChange(eq.id, (selected?.quantity || 0) + 1) }}
-                        onTouchEnd={(e) => e.preventDefault()}
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); handleEquipmentChange(eq.id, (selected?.quantity || 0) + 1) }}
                         disabled={!isAvailable || availCount <= (selected?.quantity || 0)}
                         aria-disabled={!isAvailable || availCount <= (selected?.quantity || 0)}
                         className={`w-8 h-8 rounded ${ (!isAvailable || availCount <= (selected?.quantity || 0)) ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed' : 'bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600'}`}
