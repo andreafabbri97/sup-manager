@@ -36,13 +36,15 @@ export default function Bookings() {
   // Modal state
   const [showModal, setShowModal] = useState(false)
   const [selectedEquipment, setSelectedEquipment] = useState<{id: string, quantity: number}[]>([])
-  const [selectedPackage, setSelectedPackage] = useState<string | null>(null)
+  const [selectedPackages, setSelectedPackages] = useState<{id: string, quantity: number}[]>([])
   const [customerName, setCustomerName] = useState('')
   const [customerPhone, setCustomerPhone] = useState('')
   const [startTime, setStartTime] = useState('')
   const [durationMinutes, setDurationMinutes] = useState(60) // default duration in minutes
   const [durationInput, setDurationInput] = useState<string>(String(60)) // string state for editing the duration input
   const [computedPrice, setComputedPrice] = useState<number | null>(null)
+  const [customPrice, setCustomPrice] = useState<number | null>(null)
+  const [isPriceManual, setIsPriceManual] = useState(false)
   const [availabilityMap, setAvailabilityMap] = useState<Record<string, number>>({})
   const [newPaid, setNewPaid] = useState<boolean>(false)
   const [newInvoiced, setNewInvoiced] = useState<boolean>(false)
@@ -326,7 +328,7 @@ export default function Bookings() {
   useEffect(() => {
     computePricePreview()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedEquipment, selectedPackage, durationMinutes])
+  }, [selectedEquipment, selectedPackages, durationMinutes])
 
   // sync selected booking into detail modal local state when opened
   useEffect(() => {
@@ -498,13 +500,15 @@ export default function Bookings() {
 
   function resetForm() {
     setSelectedEquipment([])
-    setSelectedPackage(null)
+    setSelectedPackages([])
     setCustomerName('')
     setCustomerPhone('')
     setStartTime('')
     setDurationMinutes(60)
     setDurationInput('60')
     setComputedPrice(null)
+    setCustomPrice(null)
+    setIsPriceManual(false)
     setNewPaid(false)
     setNewInvoiced(false)
     setNewInvoiceNumber(null)
@@ -529,63 +533,78 @@ export default function Bookings() {
     }
   }
 
-  async function computePricePreview() {
-    // compute price locally: if package selected use package.price, else sum equipment price_per_hour * qty * hours
-    if (selectedPackage) {
-      const pkg = packages.find(p => p.id === selectedPackage)
-      setComputedPrice(pkg ? (pkg.price || 0) : 0)
-      return
+  function handlePackageChange(pkgId: string, quantity: number) {
+    if (quantity <= 0) {
+      setSelectedPackages(selectedPackages.filter(p => p.id !== pkgId))
+    } else {
+      const exists = selectedPackages.find(p => p.id === pkgId)
+      if (exists) {
+        setSelectedPackages(selectedPackages.map(p => p.id === pkgId ? {...p, quantity} : p))
+      } else {
+        setSelectedPackages([...selectedPackages, {id: pkgId, quantity}])
+      }
     }
-    if (selectedEquipment.length === 0) { setComputedPrice(null); return }
-    const hours = Math.max(0.01, durationMinutes / 60)
+  }
+
+  async function computePricePreview() {
+    // compute price locally
     let total = 0
+    let hasItems = false
+
+    // packages
+    for (const item of selectedPackages) {
+      const pkg = packages.find(p => p.id === item.id)
+      if (pkg) {
+        total += (Number(pkg.price) || 0) * (item.quantity || 1)
+        hasItems = true
+      }
+    }
+
+    // equipment
+    const hours = Math.max(0.01, durationMinutes / 60)
     for (const item of selectedEquipment) {
       const eq = equipment.find(e => e.id === item.id)
       const rate = eq?.price_per_hour ? Number(eq.price_per_hour) : 0
       total += rate * (item.quantity || 1) * hours
+      hasItems = true
     }
-    setComputedPrice(Math.round((total + Number.EPSILON) * 100) / 100)
+    
+    if (!hasItems) {
+      setComputedPrice(null)
+      // Only reset manual price if not manually set? No, clear logic usually reset.
+      // But if user set manual price, maybe they want to keep it? 
+      // Let's mimic original: setComputedPrice(null)
+    } else {
+      setComputedPrice(Math.round((total + Number.EPSILON) * 100) / 100)
+    }
   }
 
   async function createBooking() {
     if (!startTime) return alert('Seleziona data e ora')
-    if (selectedEquipment.length === 0 && !selectedPackage) return alert('Seleziona almeno un\'attrezzatura o un pacchetto')
+    if (selectedEquipment.length === 0 && selectedPackages.length === 0) return alert('Seleziona almeno un\'attrezzatura o un pacchetto')
 
     let duration = durationMinutes || 60 // minutes
-    let price = 0
-
-    // Se c'è un pacchetto, usa i suoi parametri
-    if (selectedPackage) {
-      const pkg = packages.find(p => p.id === selectedPackage)
-      if (pkg) {
-        duration = pkg.duration || duration
-        price = pkg.price || 0
-      }
-    } else {
-      // compute from equipment rates
-      const hours = Math.max(0.01, duration / 60)
-      for (const item of selectedEquipment) {
-        const eq = equipment.find(e => e.id === item.id)
-        const rate = eq?.price_per_hour ? Number(eq.price_per_hour) : 0
-        price += rate * (item.quantity || 1) * hours
-      }
-      // round
-      price = Math.round((price + Number.EPSILON) * 100) / 100
-    }
+    // Use manual price if set, otherwise computed
+    let price = isPriceManual && customPrice !== null ? customPrice : (computedPrice || 0)
 
     const end_time = new Date(startTime)
     end_time.setMinutes(end_time.getMinutes() + duration)
 
     // Merge package equipment_items (if any) with explicitly selected equipment
     let mergedEquipment: {id: string, quantity: number}[] = [...selectedEquipment]
-    if (selectedPackage) {
-      const pkg = packages.find(p => p.id === selectedPackage)
+    
+    for (const pkgItem of selectedPackages) {
+      const pkg = packages.find(p => p.id === pkgItem.id)
       if (pkg && Array.isArray(pkg.equipment_items)) {
+        // for each equipment in this package, multiply by package quantity
         for (const pei of pkg.equipment_items) {
+          const mult = Number(pkgItem.quantity || 1)
+          const qtyInPkg = Number(pei.quantity || 1)
+          const totalToAdd = qtyInPkg * mult
+          
           const existing = mergedEquipment.find(m => m.id === pei.id)
-          const q = Number(pei.quantity || 1)
-          if (existing) existing.quantity = (existing.quantity || 0) + q
-          else mergedEquipment.push({ id: pei.id, quantity: q })
+          if (existing) existing.quantity = (existing.quantity || 0) + totalToAdd
+          else mergedEquipment.push({ id: pei.id, quantity: totalToAdd })
         }
       }
     }
@@ -612,7 +631,7 @@ export default function Bookings() {
           start_time: new Date(startTime).toISOString(),
           end_time: end_time.toISOString(),
           price,
-          package_id: selectedPackage,
+          package_id: null, // Multiple packages not supported by single FK, storing null
           equipment_items: mergedEquipment,
           mergedEquipment, // per availability check
           duration
@@ -631,7 +650,7 @@ export default function Bookings() {
       start_time: new Date(startTime).toISOString(),
       end_time: end_time.toISOString(),
       price,
-      package_id: selectedPackage,
+      package_id: null,
       equipment_items: mergedEquipment,
       mergedEquipment,
       duration
@@ -1122,17 +1141,38 @@ export default function Bookings() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">Pacchetto (opzionale)</label>
-            <select
-              value={selectedPackage || ''}
-              onChange={(e) => setSelectedPackage(e.target.value || null)}
-              className="w-full border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-slate-700 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-amber-500"
-            >
-              <option value="">Nessun pacchetto</option>
-              {packages.map(p => (
-                <option key={p.id} value={p.id}>{p.name} - €{p.price}</option>
-              ))}
-            </select>
+            <label className="block text-sm font-medium mb-2">Pacchetti (opzionale)</label>
+            <div className="space-y-2 max-h-64 overflow-y-auto border border-neutral-200 dark:border-neutral-700 rounded p-3">
+              {packages.map(p => {
+                const sel = selectedPackages.find(sp => sp.id === p.id)
+                const qty = sel?.quantity || 0
+                return (
+                  <div key={p.id} className="flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="text-sm font-medium truncate">{p.name}</div>
+                      <div className="text-xs text-neutral-400">€ {p.price}</div>
+                    </div>
+                     <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handlePackageChange(p.id, qty - 1)}
+                        disabled={qty <= 0}
+                        className={`w-8 h-8 rounded ${qty <= 0 ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed' : 'bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600'}`}
+                      >
+                        -
+                      </button>
+                      <span className="w-10 text-center text-sm font-medium">{qty}</span>
+                      <button
+                        onClick={() => handlePackageChange(p.id, qty + 1)}
+                        className="w-8 h-8 rounded bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+                )
+              })}
+              {packages.length === 0 && <div className="text-sm text-neutral-500 text-center py-4">Nessun pacchetto disponibile</div>}
+            </div>
           </div>
 
           <div>
@@ -1181,8 +1221,31 @@ export default function Bookings() {
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-4">
             <div className="sm:col-span-1">
-              <div className="text-sm text-neutral-500">Prezzo stimato</div>
-              <div className="text-xl font-bold">{computedPrice !== null ? computedPrice.toFixed(2) + ' €' : '-'} </div>
+              <label className="block text-sm font-medium mb-1">Prezzo</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  step="0.01"
+                  value={isPriceManual && customPrice !== null ? customPrice : (computedPrice || 0)}
+                  onChange={(e) => {
+                     const val = parseFloat(e.target.value)
+                     if (!isNaN(val)) {
+                       setCustomPrice(val)
+                       setIsPriceManual(true)
+                     } else {
+                       setCustomPrice(null)
+                       setIsPriceManual(false)
+                     }
+                  }}
+                  className="w-full border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-slate-700 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-amber-500"
+                />
+                <span className="text-xl font-bold">€</span>
+              </div>
+              <div className="text-xs text-neutral-500 mt-1">
+                {isPriceManual ? 
+                  <button onClick={()=>{ setIsPriceManual(false); setCustomPrice(null) }} className="text-amber-600 hover:underline">Ripristina calcolo automatico</button> : 
+                  "Calcolato automaticamente"}
+              </div>
             </div>
             <div className="sm:col-span-1">
               <label className="block text-sm font-medium mb-1">Note (opzionale)</label>
