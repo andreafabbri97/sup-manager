@@ -99,21 +99,35 @@ export default function Bookings() {
   }
 
   function equipmentLabel(b: any) {
-    const items = b.equipment_items || []
-    if (!items || items.length === 0) return ''
-    if (items.length === 1) {
-      const it = items[0]
-      const eq = equipment.find(e => e.id === it.id)
-      const name = eq?.name || 'Attrezzatura'
-      const qty = Number(it.quantity || 1)
-      return qty > 1 ? `${qty}x ${name}` : name
+    // Show packages first (if any), then equipment items, combined into a single comma-separated string
+    const pkgItems = Array.isArray(b.package_items) && b.package_items.length > 0
+      ? b.package_items
+      : Array.isArray(b._source_packages) && b._source_packages.length > 0
+        ? b._source_packages
+        : (b.package_id ? [{ id: b.package_id, quantity: 1 }] : [])
+
+    const eqItems = Array.isArray(b.equipment_items) ? b.equipment_items : []
+
+    const parts: string[] = []
+
+    // Packages
+    for (const p of pkgItems) {
+      const pkg = packages.find(pp => pp.id === p.id)
+      const name = pkg?.name || 'Pacchetto'
+      const qty = Number(p.quantity || 1)
+      parts.push(qty > 1 ? `${qty}x ${name}` : name)
     }
-    return items.map((it: any) => {
+
+    // Equipment
+    for (const it of eqItems) {
       const eq = equipment.find(e => e.id === it.id)
       const name = eq?.name || 'Attrezzatura'
       const qty = Number(it.quantity || 1)
-      return qty > 1 ? `${qty}x ${name}` : name
-    }).join(', ')
+      parts.push(qty > 1 ? `${qty}x ${name}` : name)
+    }
+
+    if (parts.length === 0) return ''
+    return parts.join(', ')
   }
 
   // helper: format Date to string suitable for <input type="datetime-local"> (local time)
