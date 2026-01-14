@@ -44,6 +44,7 @@ export default function Bookings() {
   const [durationInput, setDurationInput] = useState<string>(String(60)) // string state for editing the duration input
   const [computedPrice, setComputedPrice] = useState<number | null>(null)
   const [customPrice, setCustomPrice] = useState<number | null>(null)
+  const [priceInput, setPriceInput] = useState<string>('') // string state for editing the price input
   const [isPriceManual, setIsPriceManual] = useState(false)
   const [availabilityMap, setAvailabilityMap] = useState<Record<string, number>>({})
   const [newPaid, setNewPaid] = useState<boolean>(false)
@@ -330,6 +331,13 @@ export default function Bookings() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedEquipment, selectedPackages, durationMinutes])
 
+  // Sync priceInput with computed price when not manually edited
+  useEffect(() => {
+    if (!isPriceManual && computedPrice !== null) {
+      setPriceInput(String(computedPrice))
+    }
+  }, [computedPrice, isPriceManual])
+
   // sync selected booking into detail modal local state when opened
   useEffect(() => {
     if (!selectedBooking) return
@@ -522,6 +530,7 @@ export default function Bookings() {
     setDurationInput('60')
     setComputedPrice(null)
     setCustomPrice(null)
+    setPriceInput('')
     setIsPriceManual(false)
     setNewPaid(false)
     setNewInvoiced(false)
@@ -1291,16 +1300,31 @@ export default function Bookings() {
                 <input
                   type="number"
                   step="0.01"
-                  value={isPriceManual && customPrice !== null ? customPrice : (computedPrice || 0)}
+                  value={priceInput}
                   onChange={(e) => {
+                     setPriceInput(e.target.value)
                      const val = parseFloat(e.target.value)
-                     if (!isNaN(val)) {
+                     if (!isNaN(val) && e.target.value.trim() !== '') {
                        setCustomPrice(val)
                        setIsPriceManual(true)
-                     } else {
-                       setCustomPrice(null)
-                       setIsPriceManual(false)
+                     } else if (e.target.value.trim() === '') {
+                       // Allow empty field during editing
+                       setIsPriceManual(true)
                      }
+                  }}
+                  onBlur={() => {
+                    // On blur, if empty or invalid, reset to computed price
+                    const val = parseFloat(priceInput)
+                    if (isNaN(val) || priceInput.trim() === '') {
+                      if (computedPrice !== null) {
+                        setPriceInput(String(computedPrice))
+                        setCustomPrice(computedPrice)
+                        setIsPriceManual(false)
+                      } else {
+                        setPriceInput('0')
+                        setCustomPrice(0)
+                      }
+                    }
                   }}
                   className="w-full border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-slate-700 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-amber-500"
                 />
@@ -1308,7 +1332,7 @@ export default function Bookings() {
               </div>
               <div className="text-xs text-neutral-500 mt-1">
                 {isPriceManual ? 
-                  <button onClick={()=>{ setIsPriceManual(false); setCustomPrice(null) }} className="text-amber-600 hover:underline">Ripristina calcolo automatico</button> : 
+                  <button type="button" onClick={()=>{ setIsPriceManual(false); setCustomPrice(null); setPriceInput(computedPrice !== null ? String(computedPrice) : '0') }} className="text-amber-600 hover:underline">Ripristina calcolo automatico</button> : 
                   "Calcolato automaticamente"}
               </div>
             </div>
