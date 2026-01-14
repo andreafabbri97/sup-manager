@@ -1368,7 +1368,12 @@ export default function Bookings() {
                      <div className="flex items-center gap-2">
                       <button
                         type="button"
-                        onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); tryPerformAction(`pkg-${p.id}-dec`, () => performPackageDelta(p.id, -1)) }}
+                        onPointerDown={(e) => { 
+                          e.preventDefault(); 
+                          e.stopPropagation(); 
+                          if (qty <= 0) return;
+                          tryPerformAction(`pkg-${p.id}-dec`, () => performPackageDelta(p.id, -1)) 
+                        }}
                         disabled={qty <= 0}
                         className={`w-8 h-8 rounded ${qty <= 0 ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed' : 'bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600'}`}
                       >
@@ -1377,7 +1382,12 @@ export default function Bookings() {
                       <span className="w-10 text-center text-sm font-medium">{qty}</span>
                       <button
                         type="button"
-                        onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); tryPerformAction(`pkg-${p.id}-inc`, () => performPackageDelta(p.id, +1)) }}
+                        onPointerDown={(e) => { 
+                          e.preventDefault(); 
+                          e.stopPropagation(); 
+                          if (!canAdd) return;
+                          tryPerformAction(`pkg-${p.id}-inc`, () => performPackageDelta(p.id, +1)) 
+                        }}
                         disabled={!canAdd}
                         className={`w-8 h-8 rounded ${!canAdd ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed' : 'bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600'}`}
                       >
@@ -1414,7 +1424,12 @@ export default function Bookings() {
                     <div className="flex items-center gap-2">
                       <button
                         type="button"
-                        onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); tryPerformAction(`eq-${eq.id}-dec`, () => performEquipmentDelta(eq.id, -1)) }}
+                        onPointerDown={(e) => { 
+                          e.preventDefault(); 
+                          e.stopPropagation(); 
+                          if (selectedQty <= 0 || !isAvailable) return;
+                          tryPerformAction(`eq-${eq.id}-dec`, () => performEquipmentDelta(eq.id, -1)) 
+                        }}
                         disabled={selectedQty <= 0 || !isAvailable}
                         aria-disabled={selectedQty <= 0 || !isAvailable}
                         className={`w-8 h-8 rounded ${ (!isAvailable || selectedQty <= 0) ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed' : 'bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600'}`}
@@ -1424,7 +1439,12 @@ export default function Bookings() {
                       <span className="w-10 text-center text-sm font-medium">{selectedQty}</span>
                       <button
                         type="button"
-                        onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); tryPerformAction(`eq-${eq.id}-inc`, () => performEquipmentDelta(eq.id, +1)) }}
+                        onPointerDown={(e) => { 
+                          e.preventDefault(); 
+                          e.stopPropagation(); 
+                          if (disableInc) return;
+                          tryPerformAction(`eq-${eq.id}-inc`, () => performEquipmentDelta(eq.id, +1)) 
+                        }}
                         disabled={disableInc}
                         aria-disabled={disableInc}
                         className={`w-8 h-8 rounded ${ (disableInc) ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed' : 'bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600'}`}
